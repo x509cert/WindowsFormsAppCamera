@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
-using System.Threading;
 using System.Drawing.Drawing2D;
-using System.IO.Ports;
-using System.Timers;
 using System.IO;
+using System.IO.Ports;
 using System.Text;
+using System.Threading;
+using System.Timers;
+using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -17,7 +17,10 @@ namespace WindowsFormsAppCamera
         readonly Queue<Int64>   _redCalibrationData = null;
         Int64                   _redCalibrationAvg;
         readonly Int64          _redTriggerPercent = 33;
-        readonly int            _xHitBoxStart=200, _yHitBoxStart=200, _xHitBoxEnd=460, _yHitBoxEnd=270; // this is the hit box rectangle
+        readonly int            _xHitBoxStart = 200, 
+                                _yHitBoxStart = 200, 
+                                _xHitBoxEnd = 460, 
+                                _yHitBoxEnd = 270; // this is the hit box rectangle
         Thread                  _thread = null;
         bool                    _fKillThread = false;
         System.Timers.Timer     _skillTimer = null;
@@ -61,8 +64,8 @@ namespace WindowsFormsAppCamera
                 {
                     w.WriteLine(entry);
                 }
-            } 
-            catch(Exception)
+            }
+            catch (Exception)
             {
                 // keep on chugging
             }
@@ -120,8 +123,9 @@ namespace WindowsFormsAppCamera
                 port.Write(msg);
                 Thread.Sleep(200);
                 port.Close();
-            
-            } catch (Exception)
+
+            }
+            catch (Exception)
             {
                 WriteLog("EXCEPTION: Serial port not open");
             }
@@ -150,7 +154,7 @@ namespace WindowsFormsAppCamera
                 _skillTimer.Elapsed += DeploySkill;
                 _skillTimer.AutoReset = true;
                 _skillTimer.Enabled = true;
-            } 
+            }
             else
             {
                 _skillTimer.Start();
@@ -168,7 +172,7 @@ namespace WindowsFormsAppCamera
         private void WorkerThreadFunc()
         {
             DateTime dtDronesStart = DateTime.Now;
-            
+
             bool fDronesIncoming = false;
             Int64 _showDroneText = 0;
             var sb = new StringBuilder(24);
@@ -243,7 +247,7 @@ namespace WindowsFormsAppCamera
                     // write the camera image + text etc to the UI
                     DrawTargetRange(bmp);
                     pictCamera.Image = bmp;
-                } 
+                }
                 else
                 {
                     Bitmap bmp = new Bitmap(640, 480);
@@ -364,7 +368,7 @@ namespace WindowsFormsAppCamera
             cmbCameraFormat.Items.Clear();
             for (int i = 0; i < formats.Length; i++)
             {
-                string f = "Resolution: " + formats[i].Caps.InputSize.ToString() + ", bits/sec: " + formats[i].Caps.MinBitsPerSecond;                     
+                string f = "Resolution: " + formats[i].Caps.InputSize.ToString() + ", bits/sec: " + formats[i].Caps.MinBitsPerSecond;
                 cmbCameraFormat.Items.Add(f);
             }
         }
@@ -424,11 +428,11 @@ namespace WindowsFormsAppCamera
 
         // counts the number of RBGA elements in pixels in the hitbox
         // TODO: Will this work if do every other pixel?
-        private void GetRGBAInRange(Bitmap bmp, 
-                                out Int32 totalR, 
-                                out Int32 totalG, 
-                                out Int32 totalB, 
-                                out Int32 totalA) 
+        private void GetRGBAInRange(Bitmap bmp,
+                                out Int32 totalR,
+                                out Int32 totalG,
+                                out Int32 totalB,
+                                out Int32 totalA)
         {
             totalR = totalG = totalB = totalA = 0;
             for (int x = _xHitBoxStart; x < _xHitBoxEnd; x++)
