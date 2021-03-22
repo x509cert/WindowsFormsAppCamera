@@ -145,7 +145,7 @@ namespace WindowsFormsAppCamera
             var grabber = CreateSampleGrabber();
             graph.AddFilter(grabber, "SampleGrabber");
             var i_grabber = (DirectShow.ISampleGrabber)grabber;
-            i_grabber.SetBufferSamples(true); //サンプルグラバでのサンプリングを開始
+            i_grabber.SetBufferSamples(true); 
 
             //---------------------------------------------------
             // Null Renderer
@@ -210,9 +210,9 @@ namespace WindowsFormsAppCamera
                         try
                         {
                             var cam_ctrl = vcap_source as DirectShow.IAMCameraControl;
-                            if (cam_ctrl == null) throw new NotSupportedException("no IAMCameraControl Interface."); // will catched.
+                            if (cam_ctrl == null) throw new NotSupportedException("no IAMCameraControl Interface."); // will catch.
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
-                            cam_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if not supports.
+                            cam_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if no support.
 
                             Action<DirectShow.CameraControlFlags, int> set = (flag, value) => cam_ctrl.Set(item, value, (int)flag);
                             Func<int> get = () => { int value = 0; cam_ctrl.Get(item, ref value, ref flags); return value; };
@@ -230,9 +230,9 @@ namespace WindowsFormsAppCamera
                         try
                         {
                             var vid_ctrl = vcap_source as DirectShow.IAMVideoProcAmp;
-                            if (vid_ctrl == null) throw new NotSupportedException("no IAMVideoProcAmp Interface."); // will catched.
+                            if (vid_ctrl == null) throw new NotSupportedException("no IAMVideoProcAmp Interface."); // will catch.
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
-                            vid_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if not supports.
+                            vid_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if no support.
 
                             Action<DirectShow.CameraControlFlags, int> set = (flag, value) => vid_ctrl.Set(item, value, (int)flag);
                             Func<int> get = () => { int value = 0; vid_ctrl.Get(item, ref value, ref flags); return value; };

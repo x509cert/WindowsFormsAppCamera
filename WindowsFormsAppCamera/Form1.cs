@@ -8,11 +8,14 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
+using Azure.Storage;
 
 namespace WindowsFormsAppCamera
 {
     public partial class Form1 : Form
     {
+        #region Helper classes
+        // used to track RGB pixel colors
         struct RGBTotal
         {
             private long b;
@@ -29,29 +32,51 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        UsbCamera               _camera;
+        // keeps track of log entries for uploading to Azure
+        class LogQueue : Queue<string>
+        {
+            private const int MAX = 20;
+            private int _max;
+
+            public LogQueue(int max = MAX)
+            {
+                _max = max;
+            }
+
+            public void Enqueue2(string s)
+            {
+                if (s.Length == 0)
+                    return;
+
+                // if we have reached the max size of the queue, then remove the oldest item
+                if (Count > _max)
+                    Dequeue();
+
+                Enqueue(s);
+            }
+        }
+        #endregion
+
+        #region Class member variables
+        UsbCamera _camera;
         RGBTotal                _calibrationAvg;
-        readonly float          _triggerPercent = 65F;
+        LogQueue                _logQueue;
+        float                   _triggerPercent = 65F;
         readonly int            _xHitBoxStart = 200, 
                                 _yHitBoxStart = 200, 
                                 _xHitBoxEnd = 460, 
                                 _yHitBoxEnd = 270; // this is the hit box rectangle
-        Thread                  _thread = null;
-        bool                    _fKillThread = false;
+        Thread                  _threadWorker = null;
+        Thread                  _threadLog = null;
+        bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
         readonly string         _sLogFilePath;
         bool                    _fUsingLiveScreen = true;
-        readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);
-        Brush                   _colorInfo = Brushes.AliceBlue;
+        readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
+        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 22); // longest time we can go without seeing a drone, used to send out an emergency EMP
+        Brush                   _colorInfo = Brushes.Black;
 
-        public Form1()
-        {
-            InitializeComponent();
-
-            _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-            this.Text = "Sneaky's DivGrind [Last Built " + GetBuildDate() + "]";
-        }
+        #endregion
 
         private string GetBuildDate()
         {
@@ -60,6 +85,7 @@ namespace WindowsFormsAppCamera
             return fi.LastWriteTime.ToString();
         }
 
+        #region Logging
         private void WriteLog(string s)
         {
             DateTime dt = DateTime.Now;
@@ -77,6 +103,7 @@ namespace WindowsFormsAppCamera
                 using (StreamWriter w = File.AppendText(sLogFile))
                 {
                     w.WriteLine(entry);
+                    _logQueue.Enqueue2(entry);
                 }
             }
             catch (Exception)
@@ -84,21 +111,9 @@ namespace WindowsFormsAppCamera
                 // keep on chugging
             }
         }
+        #endregion
 
-        // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
-        bool DronesSpotted(ref RGBTotal rbgTotal)
-        {
-            // if there is no increase in red, then no drones
-            float spottedRed = (float)_calibrationAvg.R + (((float)_calibrationAvg.R / 100.0F) * _triggerPercent);
-            if (rbgTotal.R <= spottedRed)
-                return false;
-
-            // if there is also an increase in blue and green, then it's an EMP flash
-            float spottedGreen = (float)_calibrationAvg.G + (((float)_calibrationAvg.G / 100.0F) * _triggerPercent);
-            float spottedBlue = (float)_calibrationAvg.B + (((float)_calibrationAvg.B / 100.0F) * _triggerPercent);
-
-            return rbgTotal.G < spottedGreen || rbgTotal.B < spottedBlue;
-        }
+        #region Arduino Interface
 
         // Send command to the Arduino over the COM port
         // The USB port is treated as a COM port
@@ -141,7 +156,9 @@ namespace WindowsFormsAppCamera
                 TriggerArduino("E");
             }
         }
+#endregion
 
+        #region Thread Functions
         // Press the turret ever 15secs
         // if the screen is blank, then hit the EMP too
         private void SetSkillTimer()
@@ -162,14 +179,28 @@ namespace WindowsFormsAppCamera
         private void KillSkillTimer()
         {
             if (_skillTimer != null)
+            {
                 _skillTimer.Stop();
+                _skillTimer = null;
+            }
+        }
+
+        // a new thread that uploads log data to Azure
+        private void UploadLogThreadFunc()
+        {
+            while (!_fKillThreads)
+            {
+
+                Thread.Sleep(20000); // delay 20secs
+            }
         }
 
         // starts a new thread that does the core work, 
         // this is so we don't use the UI thread for the work which would make the UI sluggish
         private void WorkerThreadFunc()
         {
-            DateTime dtDronesStart = DateTime.Now;
+            var dtDronesStart = DateTime.Now;
+            DateTime dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
             Int64 _showDroneText = 0;
@@ -179,8 +210,19 @@ namespace WindowsFormsAppCamera
 
             SetSkillTimer();
 
-            while (!_fKillThread)
+            while (!_fKillThreads)
             {
+                // need to check that drones have been spotted and if not, throw out the EMP and deploy the turret
+                TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
+                if (tSpan > _longestTimeBetweenDrones)
+                {
+                    WriteLog("Last drone seen: " + tSpan.TotalSeconds + "s ago");
+                    TriggerArduino("E");
+                    TriggerArduino("T");
+
+                    dtLastDroneSpotted = DateTime.Now;
+                }
+
                 if (_fUsingLiveScreen)
                 {
                     string droneCooldown = "Drone check: Ready";
@@ -202,46 +244,38 @@ namespace WindowsFormsAppCamera
                     // get the image from the camera
                     var bmp = _camera.GetBitmap();
                     Graphics gd = Graphics.FromImage(bmp);
+
+                    // draw a rectangle for the text
+                    gd.FillRectangle(Brushes.DarkBlue, 2, 480-98, 640/3, 480-2);
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
                     // Write amount of red in the bmp
                     RGBTotal rbgTotal = new RGBTotal() ;
                     GetRGBInRange(bmp, ref rbgTotal);
 
-                    sb.Clear();
-                    sb.Append("R: ");
-                    sb.Append(rbgTotal.R.ToString("N0"));
-                    sb.Append(" (");
-                    int percentAbove = (int)(((float)rbgTotal.R / (float)_calibrationAvg.R) * 100);
-                    sb.Append(percentAbove);
-                    sb.Append("%)");
-                    gd.DrawString(sb.ToString(), new Font("Tahoma", 14), _colorInfo, new Rectangle(0, bmp.Height - 70, bmp.Width, 24));
+                    const int X = 4;
 
-                    sb.Clear();
-                    sb.Append("G: ");
-                    sb.Append(rbgTotal.G.ToString("N0"));
-                    sb.Append(" (");
-                    percentAbove = (int)(((float)rbgTotal.G / (float)_calibrationAvg.G) * 100);
-                    sb.Append(percentAbove);
-                    sb.Append("%)");
-                    gd.DrawString(sb.ToString(), new Font("Tahoma", 14), _colorInfo, new Rectangle(0, bmp.Height - 48, bmp.Width, 24));
+                    int percentChange = (int)(((float)rbgTotal.R / (float)_calibrationAvg.R) * 100);
+                    string r = $"R: {rbgTotal.R:N0} ({percentChange}%)";
+                    gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 70, bmp.Width, 24));
 
-                    sb.Clear();
-                    sb.Append("B: ");
-                    sb.Append(rbgTotal.B.ToString("N0"));
-                    sb.Append(" (");
-                    percentAbove = (int)(((float)rbgTotal.B / (float)_calibrationAvg.B) * 100);
-                    sb.Append(percentAbove);
-                    sb.Append("%)");
-                    gd.DrawString(sb.ToString(), new Font("Tahoma", 14), _colorInfo, new Rectangle(0, bmp.Height - 24, bmp.Width, 24));
+                    percentChange = (int)(((float)rbgTotal.G / (float)_calibrationAvg.G) * 100);
+                    string g = $"G: {rbgTotal.G:N0} ({percentChange}%)";
+                    gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 48, bmp.Width, 24));
+
+                    percentChange = (int)(((float)rbgTotal.B / (float)_calibrationAvg.B) * 100);
+                    string b = $"B: {rbgTotal.B:N0} ({percentChange}%)";
+                    gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(0, bmp.Height - 100, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 100, bmp.Width, 24));
 
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
                     // start the countdown for displaying the "incoming text"
                     if (!fDronesIncoming && DronesSpotted(ref rbgTotal))
                     {
+                        dtLastDroneSpotted = DateTime.Now;
+
                         WriteLog("Drones detected");
                         TriggerArduino("E");
 
@@ -253,7 +287,7 @@ namespace WindowsFormsAppCamera
                     // display the "Incoming text" - this is written the the image
                     if (_showDroneText > 0)
                     {
-                        Rectangle rectDrone = new Rectangle(200, bmp.Height - 100, bmp.Width, 100);
+                        Rectangle rectDrone = new Rectangle(180, bmp.Height - 100, bmp.Width, 100);
                         gd.DrawString("Drones Incoming", new Font("Tahoma", 30), Brushes.Firebrick, rectDrone);
 
                         _showDroneText--;
@@ -277,7 +311,19 @@ namespace WindowsFormsAppCamera
 
             KillSkillTimer();
         }
+        #endregion
 
+        #region UI Elements
+        public Form1()
+        {
+            InitializeComponent();
+
+            _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            this.Text = "Sneaky's DivGrind [Last Built " + GetBuildDate() + "]";
+
+            numTrigger.Value = (decimal)_triggerPercent;
+        }
         private void btnStart_Click(object sender, EventArgs e)
         {
             btnStart.Enabled = false;
@@ -289,9 +335,13 @@ namespace WindowsFormsAppCamera
 
             btnTestComPort.Enabled = false;
 
-            _fKillThread = false;
-            _thread = new Thread(WorkerThreadFunc);
-            _thread.Start();
+            // start the threads
+            _fKillThreads = false;
+            _threadWorker = new Thread(WorkerThreadFunc);
+            _threadWorker.Start();
+
+            _threadLog = new Thread(UploadLogThreadFunc);
+            _threadLog.Start();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -307,31 +357,8 @@ namespace WindowsFormsAppCamera
 
             TriggerArduino("U");
             
-            _fKillThread = true;
+            _fKillThreads = true;
             KillSkillTimer();
-        }
-
-        private void btnEraseCalibrate_Click(object sender, EventArgs e)
-        {
-            _calibrationAvg.Init();
-            lblRedCount.Text = lblBlueCount.Text = lblGreenCount.Text = "0";
-        }
-
-        private void DrawTargetRange(Bitmap bmp)
-        {
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                int width = _xHitBoxEnd - _xHitBoxStart;
-                int height = _yHitBoxEnd - _yHitBoxStart;
-                Rectangle rectTarget = new Rectangle(_xHitBoxStart, _yHitBoxStart, width, height);
-
-                Color customColor = Color.FromArgb(99, Color.Yellow);
-                SolidBrush brushYellow = new SolidBrush(customColor);
-                g.FillRectangle(brushYellow, rectTarget);
-
-                Pen penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
-                g.DrawRectangle(penYellow, rectTarget);
-            }
         }
 
         private void btnSaveBmp_Click(object sender, EventArgs e)
@@ -390,10 +417,15 @@ namespace WindowsFormsAppCamera
 
         private void cmbCameraFormat_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // create usb camera and start.
+            // create usb camera object with selected resolution and start.
             int camera = cmbCamera.SelectedIndex;
             UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(camera);
-            _camera = new UsbCamera(camera, formats[cmbCameraFormat.SelectedIndex]);
+            
+            var selectFormat = formats[cmbCameraFormat.SelectedIndex];
+            if (selectFormat.Size.Width != 640 && selectFormat.Size.Height != 480)
+                MessageBox.Show("Warning! Only 640x480 has been tested","Warning");
+
+            _camera = new UsbCamera(camera, selectFormat);
             _camera.Start();
 
             foreach (string p in SerialPort.GetPortNames())
@@ -430,10 +462,39 @@ namespace WindowsFormsAppCamera
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
             KillSkillTimer();
-            _fKillThread = true;
+            _fKillThreads = true;
 
-            MessageBox.Show("Shutting down resources, press OK");
-            e.Cancel = true;
+            Thread.Sleep(400);
+            e.Cancel = false;
+        }
+
+        private void numTrigger_ValueChanged(object sender, EventArgs e)
+        {
+            _triggerPercent = (float)numTrigger.Value;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // read the camera
+            var bmp = _camera.GetBitmap();
+
+            _calibrationAvg.Init();
+
+            // Get Calibration data
+            var rbgTotal = new RGBTotal();
+            GetRGBInRange(bmp, ref rbgTotal);
+
+            lblRedCount.Text = rbgTotal.R.ToString("N0");
+            lblGreenCount.Text = rbgTotal.G.ToString("N0");
+            lblBlueCount.Text = rbgTotal.B.ToString("N0");
+
+            _calibrationAvg.R = rbgTotal.R;
+            _calibrationAvg.B = rbgTotal.B;
+            _calibrationAvg.G = rbgTotal.G;
+
+            // draw yellow hit box
+            DrawTargetRange(bmp);
+            pictCamera.Image = bmp;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -441,16 +502,49 @@ namespace WindowsFormsAppCamera
             string[] devices = UsbCamera.FindDevices();
             if (devices.Length == 0)
             {
-                MessageBox.Show("No Camera");
+                MessageBox.Show(this,"Uh oh! No Camera!");
                 return; // no camera.
             }
 
             foreach (string d in devices)
-            {
                 cmbCamera.Items.Add(d);
-            }
+        }
+        #endregion
+
+        #region Bitmap and drone detection code
+        // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
+        bool DronesSpotted(ref RGBTotal rbgTotal)
+        {
+            // if there is no increase in red, then no drones
+            float spottedRed = (float)_calibrationAvg.R + (((float)_calibrationAvg.R / 100.0F) * _triggerPercent);
+            if (rbgTotal.R <= spottedRed)
+                return false;
+
+            return true;
+
+            // if there is also an increase in blue and green, then it's an EMP flash
+            //float spottedGreen = (float)_calibrationAvg.G + (((float)_calibrationAvg.G / 100.0F) * _triggerPercent);
+            //float spottedBlue = (float)_calibrationAvg.B + (((float)_calibrationAvg.B / 100.0F) * _triggerPercent);
+
+            //return rbgTotal.G < spottedGreen || rbgTotal.B < spottedBlue;
         }
 
+        private void DrawTargetRange(Bitmap bmp)
+        {
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                int width = _xHitBoxEnd - _xHitBoxStart;
+                int height = _yHitBoxEnd - _yHitBoxStart;
+                Rectangle rectTarget = new Rectangle(_xHitBoxStart, _yHitBoxStart, width, height);
+
+                Color customColor = Color.FromArgb(99, Color.Yellow);
+                SolidBrush brushYellow = new SolidBrush(customColor);
+                g.FillRectangle(brushYellow, rectTarget);
+
+                Pen penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
+                g.DrawRectangle(penYellow, rectTarget);
+            }
+        }
         // counts the number of RBGA elements in pixels in the hitbox
         // skips every other pixel on the x-axis for perf
         private void GetRGBInRange(Bitmap bmp, ref RGBTotal rbgTotal)
@@ -476,26 +570,7 @@ namespace WindowsFormsAppCamera
             rbgTotal.B /= countPixel;
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            // read the camera
-            var bmp = _camera.GetBitmap();
+#endregion
 
-            // Get Calibration data
-            var rbgTotal = new RGBTotal();
-            GetRGBInRange(bmp, ref rbgTotal);
-
-            lblRedCount.Text = rbgTotal.R.ToString("N0");
-            lblGreenCount.Text = rbgTotal.G.ToString("N0");
-            lblBlueCount.Text = rbgTotal.B.ToString("N0");
-
-            _calibrationAvg.R = rbgTotal.R;
-            _calibrationAvg.B = rbgTotal.B;
-            _calibrationAvg.G = rbgTotal.G;
-
-            // draw yellow hit box
-            DrawTargetRange(bmp);
-            pictCamera.Image = bmp;
-        }
     }
 }
