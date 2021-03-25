@@ -61,6 +61,8 @@ namespace WindowsFormsAppCamera
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.txtName = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -70,9 +72,9 @@ namespace WindowsFormsAppCamera
             // pictCamera
             // 
             this.pictCamera.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictCamera.Location = new System.Drawing.Point(25, 134);
+            this.pictCamera.Location = new System.Drawing.Point(19, 184);
             this.pictCamera.Name = "pictCamera";
-            this.pictCamera.Size = new System.Drawing.Size(788, 419);
+            this.pictCamera.Size = new System.Drawing.Size(640, 480);
             this.pictCamera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictCamera.TabIndex = 0;
             this.pictCamera.TabStop = false;
@@ -80,7 +82,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnCalibrate
             // 
-            this.btnCalibrate.Location = new System.Drawing.Point(25, 571);
+            this.btnCalibrate.Location = new System.Drawing.Point(19, 677);
             this.btnCalibrate.Name = "btnCalibrate";
             this.btnCalibrate.Size = new System.Drawing.Size(106, 61);
             this.btnCalibrate.TabIndex = 1;
@@ -91,7 +93,7 @@ namespace WindowsFormsAppCamera
             // lblRed
             // 
             this.lblRed.AutoSize = true;
-            this.lblRed.Location = new System.Drawing.Point(28, 663);
+            this.lblRed.Location = new System.Drawing.Point(134, 677);
             this.lblRed.Name = "lblRed";
             this.lblRed.Size = new System.Drawing.Size(25, 20);
             this.lblRed.TabIndex = 2;
@@ -100,7 +102,7 @@ namespace WindowsFormsAppCamera
             // lblRedCount
             // 
             this.lblRedCount.AutoSize = true;
-            this.lblRedCount.Location = new System.Drawing.Point(52, 663);
+            this.lblRedCount.Location = new System.Drawing.Point(155, 677);
             this.lblRedCount.Name = "lblRedCount";
             this.lblRedCount.Size = new System.Drawing.Size(18, 20);
             this.lblRedCount.TabIndex = 8;
@@ -108,7 +110,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(707, 571);
+            this.btnStart.Location = new System.Drawing.Point(441, 677);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(106, 61);
             this.btnStart.TabIndex = 13;
@@ -118,7 +120,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(595, 571);
+            this.btnStop.Location = new System.Drawing.Point(553, 677);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(106, 61);
             this.btnStop.TabIndex = 14;
@@ -136,7 +138,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnSaveBmp
             // 
-            this.btnSaveBmp.Location = new System.Drawing.Point(144, 571);
+            this.btnSaveBmp.Location = new System.Drawing.Point(340, 678);
             this.btnSaveBmp.Name = "btnSaveBmp";
             this.btnSaveBmp.Size = new System.Drawing.Size(95, 61);
             this.btnSaveBmp.TabIndex = 16;
@@ -146,7 +148,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnToggleBlankOrLiveScreen
             // 
-            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(489, 571);
+            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(239, 678);
             this.btnToggleBlankOrLiveScreen.Name = "btnToggleBlankOrLiveScreen";
             this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(95, 61);
             this.btnToggleBlankOrLiveScreen.TabIndex = 17;
@@ -202,7 +204,7 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(258, 571);
+            this.btnAllUp.Location = new System.Drawing.Point(19, 827);
             this.btnAllUp.Name = "btnAllUp";
             this.btnAllUp.Size = new System.Drawing.Size(67, 64);
             this.btnAllUp.TabIndex = 24;
@@ -216,7 +218,7 @@ namespace WindowsFormsAppCamera
             this.cmbCamera.FormattingEnabled = true;
             this.cmbCamera.Location = new System.Drawing.Point(138, 12);
             this.cmbCamera.Name = "cmbCamera";
-            this.cmbCamera.Size = new System.Drawing.Size(537, 28);
+            this.cmbCamera.Size = new System.Drawing.Size(521, 28);
             this.cmbCamera.TabIndex = 25;
             this.cmbCamera.SelectedIndexChanged += new System.EventHandler(this.cmbCamera_SelectedIndexChanged);
             // 
@@ -226,7 +228,7 @@ namespace WindowsFormsAppCamera
             this.cmbCameraFormat.FormattingEnabled = true;
             this.cmbCameraFormat.Location = new System.Drawing.Point(138, 51);
             this.cmbCameraFormat.Name = "cmbCameraFormat";
-            this.cmbCameraFormat.Size = new System.Drawing.Size(537, 28);
+            this.cmbCameraFormat.Size = new System.Drawing.Size(521, 28);
             this.cmbCameraFormat.TabIndex = 26;
             this.cmbCameraFormat.SelectedIndexChanged += new System.EventHandler(this.cmbCameraFormat_SelectedIndexChanged);
             // 
@@ -236,7 +238,7 @@ namespace WindowsFormsAppCamera
             this.cmbComPorts.FormattingEnabled = true;
             this.cmbComPorts.Location = new System.Drawing.Point(138, 89);
             this.cmbComPorts.Name = "cmbComPorts";
-            this.cmbComPorts.Size = new System.Drawing.Size(537, 28);
+            this.cmbComPorts.Size = new System.Drawing.Size(418, 28);
             this.cmbComPorts.TabIndex = 27;
             this.cmbComPorts.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
@@ -245,33 +247,33 @@ namespace WindowsFormsAppCamera
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(21, 15);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 20);
+            this.label1.Size = new System.Drawing.Size(69, 20);
             this.label1.TabIndex = 28;
-            this.label1.Text = "Camera";
+            this.label1.Text = "Camera:";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(21, 59);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(105, 20);
+            this.label3.Size = new System.Drawing.Size(109, 20);
             this.label3.TabIndex = 29;
-            this.label3.Text = "Video Format";
+            this.label3.Text = "Video Format:";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(21, 97);
+            this.label6.Location = new System.Drawing.Point(21, 99);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(78, 20);
+            this.label6.Size = new System.Drawing.Size(82, 20);
             this.label6.TabIndex = 30;
-            this.label6.Text = "COM Port";
+            this.label6.Text = "COM Port:";
             // 
             // btnTestComPort
             // 
             this.btnTestComPort.Enabled = false;
             this.btnTestComPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnTestComPort.Location = new System.Drawing.Point(697, 87);
+            this.btnTestComPort.Location = new System.Drawing.Point(591, 88);
             this.btnTestComPort.Name = "btnTestComPort";
             this.btnTestComPort.Size = new System.Drawing.Size(68, 31);
             this.btnTestComPort.TabIndex = 31;
@@ -304,7 +306,7 @@ namespace WindowsFormsAppCamera
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(87, 663);
+            this.label2.Location = new System.Drawing.Point(134, 698);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 20);
             this.label2.TabIndex = 34;
@@ -313,7 +315,7 @@ namespace WindowsFormsAppCamera
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(156, 663);
+            this.label7.Location = new System.Drawing.Point(136, 718);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(24, 20);
             this.label7.TabIndex = 35;
@@ -322,7 +324,7 @@ namespace WindowsFormsAppCamera
             // lblGreenCount
             // 
             this.lblGreenCount.AutoSize = true;
-            this.lblGreenCount.Location = new System.Drawing.Point(119, 663);
+            this.lblGreenCount.Location = new System.Drawing.Point(156, 698);
             this.lblGreenCount.Name = "lblGreenCount";
             this.lblGreenCount.Size = new System.Drawing.Size(18, 20);
             this.lblGreenCount.TabIndex = 37;
@@ -331,7 +333,7 @@ namespace WindowsFormsAppCamera
             // lblBlueCount
             // 
             this.lblBlueCount.AutoSize = true;
-            this.lblBlueCount.Location = new System.Drawing.Point(186, 663);
+            this.lblBlueCount.Location = new System.Drawing.Point(156, 718);
             this.lblBlueCount.Name = "lblBlueCount";
             this.lblBlueCount.Size = new System.Drawing.Size(18, 20);
             this.lblBlueCount.TabIndex = 38;
@@ -339,7 +341,7 @@ namespace WindowsFormsAppCamera
             // 
             // numTrigger
             // 
-            this.numTrigger.Location = new System.Drawing.Point(108, 727);
+            this.numTrigger.Location = new System.Drawing.Point(140, 759);
             this.numTrigger.Minimum = new decimal(new int[] {
             10,
             0,
@@ -358,7 +360,7 @@ namespace WindowsFormsAppCamera
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(28, 732);
+            this.label8.Location = new System.Drawing.Point(24, 759);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(80, 20);
             this.label8.TabIndex = 40;
@@ -369,7 +371,7 @@ namespace WindowsFormsAppCamera
             this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.btnRecalLeftLess);
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
-            this.groupBox1.Location = new System.Drawing.Point(248, 672);
+            this.groupBox1.Location = new System.Drawing.Point(125, 802);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(260, 106);
             this.groupBox1.TabIndex = 41;
@@ -381,18 +383,36 @@ namespace WindowsFormsAppCamera
             this.groupBox2.Controls.Add(this.btnPressRB);
             this.groupBox2.Controls.Add(this.btnRecalRightLess);
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
-            this.groupBox2.Location = new System.Drawing.Point(552, 672);
+            this.groupBox2.Location = new System.Drawing.Point(405, 802);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(260, 106);
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(24, 141);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(55, 20);
+            this.label4.TabIndex = 43;
+            this.label4.Text = "Name:";
+            // 
+            // txtName
+            // 
+            this.txtName.Location = new System.Drawing.Point(138, 136);
+            this.txtName.Name = "txtName";
+            this.txtName.Size = new System.Drawing.Size(521, 26);
+            this.txtName.TabIndex = 44;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(844, 790);
+            this.ClientSize = new System.Drawing.Size(677, 922);
+            this.Controls.Add(this.txtName);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.label8);
@@ -466,6 +486,8 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtName;
     }
 }
 

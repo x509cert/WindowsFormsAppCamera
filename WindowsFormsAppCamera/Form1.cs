@@ -9,6 +9,7 @@ using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 using Azure.Storage;
+using System.Net;
 
 namespace WindowsFormsAppCamera
 {
@@ -74,16 +75,9 @@ namespace WindowsFormsAppCamera
         bool                    _fUsingLiveScreen = true;
         readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 22); // longest time we can go without seeing a drone, used to send out an emergency EMP
-        Brush                   _colorInfo = Brushes.Black;
+        Brush                   _colorInfo = Brushes.AliceBlue;
 
         #endregion
-
-        private string GetBuildDate()
-        {
-            string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            System.IO.FileInfo fi = new System.IO.FileInfo(strpath);
-            return fi.LastWriteTime.ToString();
-        }
 
         #region Logging
         private void WriteLog(string s)
@@ -92,7 +86,21 @@ namespace WindowsFormsAppCamera
             var dts = dt.ToString("yyyy MMM dd, HH:mm:ss");
 
             if (s.Length == 1)
-                s += ": Comms to Arduino";
+            {
+                s += "->Arduino: ";
+                switch (s[0])
+                {
+                    case 'E': s += "EMP"; break;
+                    case 'T': s += "Turret"; break;
+                    case 'U': s += "LB/RB up"; break;
+                    case 'V': s += "Verify comms"; break;
+                    case 'R': s += "Inc RB sweep (+1)"; break;
+                    case 'r': s += "Dec RB sweep (-1)"; break;
+                    case 'L': s += "Inc LB sweep (+1)"; break;
+                    case 'l': s += "Dec LB sweep (-1)"; break;
+                    default:  s += "!!Unknown command!!"; break;
+                }    
+            }
 
             string entry = dts + ", " + s;
             string sLogFile = _sLogFilePath + "\\DivGrind-" + dt.Year.ToString() + dt.Month.ToString() + dt.Day.ToString() + ".log";
@@ -109,6 +117,40 @@ namespace WindowsFormsAppCamera
             catch (Exception)
             {
                 // keep on chugging
+            }
+        }
+
+        // uploads the last log N-entries to Azure every 20secs
+        private void UploadLogs()
+        {
+            var uri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
+            var title = txtName.Text;
+            var delim = "|";
+
+            var sb = new StringBuilder(400);
+
+            sb.Append(title);
+            sb.Append(delim);
+            sb.Append("Last update (UTC): " + DateTime.UtcNow);
+            sb.Append(delim);
+
+            while (_logQueue.Count > 0)
+            {
+                sb.Append(_logQueue.Dequeue());
+                sb.Append(delim);
+            }
+
+            try
+            {
+
+                WebClient wc = new WebClient();
+                wc.Headers.Add("user-agent", "DivGrind C# Client");
+                wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+
+                _ = wc.UploadString(uri, sb.ToString());
+            } catch (Exception ex)
+            {
+                WriteLog("Error uploading to Azure " + ex.Message);
             }
         }
         #endregion
@@ -190,8 +232,8 @@ namespace WindowsFormsAppCamera
         {
             while (!_fKillThreads)
             {
-
-                Thread.Sleep(20000); // delay 20secs
+                UploadLogs();
+                Thread.Sleep(55000); // delay 55 secs
             }
         }
 
@@ -320,10 +362,19 @@ namespace WindowsFormsAppCamera
 
             _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-            this.Text = "Sneaky's DivGrind [Last Built " + GetBuildDate() + "]";
+            string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            System.IO.FileInfo fi = new System.IO.FileInfo(strpath);
+            string buildDate = fi.LastWriteTime.ToString();
+
+            string machine = Dns.GetHostName();
+
+            Text = $"DivGrind [Last Built {buildDate}] on {machine}";
 
             numTrigger.Value = (decimal)_triggerPercent;
+
+            _logQueue = new LogQueue(50);
         }
+
         private void btnStart_Click(object sender, EventArgs e)
         {
             btnStart.Enabled = false;
@@ -377,30 +428,11 @@ namespace WindowsFormsAppCamera
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 
-        private void btnRecalLeftLess_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("l");
-        }
-
-        private void btnRecalLeftMore_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("L");
-        }
-
-        private void btnRecalRightLess_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("r");
-        }
-
-        private void btnRecalRightMore_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("R");
-        }
-
-        private void btnAllUp_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("U");
-        }
+        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); }
+        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); }
+        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); }
+        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); }
+        private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); }
 
         private void cmbCamera_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -508,7 +540,10 @@ namespace WindowsFormsAppCamera
 
             foreach (string d in devices)
                 cmbCamera.Items.Add(d);
+
+            txtName.Text = Dns.GetHostName();
         }
+
         #endregion
 
         #region Bitmap and drone detection code
