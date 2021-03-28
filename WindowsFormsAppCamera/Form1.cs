@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
-using Azure.Storage;
 using System.Net;
 
 namespace WindowsFormsAppCamera
@@ -76,19 +75,24 @@ namespace WindowsFormsAppCamera
         readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 22); // longest time we can go without seeing a drone, used to send out an emergency EMP
         Brush                   _colorInfo = Brushes.AliceBlue;
+        const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
 
         #endregion
 
-        #region Logging
+        #region Logs
+        // writes log data to a local log file
         private void WriteLog(string s)
         {
-            DateTime dt = DateTime.Now;
-            var dts = dt.ToString("yyyy MMM dd, HH:mm:ss");
+            DateTime dt = DateTime.UtcNow;
+            var dts = dt.ToString(_dateTemplate);
 
+            // Arduino messages are only one char long, so add a little more context
             if (s.Length == 1)
             {
-                s += "->Arduino: ";
-                switch (s[0])
+                var ch = s[0];
+                s = "    Msg to Arduino: ";
+
+                switch (ch)
                 {
                     case 'E': s += "EMP"; break;
                     case 'T': s += "Turret"; break;
@@ -102,7 +106,10 @@ namespace WindowsFormsAppCamera
                 }    
             }
 
+            // text for log file entry
             string entry = dts + ", " + s;
+            
+            // log filename
             string sLogFile = _sLogFilePath + "\\DivGrind-" + dt.Year.ToString() + dt.Month.ToString() + dt.Day.ToString() + ".log";
 
             // log to file
@@ -120,18 +127,22 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        // uploads the last log N-entries to Azure every 20secs
+        // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
+            // URL to the Azure Function 
             var uri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
-            var title = txtName.Text;
-            var delim = "|";
 
-            var sb = new StringBuilder(400);
+            // title for the log collection - by default, this is the machine name
+            var title = txtName.Text;
+
+            // build the packet of data that goes to Azure
+            var sb = new StringBuilder(512);
+            var delim = "|";
 
             sb.Append(title);
             sb.Append(delim);
-            sb.Append("Last update (UTC): " + DateTime.UtcNow);
+            sb.Append("Last update: " + DateTime.UtcNow.ToString(_dateTemplate));
             sb.Append(delim);
 
             while (_logQueue.Count > 0)
@@ -140,9 +151,9 @@ namespace WindowsFormsAppCamera
                 sb.Append(delim);
             }
 
+            // push up to Azure
             try
             {
-
                 WebClient wc = new WebClient();
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
@@ -150,14 +161,14 @@ namespace WindowsFormsAppCamera
                 _ = wc.UploadString(uri, sb.ToString());
             } catch (Exception ex)
             {
-                WriteLog("Error uploading to Azure " + ex.Message);
+                WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
             }
         }
         #endregion
 
         #region Arduino Interface
 
-        // Send command to the Arduino over the COM port
+        // Send command to the Arduino over the COM port (ie; USB port)
         // The USB port is treated as a COM port
         // R - increase RB sweep (+/- 5)
         // r - decrease RB sweep (+/- 5)
@@ -180,9 +191,9 @@ namespace WindowsFormsAppCamera
                 Thread.Sleep(200);
                 port.Close();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                WriteLog("EXCEPTION: Serial port not open");
+                WriteLog($"EXCEPTION: Arduino COM port not open {ex.Message}.");
             }
         }
 
@@ -227,17 +238,17 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        // a new thread that uploads log data to Azure
+        // a thread function that uploads log data to Azure
         private void UploadLogThreadFunc()
         {
             while (!_fKillThreads)
             {
                 UploadLogs();
-                Thread.Sleep(55000); // delay 55 secs
+                Thread.Sleep(55000); // delay 55 secs, no real reason for this number!
             }
         }
 
-        // starts a new thread that does the core work, 
+        // a new thread function that does the core work, 
         // this is so we don't use the UI thread for the work which would make the UI sluggish
         private void WorkerThreadFunc()
         {
@@ -254,28 +265,31 @@ namespace WindowsFormsAppCamera
 
             while (!_fKillThreads)
             {
-                // need to check that drones have been spotted and if not, throw out the EMP and deploy the turret
+                // need to check that if drones have not been spotted for a while then
+                // throw out the EMP and deploy the turret
+                // this is an emergency measure
                 TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                 if (tSpan > _longestTimeBetweenDrones)
                 {
-                    WriteLog("Last drone seen: " + tSpan.TotalSeconds + "s ago");
+                    WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
                     TriggerArduino("E");
                     TriggerArduino("T");
 
                     dtLastDroneSpotted = DateTime.Now;
                 }
 
+                // using camera
                 if (_fUsingLiveScreen)
                 {
                     string droneCooldown = "Drone check: Ready";
 
-                    // this stops the code from checking for drones constantly
+                    // this stops the code from checking for drones constantly right after drones are spotted and EMP sent out
                     if (fDronesIncoming)
                     {
                         TimeSpan elapsedTime = DateTime.Now - dtDronesStart;
                         if (elapsedTime > _elapseBetweenDrones)
                         {
-                            WriteLog("Drone scan timeout completed");
+                            WriteLog("Ready for next drone scan");
                             fDronesIncoming = false;
                         }
 
@@ -287,16 +301,17 @@ namespace WindowsFormsAppCamera
                     var bmp = _camera.GetBitmap();
                     Graphics gd = Graphics.FromImage(bmp);
 
-                    // draw a rectangle for the text
+                    // define a rectangle for the text
                     gd.FillRectangle(Brushes.DarkBlue, 2, 480-98, 640/3, 480-2);
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
-                    // Write amount of red in the bmp
+                    // Write amount of red/green/blue in the bmp
                     RGBTotal rbgTotal = new RGBTotal() ;
                     GetRGBInRange(bmp, ref rbgTotal);
 
                     const int X = 4;
 
+                    // calcluate current RGB as discrete values and percentages and write into the bmp
                     int percentChange = (int)(((float)rbgTotal.R / (float)_calibrationAvg.R) * 100);
                     string r = $"R: {rbgTotal.R:N0} ({percentChange}%)";
                     gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 70, bmp.Width, 24));
@@ -313,12 +328,13 @@ namespace WindowsFormsAppCamera
                     gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 100, bmp.Width, 24));
 
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
-                    // start the countdown for displaying the "incoming text"
+                    // start the countdown for displaying the "incoming" text
                     if (!fDronesIncoming && DronesSpotted(ref rbgTotal))
                     {
                         dtLastDroneSpotted = DateTime.Now;
 
-                        WriteLog("Drones detected");
+                        // send out the EMP
+                        WriteLog("Drones detected -> EMP");
                         TriggerArduino("E");
 
                         dtDronesStart = DateTime.Now;
@@ -341,7 +357,7 @@ namespace WindowsFormsAppCamera
                 }
                 else
                 {
-                    // when running no camera mode, uses a black screen
+                    // when running in no camera mode (ie; timer), uses a black screen
                     Bitmap bmp = new Bitmap(640, 480);
                     Graphics gr = Graphics.FromImage(bmp);
                     gr.FillRectangle(Brushes.Black, 0, 0, 640, 480);
@@ -360,14 +376,18 @@ namespace WindowsFormsAppCamera
         {
             InitializeComponent();
 
+            // logs go in user's profile folder (eg; c:\users\mikehow)
             _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
+            // get the date this binary was last created
             string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             System.IO.FileInfo fi = new System.IO.FileInfo(strpath);
             string buildDate = fi.LastWriteTime.ToString();
 
+            // machine name
             string machine = Dns.GetHostName();
 
+            // add info to title of the tools
             Text = $"DivGrind [Last Built {buildDate}] on {machine}";
 
             numTrigger.Value = (decimal)_triggerPercent;
@@ -375,8 +395,10 @@ namespace WindowsFormsAppCamera
             _logQueue = new LogQueue(50);
         }
 
+        // start drone monitoring
         private void btnStart_Click(object sender, EventArgs e)
         {
+            // TODO: Need more work here... not all UI elements are enabled/disabled when approp. 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
 
@@ -386,7 +408,7 @@ namespace WindowsFormsAppCamera
 
             btnTestComPort.Enabled = false;
 
-            // start the threads
+            // start the two extra worker threads
             _fKillThreads = false;
             _threadWorker = new Thread(WorkerThreadFunc);
             _threadWorker.Start();
@@ -395,6 +417,7 @@ namespace WindowsFormsAppCamera
             _threadLog.Start();
         }
 
+        // Stop the drone monitoring
         private void button3_Click(object sender, EventArgs e)
         {
             btnStop.Enabled = false;
@@ -412,6 +435,7 @@ namespace WindowsFormsAppCamera
             KillSkillTimer();
         }
 
+        // save current camera image to a bitmap
         private void btnSaveBmp_Click(object sender, EventArgs e)
         {
             Bitmap bmp = _camera.GetBitmap();
@@ -421,6 +445,7 @@ namespace WindowsFormsAppCamera
             bmp.Save(folder + @"\Div" + dtFormat + ".bmp");
         }
 
+        // switch between live and blank (timer) screen
         private void btnToggleBlankOrLiveScreen_Click(object sender, EventArgs e)
         {
             WriteLog(_fUsingLiveScreen ? "Flipping to Blank" : "Flipping to Live");
@@ -428,6 +453,7 @@ namespace WindowsFormsAppCamera
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 
+        // these are used to send discrete commands to the Arduino
         private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); }
         private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); }
         private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); }
@@ -464,27 +490,32 @@ namespace WindowsFormsAppCamera
                 cmbComPorts.Items.Add(p);
         }
 
+        // COM port selected
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnTestComPort.Enabled = true;
         }
 
+        // test the COM port
         private void btnTestComPort_Click(object sender, EventArgs e)
         {
             cmbComPorts.Items[cmbComPorts.SelectedIndex].ToString();
             TriggerArduino("V");
         }
 
+        // send an EMP
         private void button3_Click_1(object sender, EventArgs e)
         {
             TriggerArduino("E");
         }
 
+        // deploy Turret
         private void button2_Click_1(object sender, EventArgs e)
         {
             TriggerArduino("T");
         }
 
+        // switch text colors in the bitmap (kinda useless!)
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             _colorInfo = (_colorInfo == Brushes.AliceBlue) ? Brushes.Black : Brushes.AliceBlue;
@@ -500,6 +531,7 @@ namespace WindowsFormsAppCamera
             e.Cancel = false;
         }
 
+        // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)
         {
             _triggerPercent = (float)numTrigger.Value;
