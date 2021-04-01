@@ -257,7 +257,6 @@ namespace WindowsFormsAppCamera
 
             bool fDronesIncoming = false;
             Int64 _showDroneText = 0;
-            var sb = new StringBuilder(24);
 
             WriteLog("Worker thread start");
 
@@ -311,17 +310,22 @@ namespace WindowsFormsAppCamera
 
                     const int X = 4;
 
+                    float redSpottedValue = GetRedSpottedPercent();
+
                     // calcluate current RGB as discrete values and percentages and write into the bmp
-                    int percentChange = (int)(((float)rbgTotal.R / (float)_calibrationAvg.R) * 100);
-                    string r = $"R: {rbgTotal.R:N0} ({percentChange}%)";
+                    int percentChange = (int)(rbgTotal.R / (float)_calibrationAvg.R * 100);
+                    string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
+                    string r = $"R: {rbgTotal.R:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 70, bmp.Width, 24));
 
-                    percentChange = (int)(((float)rbgTotal.G / (float)_calibrationAvg.G) * 100);
-                    string g = $"G: {rbgTotal.G:N0} ({percentChange}%)";
+                    percentChange = (int)(rbgTotal.G / (float)_calibrationAvg.G * 100);
+                    wouldTrigger = redSpottedValue < percentChange ? " *" : "";
+                    string g = $"G: {rbgTotal.G:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 48, bmp.Width, 24));
 
-                    percentChange = (int)(((float)rbgTotal.B / (float)_calibrationAvg.B) * 100);
-                    string b = $"B: {rbgTotal.B:N0} ({percentChange}%)";
+                    percentChange = (int)(rbgTotal.B / (float)_calibrationAvg.B * 100);
+                    wouldTrigger = redSpottedValue < percentChange ? " *" : "";
+                    string b = $"B: {rbgTotal.B:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
@@ -579,11 +583,18 @@ namespace WindowsFormsAppCamera
         #endregion
 
         #region Bitmap and drone detection code
+
+        // determines the increase in red required to determine if the drones are incoming
+        private float GetRedSpottedPercent()
+        {
+            return (float)_calibrationAvg.R + (((float)_calibrationAvg.R / 100.0F) * _triggerPercent);
+        }
+
         // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
         bool DronesSpotted(ref RGBTotal rbgTotal)
         {
             // if there is no increase in red, then no drones
-            float spottedRed = (float)_calibrationAvg.R + (((float)_calibrationAvg.R / 100.0F) * _triggerPercent);
+            float spottedRed = GetRedSpottedPercent();
             if (rbgTotal.R <= spottedRed)
                 return false;
 
