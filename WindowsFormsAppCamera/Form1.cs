@@ -10,6 +10,10 @@ using System.Timers;
 using System.Windows.Forms;
 using System.Net;
 
+using Azure;
+using Azure.Communication;
+using Azure.Communication.Sms;
+
 namespace WindowsFormsAppCamera
 {
     public partial class Form1 : Form
@@ -32,11 +36,51 @@ namespace WindowsFormsAppCamera
             }
         }
 
+        // sends SMS alerts if drones not seen - usually indicates agent death or delta
+        class SmsAlert
+        {
+            private string _machineName, _connectionString, _smsFrom, _smsTo;
+            private SmsClient _smsClient;
+
+            public string MachineName { get => _machineName; set => _machineName = value; }
+            public string ConnectionString { get => _connectionString; set => _connectionString = value; }
+            public string SmsFrom { get => _smsFrom; set => _smsFrom = value; }
+            public string SmsTo { get => _smsTo; set => _smsTo = value; }
+
+            public SmsAlert() { }
+            public SmsAlert(string machineName, string connectionString, string smsFrom, string smsTo)
+            {
+                MachineName = machineName;
+                ConnectionString = connectionString;
+                SmsFrom = smsFrom;
+                SmsTo = smsTo;
+
+                _smsClient = new SmsClient(ConnectionString);
+            }
+
+            // send a message to the recipient
+            public bool RaiseAlert(string msg)
+            {
+                if (_smsClient == null)
+                    return false;
+
+                SmsSendResult sendResult = _smsClient.Send(
+                    from: SmsFrom,
+                    to: SmsTo,
+                    message: msg
+                );
+
+                MessageBox.Show(sendResult.Successful ? "Message sent" : sendResult.ErrorMessage);
+
+                return sendResult.Successful;
+            }
+        }
+
         // keeps track of log entries for uploading to Azure
         class LogQueue : Queue<string>
         {
             private const int MAX = 20;
-            private int _max;
+            private readonly int _max;
 
             public LogQueue(int max = MAX)
             {
@@ -58,10 +102,10 @@ namespace WindowsFormsAppCamera
         #endregion
 
         #region Class member variables
-        UsbCamera _camera;
-        RGBTotal                _calibrationAvg;
-        LogQueue                _logQueue;
-        float                   _triggerPercent = 65F;
+        UsbCamera               _camera;
+        RGBTotal                _calibrationData;
+        readonly LogQueue       _logQueue;
+        float                   _triggerPercent = 55F;
         readonly int            _xHitBoxStart = 200, 
                                 _yHitBoxStart = 200, 
                                 _xHitBoxEnd = 460, 
@@ -73,9 +117,13 @@ namespace WindowsFormsAppCamera
         readonly string         _sLogFilePath;
         bool                    _fUsingLiveScreen = true;
         readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
-        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 22); // longest time we can go without seeing a drone, used to send out an emergency EMP
+        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 27); // longest time we can go without seeing a drone, used to send out an emergency EMP
         Brush                   _colorInfo = Brushes.AliceBlue;
         const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
+        string                  _machineName;
+        SmsAlert                _smsAlert = null;
+        DateTime                _lastSmsMessageSent;    // Keep track of when the last SMS alert was sent
+        readonly TimeSpan       _lastSmsElapseBetweenMessages = new TimeSpan(0, 30, 0); // wait 30mins between SMS messages
 
         #endregion
 
@@ -130,11 +178,12 @@ namespace WindowsFormsAppCamera
         // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
-            // URL to the Azure Function 
+            // URL to the Azure Function TODO: Pull URL from commandline
             var uri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
 
-            // title for the log collection - by default, this is the machine name
-            var title = txtName.Text;
+            // title for the log collection
+            // by default this is the machine name or whatever was passed in on the command-line using -n
+            var title = _machineName;
 
             // build the packet of data that goes to Azure
             var sb = new StringBuilder(512);
@@ -142,16 +191,17 @@ namespace WindowsFormsAppCamera
 
             sb.Append(title);
             sb.Append(delim);
-            sb.Append("Last update: " + DateTime.UtcNow.ToString(_dateTemplate));
+            sb.Append("Last update (UTC): " + DateTime.UtcNow.ToString(_dateTemplate));
             sb.Append(delim);
 
+            // loop through each log entry, add to the structure to send to Azure and remove from the queue
             while (_logQueue.Count > 0)
             {
                 sb.Append(_logQueue.Dequeue());
                 sb.Append(delim);
             }
 
-            // push up to Azure
+            // push up to Azure TODO: Make the URI a cmd-line argument
             try
             {
                 WebClient wc = new WebClient();
@@ -267,6 +317,7 @@ namespace WindowsFormsAppCamera
                 // need to check that if drones have not been spotted for a while then
                 // throw out the EMP and deploy the turret
                 // this is an emergency measure
+                // sends an SMS alert if one is configured
                 TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                 if (tSpan > _longestTimeBetweenDrones)
                 {
@@ -275,6 +326,10 @@ namespace WindowsFormsAppCamera
                     TriggerArduino("T");
 
                     dtLastDroneSpotted = DateTime.Now;
+
+                    if (_smsAlert != null)
+                        if (!_smsAlert.RaiseAlert("Drones not detected"))
+                            WriteLog("SMS alert failed");
                 }
 
                 // using camera
@@ -313,17 +368,17 @@ namespace WindowsFormsAppCamera
                     float redSpottedValue = GetRedSpottedPercent();
 
                     // calcluate current RGB as discrete values and percentages and write into the bmp
-                    int percentChange = (int)(rbgTotal.R / (float)_calibrationAvg.R * 100);
+                    int percentChange = (int)(rbgTotal.R / (float)_calibrationData.R * 100);
                     string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string r = $"R: {rbgTotal.R:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 70, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.G / (float)_calibrationAvg.G * 100);
+                    percentChange = (int)(rbgTotal.G / (float)_calibrationData.G * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string g = $"G: {rbgTotal.G:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 48, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.B / (float)_calibrationAvg.B * 100);
+                    percentChange = (int)(rbgTotal.B / (float)_calibrationData.B * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string b = $"B: {rbgTotal.B:N0} ({percentChange}%) {wouldTrigger}";
                     gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 24, bmp.Width, 24));
@@ -376,6 +431,54 @@ namespace WindowsFormsAppCamera
         #endregion
 
         #region UI Elements
+
+        // Code to read command-line args
+        // -n "machinename" -c "connectionstring" -f "from sms #"  -t "to sms #"
+        bool GetCmdLineArgs(ref string machineName,         // -n
+                            ref string azureCommsString,    // -c
+                            ref string azureSmsFrom,        // -f
+                            ref string azureSmsTo)          // -t
+        {
+            bool success = true;
+
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length == 0) return false;
+
+            try
+            {
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i].ToLower().StartsWith("-n") == true)
+                    {
+                        machineName = args[i + 1];
+                        txtName.Text = machineName;
+                    }
+
+                    if (args[i].ToLower().StartsWith("-c") == true)
+                    {
+                        azureCommsString = args[i + 1];
+                    }
+
+                    if (args[i].ToLower().StartsWith("-f") == true)
+                    {
+                        azureSmsFrom = args[i + 1];
+                    }
+
+                    if (args[i].ToLower().StartsWith("-t") == true)
+                    {
+                        azureSmsTo = args[i + 1];
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            return success;
+        }
+
+        // WInForm version of main()
         public Form1()
         {
             InitializeComponent();
@@ -397,6 +500,29 @@ namespace WindowsFormsAppCamera
             numTrigger.Value = (decimal)_triggerPercent;
 
             _logQueue = new LogQueue(50);
+            
+            _machineName = Dns.GetHostName();
+
+            string machineName = "";
+            string azureConnection = "";
+            string azureSmsFrom = "";
+            string azureSmsTo = "";
+
+            bool ok = GetCmdLineArgs(ref machineName, ref azureConnection, ref azureSmsFrom, ref azureSmsTo);
+            if (ok)
+            {
+                // set machine name
+                if (string.IsNullOrEmpty(machineName) == false) _machineName = machineName;
+
+                // if the three args are available for SMS, then create an SmsAlert object
+                if (string.IsNullOrEmpty(azureConnection) == false &&
+                    string.IsNullOrEmpty(azureSmsFrom) == false &&
+                    string.IsNullOrEmpty(azureSmsTo) == false)
+                {
+                    _smsAlert = new SmsAlert(machineName, azureConnection, azureSmsFrom, azureSmsTo);
+                    txtSmsEnabled.Text = "Yes";
+                }
+            }
         }
 
         // start drone monitoring
@@ -541,12 +667,13 @@ namespace WindowsFormsAppCamera
             _triggerPercent = (float)numTrigger.Value;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        // The Calibrate Button
+        private void btnCalibrate_Click(object sender, EventArgs e)
         {
             // read the camera
             var bmp = _camera.GetBitmap();
 
-            _calibrationAvg.Init();
+            _calibrationData.Init();
 
             // Get Calibration data
             var rbgTotal = new RGBTotal();
@@ -556,9 +683,9 @@ namespace WindowsFormsAppCamera
             lblGreenCount.Text = rbgTotal.G.ToString("N0");
             lblBlueCount.Text = rbgTotal.B.ToString("N0");
 
-            _calibrationAvg.R = rbgTotal.R;
-            _calibrationAvg.B = rbgTotal.B;
-            _calibrationAvg.G = rbgTotal.G;
+            _calibrationData.R = rbgTotal.R;
+            _calibrationData.B = rbgTotal.B;
+            _calibrationData.G = rbgTotal.G;
 
             // draw yellow hit box
             DrawTargetRange(bmp);
@@ -576,8 +703,6 @@ namespace WindowsFormsAppCamera
 
             foreach (string d in devices)
                 cmbCamera.Items.Add(d);
-
-            txtName.Text = Dns.GetHostName();
         }
 
         #endregion
@@ -587,7 +712,15 @@ namespace WindowsFormsAppCamera
         // determines the increase in red required to determine if the drones are incoming
         private float GetRedSpottedPercent()
         {
-            return (float)_calibrationAvg.R + (((float)_calibrationAvg.R / 100.0F) * _triggerPercent);
+            return (float)_calibrationData.R + (((float)_calibrationData.R / 100.0F) * _triggerPercent);
+        }
+
+        private void btnTestSms_Click(object sender, EventArgs e)
+        {
+            if (_smsAlert == null)
+                MessageBox.Show("No SMS Client is defined.");
+            else
+                _smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}");
         }
 
         // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
@@ -607,6 +740,9 @@ namespace WindowsFormsAppCamera
             //return rbgTotal.G < spottedGreen || rbgTotal.B < spottedBlue;
         }
 
+        // draws the yellow rectangle 'hitbox' -
+        // this is the area the code looks at for the increase in red
+        // that indicates the drones are incoming
         private void DrawTargetRange(Bitmap bmp)
         {
             using (Graphics g = Graphics.FromImage(bmp))

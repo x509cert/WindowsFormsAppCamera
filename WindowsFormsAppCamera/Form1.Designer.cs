@@ -50,7 +50,6 @@ namespace WindowsFormsAppCamera
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.btnTestComPort = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.btnPressRB = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -63,6 +62,10 @@ namespace WindowsFormsAppCamera
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtSmsEnabled = new System.Windows.Forms.Label();
+            this.btnTestComPort = new System.Windows.Forms.Button();
+            this.btnTestSms = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -88,7 +91,7 @@ namespace WindowsFormsAppCamera
             this.btnCalibrate.TabIndex = 1;
             this.btnCalibrate.Text = "Calibrate";
             this.btnCalibrate.UseVisualStyleBackColor = true;
-            this.btnCalibrate.Click += new System.EventHandler(this.button1_Click);
+            this.btnCalibrate.Click += new System.EventHandler(this.btnCalibrate_Click);
             // 
             // lblRed
             // 
@@ -238,7 +241,7 @@ namespace WindowsFormsAppCamera
             this.cmbComPorts.FormattingEnabled = true;
             this.cmbComPorts.Location = new System.Drawing.Point(138, 89);
             this.cmbComPorts.Name = "cmbComPorts";
-            this.cmbComPorts.Size = new System.Drawing.Size(418, 28);
+            this.cmbComPorts.Size = new System.Drawing.Size(151, 28);
             this.cmbComPorts.TabIndex = 27;
             this.cmbComPorts.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
@@ -268,18 +271,6 @@ namespace WindowsFormsAppCamera
             this.label6.Size = new System.Drawing.Size(82, 20);
             this.label6.TabIndex = 30;
             this.label6.Text = "COM Port:";
-            // 
-            // btnTestComPort
-            // 
-            this.btnTestComPort.Enabled = false;
-            this.btnTestComPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnTestComPort.Location = new System.Drawing.Point(591, 88);
-            this.btnTestComPort.Name = "btnTestComPort";
-            this.btnTestComPort.Size = new System.Drawing.Size(68, 31);
-            this.btnTestComPort.TabIndex = 31;
-            this.btnTestComPort.Text = "Test";
-            this.btnTestComPort.UseVisualStyleBackColor = true;
-            this.btnTestComPort.Click += new System.EventHandler(this.btnTestComPort_Click);
             // 
             // button2
             // 
@@ -315,7 +306,7 @@ namespace WindowsFormsAppCamera
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(136, 718);
+            this.label7.Location = new System.Drawing.Point(134, 718);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(24, 20);
             this.label7.TabIndex = 35;
@@ -406,11 +397,55 @@ namespace WindowsFormsAppCamera
             this.txtName.Size = new System.Drawing.Size(521, 26);
             this.txtName.TabIndex = 44;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(443, 92);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(109, 20);
+            this.label5.TabIndex = 45;
+            this.label5.Text = "SMS enabled:";
+            // 
+            // txtSmsEnabled
+            // 
+            this.txtSmsEnabled.AutoSize = true;
+            this.txtSmsEnabled.Location = new System.Drawing.Point(553, 92);
+            this.txtSmsEnabled.Name = "txtSmsEnabled";
+            this.txtSmsEnabled.Size = new System.Drawing.Size(27, 20);
+            this.txtSmsEnabled.TabIndex = 46;
+            this.txtSmsEnabled.Text = "??";
+            // 
+            // btnTestComPort
+            // 
+            this.btnTestComPort.Enabled = false;
+            this.btnTestComPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTestComPort.Location = new System.Drawing.Point(299, 87);
+            this.btnTestComPort.Name = "btnTestComPort";
+            this.btnTestComPort.Size = new System.Drawing.Size(68, 31);
+            this.btnTestComPort.TabIndex = 31;
+            this.btnTestComPort.Text = "Test";
+            this.btnTestComPort.UseVisualStyleBackColor = true;
+            this.btnTestComPort.Click += new System.EventHandler(this.btnTestComPort_Click);
+            // 
+            // btnTestSms
+            // 
+            this.btnTestSms.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTestSms.Location = new System.Drawing.Point(591, 87);
+            this.btnTestSms.Name = "btnTestSms";
+            this.btnTestSms.Size = new System.Drawing.Size(68, 31);
+            this.btnTestSms.TabIndex = 47;
+            this.btnTestSms.Text = "Test";
+            this.btnTestSms.UseVisualStyleBackColor = true;
+            this.btnTestSms.Click += new System.EventHandler(this.btnTestSms_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 922);
+            this.Controls.Add(this.btnTestSms);
+            this.Controls.Add(this.txtSmsEnabled);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.txtName);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.groupBox2);
@@ -475,7 +510,6 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button btnTestComPort;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnPressRB;
         private System.Windows.Forms.Label label2;
@@ -488,6 +522,10 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtName;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label txtSmsEnabled;
+        private System.Windows.Forms.Button btnTestComPort;
+        private System.Windows.Forms.Button btnTestSms;
     }
 }
 
