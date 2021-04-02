@@ -9,9 +9,6 @@ using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 using System.Net;
-
-using Azure;
-using Azure.Communication;
 using Azure.Communication.Sms;
 
 namespace WindowsFormsAppCamera
@@ -37,15 +34,25 @@ namespace WindowsFormsAppCamera
         }
 
         // sends SMS alerts if drones not seen - usually indicates agent death or delta
+        // option to block between 0100 and 0559
         class SmsAlert
         {
-            private string _machineName, _connectionString, _smsFrom, _smsTo;
-            private SmsClient _smsClient;
+            private string      _machineName, _connectionString, _smsFrom, _smsTo;
+            private bool        _blockLateNightSms = true;
+            private SmsClient   _smsClient;
 
-            public string MachineName { get => _machineName; set => _machineName = value; }
-            public string ConnectionString { get => _connectionString; set => _connectionString = value; }
-            public string SmsFrom { get => _smsFrom; set => _smsFrom = value; }
-            public string SmsTo { get => _smsTo; set => _smsTo = value; }
+            private DateTime    _cooldownLastMessageSent;
+#if DEBUG
+            private TimeSpan    _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug
+#else
+            private TimeSpan    _cooldownTime = new TimeSpan(0, 20, 0);    // Send SMS message no more than every 20mins
+#endif
+            public string MachineName       { get => _machineName; set => _machineName = value; }
+            public string ConnectionString  { get => _connectionString; set => _connectionString = value; }
+            public string SmsFrom           { get => _smsFrom; set => _smsFrom = value; }
+            public string SmsTo             { get => _smsTo; set => _smsTo = value; }
+
+            public bool   BlockLateNightSms { get => _blockLateNightSms; set => _blockLateNightSms = value; }
 
             public SmsAlert() { }
             public SmsAlert(string machineName, string connectionString, string smsFrom, string smsTo)
@@ -55,24 +62,50 @@ namespace WindowsFormsAppCamera
                 SmsFrom = smsFrom;
                 SmsTo = smsTo;
 
+                ResetCooldown();
+
                 _smsClient = new SmsClient(ConnectionString);
             }
 
-            // send a message to the recipient
+            // send an SMS message to the recipient
             public bool RaiseAlert(string msg)
             {
                 if (_smsClient == null)
                     return false;
 
+                DateTime now = DateTime.Now;
+
+                // don't keep spamming SMS messages
+                // this takes the current time, subtracts the last time we sent an SMS message
+                // and returns if it's still in the cooldown window
+                if (now.Subtract(_cooldownLastMessageSent) < _cooldownTime)
+                    return false;
+
+                // block SMS messages between 0100 and 0559
+                if (BlockLateNightSms)
+                {
+                    if (now.Hour >= 1 && now.Hour <= 5)
+                        return false;
+                }
+
+                // finally, send the SMS msg!
                 SmsSendResult sendResult = _smsClient.Send(
                     from: SmsFrom,
                     to: SmsTo,
                     message: msg
                 );
 
-                MessageBox.Show(sendResult.Successful ? "Message sent" : sendResult.ErrorMessage);
+                // start the cooldown
+                if (sendResult.Successful == true)
+                    _cooldownLastMessageSent = now;
 
                 return sendResult.Successful;
+            }
+
+            // reset cooldown
+            public void ResetCooldown()
+            {
+                _cooldownLastMessageSent = new DateTime(2021, 1, 1);
             }
         }
 
@@ -99,35 +132,41 @@ namespace WindowsFormsAppCamera
                 Enqueue(s);
             }
         }
-        #endregion
+#endregion
 
-        #region Class member variables
+#region Class member variables
         UsbCamera               _camera;
-        RGBTotal                _calibrationData;
+
         readonly LogQueue       _logQueue;
-        float                   _triggerPercent = 55F;
-        readonly int            _xHitBoxStart = 200, 
+        readonly string         _sLogFilePath;
+        const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
+
+        readonly int            _xHitBoxStart = 200,    // this is the hit box rectangle 
                                 _yHitBoxStart = 200, 
                                 _xHitBoxEnd = 460, 
-                                _yHitBoxEnd = 270; // this is the hit box rectangle
+                                _yHitBoxEnd = 270; 
+
         Thread                  _threadWorker = null;
         Thread                  _threadLog = null;
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
-        readonly string         _sLogFilePath;
+
+        RGBTotal                _calibrationData;
         bool                    _fUsingLiveScreen = true;
+        float                   _triggerPercent = 50F;
         readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
-        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 27); // longest time we can go without seeing a drone, used to send out an emergency EMP
-        Brush                   _colorInfo = Brushes.AliceBlue;
-        const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
+        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
+
         string                  _machineName;
         SmsAlert                _smsAlert = null;
-        DateTime                _lastSmsMessageSent;    // Keep track of when the last SMS alert was sent
-        readonly TimeSpan       _lastSmsElapseBetweenMessages = new TimeSpan(0, 30, 0); // wait 30mins between SMS messages
 
-        #endregion
+        readonly Brush          _colorInfo = Brushes.AliceBlue;
+        readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(99, Color.Yellow));
+        readonly Pen            _penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
 
-        #region Logs
+#endregion
+
+#region Logs
         // writes log data to a local log file
         private void WriteLog(string s)
         {
@@ -187,11 +226,13 @@ namespace WindowsFormsAppCamera
 
             // build the packet of data that goes to Azure
             var sb = new StringBuilder(512);
-            var delim = "|";
+            const string delim = "|";
 
             sb.Append(title);
             sb.Append(delim);
-            sb.Append("Last update (UTC): " + DateTime.UtcNow.ToString(_dateTemplate));
+
+            sb.Append("Last update (UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + ")(Local:)" + DateTime.Now.ToString(_dateTemplate)  + ")");
+            sb.Append(_fUsingLiveScreen ? " (using live video)" : " (using timer)");
             sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
@@ -214,9 +255,9 @@ namespace WindowsFormsAppCamera
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
             }
         }
-        #endregion
+#endregion
 
-        #region Arduino Interface
+#region Arduino Interface
 
         // Send command to the Arduino over the COM port (ie; USB port)
         // The USB port is treated as a COM port
@@ -261,7 +302,7 @@ namespace WindowsFormsAppCamera
         }
 #endregion
 
-        #region Thread Functions
+#region Thread Functions
         // Press the turret ever 15secs
         // if the screen is blank, then hit the EMP too
         private void SetSkillTimer()
@@ -314,27 +355,27 @@ namespace WindowsFormsAppCamera
 
             while (!_fKillThreads)
             {
-                // need to check that if drones have not been spotted for a while then
-                // throw out the EMP and deploy the turret
-                // this is an emergency measure
-                // sends an SMS alert if one is configured
-                TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
-                if (tSpan > _longestTimeBetweenDrones)
-                {
-                    WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
-                    TriggerArduino("E");
-                    TriggerArduino("T");
-
-                    dtLastDroneSpotted = DateTime.Now;
-
-                    if (_smsAlert != null)
-                        if (!_smsAlert.RaiseAlert("Drones not detected"))
-                            WriteLog("SMS alert failed");
-                }
-
                 // using camera
                 if (_fUsingLiveScreen)
                 {
+                    // need to check that if drones have not been spotted for a while then
+                    // throw out the EMP and deploy the turret
+                    // this is an emergency measure
+                    // sends an SMS alert if one is configured
+                    TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
+                    if (tSpan > _longestTimeBetweenDrones)
+                    {
+                        WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
+                        TriggerArduino("E");
+                        TriggerArduino("T");
+
+                        // dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
+
+                        if (_smsAlert != null)
+                            if (!_smsAlert.RaiseAlert("Drones not detected"))
+                                WriteLog("SMS alert failed");
+                    }
+
                     string droneCooldown = "Drone check: Ready";
 
                     // this stops the code from checking for drones constantly right after drones are spotted and EMP sent out
@@ -399,6 +440,9 @@ namespace WindowsFormsAppCamera
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
                         _showDroneText = 12; // display the drone text for 12 frames
+
+                        // we have seen a drone, so kill the SMS cooldown
+                        _smsAlert?.ResetCooldown();
                     }
 
                     // display the "Incoming text" - this is written the the image
@@ -428,9 +472,9 @@ namespace WindowsFormsAppCamera
 
             KillSkillTimer();
         }
-        #endregion
+#endregion
 
-        #region UI Elements
+#region UI Elements
 
         // Code to read command-line args
         // -n "machinename" -c "connectionstring" -f "from sms #"  -t "to sms #"
@@ -517,9 +561,12 @@ namespace WindowsFormsAppCamera
                 // if the three args are available for SMS, then create an SmsAlert object
                 if (string.IsNullOrEmpty(azureConnection) == false &&
                     string.IsNullOrEmpty(azureSmsFrom) == false &&
-                    string.IsNullOrEmpty(azureSmsTo) == false)
+                    string.IsNullOrEmpty(azureSmsTo) == false) 
                 {
-                    _smsAlert = new SmsAlert(machineName, azureConnection, azureSmsFrom, azureSmsTo);
+                    _smsAlert = new SmsAlert(machineName, azureConnection, azureSmsFrom, azureSmsTo) {
+                        BlockLateNightSms = true
+                    };
+
                     txtSmsEnabled.Text = "Yes";
                 }
             }
@@ -648,7 +695,7 @@ namespace WindowsFormsAppCamera
         // switch text colors in the bitmap (kinda useless!)
         private void pictureBox1_Click(object sender, EventArgs e)
         {
-            _colorInfo = (_colorInfo == Brushes.AliceBlue) ? Brushes.Black : Brushes.AliceBlue;
+            // Nothing
         }
 
         // this gives the code a chance to kill the main worker thread gracefully
@@ -705,9 +752,9 @@ namespace WindowsFormsAppCamera
                 cmbCamera.Items.Add(d);
         }
 
-        #endregion
+#endregion
 
-        #region Bitmap and drone detection code
+#region Bitmap and drone detection code
 
         // determines the increase in red required to determine if the drones are incoming
         private float GetRedSpottedPercent()
@@ -720,7 +767,8 @@ namespace WindowsFormsAppCamera
             if (_smsAlert == null)
                 MessageBox.Show("No SMS Client is defined.");
             else
-                _smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}");
+                if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}"))
+                    WriteLog("SMS test alert failed");
         }
 
         // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
@@ -751,12 +799,8 @@ namespace WindowsFormsAppCamera
                 int height = _yHitBoxEnd - _yHitBoxStart;
                 Rectangle rectTarget = new Rectangle(_xHitBoxStart, _yHitBoxStart, width, height);
 
-                Color customColor = Color.FromArgb(99, Color.Yellow);
-                SolidBrush brushYellow = new SolidBrush(customColor);
-                g.FillRectangle(brushYellow, rectTarget);
-
-                Pen penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
-                g.DrawRectangle(penYellow, rectTarget);
+                g.FillRectangle(_brushYellow, rectTarget);
+                g.DrawRectangle(_penYellow, rectTarget);
             }
         }
         // counts the number of RBGA elements in pixels in the hitbox

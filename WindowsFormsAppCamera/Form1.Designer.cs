@@ -113,7 +113,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(441, 677);
+            this.btnStart.Location = new System.Drawing.Point(234, 678);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(106, 61);
             this.btnStart.TabIndex = 13;
@@ -141,7 +141,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnSaveBmp
             // 
-            this.btnSaveBmp.Location = new System.Drawing.Point(340, 678);
+            this.btnSaveBmp.Location = new System.Drawing.Point(447, 678);
             this.btnSaveBmp.Name = "btnSaveBmp";
             this.btnSaveBmp.Size = new System.Drawing.Size(95, 61);
             this.btnSaveBmp.TabIndex = 16;
@@ -151,7 +151,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnToggleBlankOrLiveScreen
             // 
-            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(239, 678);
+            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(346, 677);
             this.btnToggleBlankOrLiveScreen.Name = "btnToggleBlankOrLiveScreen";
             this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(95, 61);
             this.btnToggleBlankOrLiveScreen.TabIndex = 17;
@@ -402,14 +402,14 @@ namespace WindowsFormsAppCamera
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(443, 92);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(109, 20);
+            this.label5.Size = new System.Drawing.Size(91, 20);
             this.label5.TabIndex = 45;
-            this.label5.Text = "SMS enabled:";
+            this.label5.Text = "SMS alerts:";
             // 
             // txtSmsEnabled
             // 
             this.txtSmsEnabled.AutoSize = true;
-            this.txtSmsEnabled.Location = new System.Drawing.Point(553, 92);
+            this.txtSmsEnabled.Location = new System.Drawing.Point(541, 92);
             this.txtSmsEnabled.Name = "txtSmsEnabled";
             this.txtSmsEnabled.Size = new System.Drawing.Size(27, 20);
             this.txtSmsEnabled.TabIndex = 46;
