@@ -411,9 +411,9 @@ namespace WindowsFormsAppCamera
             this.txtSmsEnabled.AutoSize = true;
             this.txtSmsEnabled.Location = new System.Drawing.Point(541, 92);
             this.txtSmsEnabled.Name = "txtSmsEnabled";
-            this.txtSmsEnabled.Size = new System.Drawing.Size(27, 20);
+            this.txtSmsEnabled.Size = new System.Drawing.Size(29, 20);
             this.txtSmsEnabled.TabIndex = 46;
-            this.txtSmsEnabled.Text = "??";
+            this.txtSmsEnabled.Text = "No";
             // 
             // btnTestComPort
             // 
@@ -429,6 +429,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnTestSms
             // 
+            this.btnTestSms.Enabled = false;
             this.btnTestSms.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnTestSms.Location = new System.Drawing.Point(591, 87);
             this.btnTestSms.Name = "btnTestSms";

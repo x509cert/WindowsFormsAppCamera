@@ -231,8 +231,8 @@ namespace WindowsFormsAppCamera
             sb.Append(title);
             sb.Append(delim);
 
-            sb.Append("Last update (UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + ")(Local:)" + DateTime.Now.ToString(_dateTemplate)  + ")");
-            sb.Append(_fUsingLiveScreen ? " (using live video)" : " (using timer)");
+            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + "][Local:" + DateTime.Now.ToString(_dateTemplate)  + "]  using ");
+            sb.Append(_fUsingLiveScreen ? "live video" : "timer");
             sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
@@ -369,10 +369,10 @@ namespace WindowsFormsAppCamera
                         TriggerArduino("E");
                         TriggerArduino("T");
 
-                        // dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
+                        dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
 
                         if (_smsAlert != null)
-                            if (!_smsAlert.RaiseAlert("Drones not detected"))
+                            if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName}"))
                                 WriteLog("SMS alert failed");
                     }
 
@@ -568,6 +568,7 @@ namespace WindowsFormsAppCamera
                     };
 
                     txtSmsEnabled.Text = "Yes";
+                    btnTestSms.Enabled = true;
                 }
             }
         }
