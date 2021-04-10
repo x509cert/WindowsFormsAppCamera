@@ -66,10 +66,14 @@ namespace WindowsFormsAppCamera
             this.txtSmsEnabled = new System.Windows.Forms.Label();
             this.btnTestComPort = new System.Windows.Forms.Button();
             this.btnTestSms = new System.Windows.Forms.Button();
+            this.btnTrace = new System.Windows.Forms.Button();
+            this.numDroneDelay = new System.Windows.Forms.NumericUpDown();
+            this.lblDroneDelay = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).BeginInit();
             this.SuspendLayout();
             // 
             // pictCamera
@@ -87,7 +91,7 @@ namespace WindowsFormsAppCamera
             // 
             this.btnCalibrate.Location = new System.Drawing.Point(19, 677);
             this.btnCalibrate.Name = "btnCalibrate";
-            this.btnCalibrate.Size = new System.Drawing.Size(106, 61);
+            this.btnCalibrate.Size = new System.Drawing.Size(106, 41);
             this.btnCalibrate.TabIndex = 1;
             this.btnCalibrate.Text = "Calibrate";
             this.btnCalibrate.UseVisualStyleBackColor = true;
@@ -113,9 +117,9 @@ namespace WindowsFormsAppCamera
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(234, 678);
+            this.btnStart.Location = new System.Drawing.Point(335, 678);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(106, 61);
+            this.btnStart.Size = new System.Drawing.Size(106, 40);
             this.btnStart.TabIndex = 13;
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -123,9 +127,9 @@ namespace WindowsFormsAppCamera
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(553, 677);
+            this.btnStop.Location = new System.Drawing.Point(447, 678);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(106, 61);
+            this.btnStop.Size = new System.Drawing.Size(106, 41);
             this.btnStop.TabIndex = 14;
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
@@ -141,9 +145,9 @@ namespace WindowsFormsAppCamera
             // 
             // btnSaveBmp
             // 
-            this.btnSaveBmp.Location = new System.Drawing.Point(447, 678);
+            this.btnSaveBmp.Location = new System.Drawing.Point(447, 740);
             this.btnSaveBmp.Name = "btnSaveBmp";
-            this.btnSaveBmp.Size = new System.Drawing.Size(95, 61);
+            this.btnSaveBmp.Size = new System.Drawing.Size(95, 40);
             this.btnSaveBmp.TabIndex = 16;
             this.btnSaveBmp.Text = "Save BMP";
             this.btnSaveBmp.UseVisualStyleBackColor = true;
@@ -151,11 +155,11 @@ namespace WindowsFormsAppCamera
             // 
             // btnToggleBlankOrLiveScreen
             // 
-            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(346, 677);
+            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(335, 738);
             this.btnToggleBlankOrLiveScreen.Name = "btnToggleBlankOrLiveScreen";
-            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(95, 61);
+            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(106, 41);
             this.btnToggleBlankOrLiveScreen.TabIndex = 17;
-            this.btnToggleBlankOrLiveScreen.Text = "Flip to Blank";
+            this.btnToggleBlankOrLiveScreen.Text = "To Blank";
             this.btnToggleBlankOrLiveScreen.UseVisualStyleBackColor = true;
             this.btnToggleBlankOrLiveScreen.Click += new System.EventHandler(this.btnToggleBlankOrLiveScreen_Click);
             // 
@@ -164,7 +168,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalLeftLess.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.btnRecalLeftLess.Location = new System.Drawing.Point(97, 25);
             this.btnRecalLeftLess.Name = "btnRecalLeftLess";
-            this.btnRecalLeftLess.Size = new System.Drawing.Size(67, 64);
+            this.btnRecalLeftLess.Size = new System.Drawing.Size(67, 41);
             this.btnRecalLeftLess.TabIndex = 18;
             this.btnRecalLeftLess.Text = "Less";
             this.btnRecalLeftLess.UseVisualStyleBackColor = true;
@@ -175,7 +179,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalLeftMore.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.btnRecalLeftMore.Location = new System.Drawing.Point(174, 25);
             this.btnRecalLeftMore.Name = "btnRecalLeftMore";
-            this.btnRecalLeftMore.Size = new System.Drawing.Size(67, 64);
+            this.btnRecalLeftMore.Size = new System.Drawing.Size(67, 41);
             this.btnRecalLeftMore.TabIndex = 19;
             this.btnRecalLeftMore.Text = "More";
             this.btnRecalLeftMore.UseMnemonic = false;
@@ -187,7 +191,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalRightMore.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.btnRecalRightMore.Location = new System.Drawing.Point(169, 25);
             this.btnRecalRightMore.Name = "btnRecalRightMore";
-            this.btnRecalRightMore.Size = new System.Drawing.Size(67, 64);
+            this.btnRecalRightMore.Size = new System.Drawing.Size(67, 41);
             this.btnRecalRightMore.TabIndex = 21;
             this.btnRecalRightMore.Text = "More";
             this.btnRecalRightMore.UseVisualStyleBackColor = true;
@@ -198,7 +202,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalRightLess.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.btnRecalRightLess.Location = new System.Drawing.Point(96, 25);
             this.btnRecalRightLess.Name = "btnRecalRightLess";
-            this.btnRecalRightLess.Size = new System.Drawing.Size(67, 64);
+            this.btnRecalRightLess.Size = new System.Drawing.Size(67, 41);
             this.btnRecalRightLess.TabIndex = 20;
             this.btnRecalRightLess.Text = "Less";
             this.btnRecalRightLess.UseVisualStyleBackColor = true;
@@ -209,7 +213,7 @@ namespace WindowsFormsAppCamera
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAllUp.Location = new System.Drawing.Point(19, 827);
             this.btnAllUp.Name = "btnAllUp";
-            this.btnAllUp.Size = new System.Drawing.Size(67, 64);
+            this.btnAllUp.Size = new System.Drawing.Size(67, 41);
             this.btnAllUp.TabIndex = 24;
             this.btnAllUp.Text = "All Up";
             this.btnAllUp.UseVisualStyleBackColor = true;
@@ -277,7 +281,7 @@ namespace WindowsFormsAppCamera
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.button2.Location = new System.Drawing.Point(23, 25);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(67, 64);
+            this.button2.Size = new System.Drawing.Size(67, 41);
             this.button2.TabIndex = 32;
             this.button2.Text = "Press";
             this.button2.UseVisualStyleBackColor = true;
@@ -288,7 +292,7 @@ namespace WindowsFormsAppCamera
             this.btnPressRB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             this.btnPressRB.Location = new System.Drawing.Point(23, 25);
             this.btnPressRB.Name = "btnPressRB";
-            this.btnPressRB.Size = new System.Drawing.Size(67, 64);
+            this.btnPressRB.Size = new System.Drawing.Size(67, 41);
             this.btnPressRB.TabIndex = 33;
             this.btnPressRB.Text = "Press";
             this.btnPressRB.UseVisualStyleBackColor = true;
@@ -297,7 +301,7 @@ namespace WindowsFormsAppCamera
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(134, 698);
+            this.label2.Location = new System.Drawing.Point(187, 677);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 20);
             this.label2.TabIndex = 34;
@@ -306,7 +310,7 @@ namespace WindowsFormsAppCamera
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(134, 718);
+            this.label7.Location = new System.Drawing.Point(248, 677);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(24, 20);
             this.label7.TabIndex = 35;
@@ -315,7 +319,7 @@ namespace WindowsFormsAppCamera
             // lblGreenCount
             // 
             this.lblGreenCount.AutoSize = true;
-            this.lblGreenCount.Location = new System.Drawing.Point(156, 698);
+            this.lblGreenCount.Location = new System.Drawing.Point(209, 677);
             this.lblGreenCount.Name = "lblGreenCount";
             this.lblGreenCount.Size = new System.Drawing.Size(18, 20);
             this.lblGreenCount.TabIndex = 37;
@@ -324,7 +328,7 @@ namespace WindowsFormsAppCamera
             // lblBlueCount
             // 
             this.lblBlueCount.AutoSize = true;
-            this.lblBlueCount.Location = new System.Drawing.Point(156, 718);
+            this.lblBlueCount.Location = new System.Drawing.Point(270, 677);
             this.lblBlueCount.Name = "lblBlueCount";
             this.lblBlueCount.Size = new System.Drawing.Size(18, 20);
             this.lblBlueCount.TabIndex = 38;
@@ -332,7 +336,7 @@ namespace WindowsFormsAppCamera
             // 
             // numTrigger
             // 
-            this.numTrigger.Location = new System.Drawing.Point(140, 759);
+            this.numTrigger.Location = new System.Drawing.Point(138, 723);
             this.numTrigger.Minimum = new decimal(new int[] {
             10,
             0,
@@ -351,7 +355,7 @@ namespace WindowsFormsAppCamera
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(24, 759);
+            this.label8.Location = new System.Drawing.Point(22, 729);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(80, 20);
             this.label8.TabIndex = 40;
@@ -364,7 +368,7 @@ namespace WindowsFormsAppCamera
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
             this.groupBox1.Location = new System.Drawing.Point(125, 802);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(260, 106);
+            this.groupBox1.Size = new System.Drawing.Size(260, 91);
             this.groupBox1.TabIndex = 41;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "LB";
@@ -376,7 +380,7 @@ namespace WindowsFormsAppCamera
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
             this.groupBox2.Location = new System.Drawing.Point(405, 802);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(260, 106);
+            this.groupBox2.Size = new System.Drawing.Size(260, 91);
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
@@ -439,11 +443,56 @@ namespace WindowsFormsAppCamera
             this.btnTestSms.UseVisualStyleBackColor = true;
             this.btnTestSms.Click += new System.EventHandler(this.btnTestSms_Click);
             // 
+            // btnTrace
+            // 
+            this.btnTrace.Location = new System.Drawing.Point(548, 740);
+            this.btnTrace.Name = "btnTrace";
+            this.btnTrace.Size = new System.Drawing.Size(95, 40);
+            this.btnTrace.TabIndex = 48;
+            this.btnTrace.Text = "20s Trace";
+            this.btnTrace.UseVisualStyleBackColor = true;
+            this.btnTrace.Click += new System.EventHandler(this.btnTrace_Click);
+            // 
+            // numDroneDelay
+            // 
+            this.numDroneDelay.Location = new System.Drawing.Point(138, 753);
+            this.numDroneDelay.Maximum = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            this.numDroneDelay.Minimum = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.numDroneDelay.Name = "numDroneDelay";
+            this.numDroneDelay.Size = new System.Drawing.Size(72, 26);
+            this.numDroneDelay.TabIndex = 49;
+            this.numDroneDelay.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numDroneDelay.ValueChanged += new System.EventHandler(this.numDroneDelay_ValueChanged);
+            // 
+            // lblDroneDelay
+            // 
+            this.lblDroneDelay.AutoSize = true;
+            this.lblDroneDelay.Location = new System.Drawing.Point(24, 759);
+            this.lblDroneDelay.Name = "lblDroneDelay";
+            this.lblDroneDelay.Size = new System.Drawing.Size(101, 20);
+            this.lblDroneDelay.TabIndex = 50;
+            this.lblDroneDelay.Text = "Drone Delay:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 922);
+            this.Controls.Add(this.lblDroneDelay);
+            this.Controls.Add(this.numDroneDelay);
+            this.Controls.Add(this.btnTrace);
             this.Controls.Add(this.btnTestSms);
             this.Controls.Add(this.txtSmsEnabled);
             this.Controls.Add(this.label5);
@@ -484,6 +533,7 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -527,6 +577,9 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label txtSmsEnabled;
         private System.Windows.Forms.Button btnTestComPort;
         private System.Windows.Forms.Button btnTestSms;
+        private System.Windows.Forms.Button btnTrace;
+        private System.Windows.Forms.NumericUpDown numDroneDelay;
+        private System.Windows.Forms.Label lblDroneDelay;
     }
 }
 

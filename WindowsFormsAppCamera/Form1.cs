@@ -9,13 +9,16 @@ using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 using Azure.Communication.Sms;
 
 namespace WindowsFormsAppCamera
 {
     public partial class Form1 : Form
     {
-        #region Helper classes
+#region Helper classes
         // used to track RGB pixel colors
         struct RGBTotal
         {
@@ -45,7 +48,7 @@ namespace WindowsFormsAppCamera
 #if DEBUG
             private TimeSpan    _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug
 #else
-            private TimeSpan    _cooldownTime = new TimeSpan(0, 20, 0);    // Send SMS message no more than every 20mins
+            private TimeSpan    _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
 #endif
             public string MachineName       { get => _machineName; set => _machineName = value; }
             public string ConnectionString  { get => _connectionString; set => _connectionString = value; }
@@ -140,6 +143,8 @@ namespace WindowsFormsAppCamera
         readonly LogQueue       _logQueue;
         readonly string         _sLogFilePath;
         const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
+        string                  _logUri;
+        string                  _gatewayIp = null;
 
         readonly int            _xHitBoxStart = 200,    // this is the hit box rectangle 
                                 _yHitBoxStart = 200, 
@@ -148,14 +153,16 @@ namespace WindowsFormsAppCamera
 
         Thread                  _threadWorker = null;
         Thread                  _threadLog = null;
+        Thread                  _threadPinger = null;
+
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
 
         RGBTotal                _calibrationData;
         bool                    _fUsingLiveScreen = true;
         float                   _triggerPercent = 50F;
-        readonly TimeSpan       _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
-        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
+        TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
+        TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
 
         string                  _machineName;
         SmsAlert                _smsAlert = null;
@@ -163,6 +170,9 @@ namespace WindowsFormsAppCamera
         readonly Brush          _colorInfo = Brushes.AliceBlue;
         readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(99, Color.Yellow));
         readonly Pen            _penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
+
+        DateTime                _startTraceTimer;                       // this is for dumping a trace of the screenshots for 20secs - approx 100 images
+        readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); // trace for 20secs
 
 #endregion
 
@@ -217,8 +227,12 @@ namespace WindowsFormsAppCamera
         // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
-            // URL to the Azure Function TODO: Pull URL from commandline
-            var uri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
+            // URL to the Azure Function
+            _logUri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
+
+            // if no log upload UI is set, then don't attempt to upload the data
+            if (string.IsNullOrEmpty(_logUri))
+                return;
 
             // title for the log collection
             // by default this is the machine name or whatever was passed in on the command-line using -n
@@ -231,7 +245,7 @@ namespace WindowsFormsAppCamera
             sb.Append(title);
             sb.Append(delim);
 
-            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + "][Local:" + DateTime.Now.ToString(_dateTemplate)  + "]  using ");
+            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + "][Local:" + DateTime.Now.ToString(_dateTemplate)  + "]  Using ");
             sb.Append(_fUsingLiveScreen ? "live video" : "timer");
             sb.Append(delim);
 
@@ -242,14 +256,14 @@ namespace WindowsFormsAppCamera
                 sb.Append(delim);
             }
 
-            // push up to Azure TODO: Make the URI a cmd-line argument
+            // push up to an Azure Function
             try
             {
                 WebClient wc = new WebClient();
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 
-                _ = wc.UploadString(uri, sb.ToString());
+                wc.UploadString(_logUri, sb.ToString());
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -329,13 +343,59 @@ namespace WindowsFormsAppCamera
             }
         }
 
+        // Code to ping the local gateway and ubisoft every 30secs
+        private void PingerThread()
+        {
+            while (_fKillThreads == false)
+            {
+                // if there's no gateway IP address, then use tracert to get it
+                if (String.IsNullOrEmpty(_gatewayIp))
+                {
+                    Process p = new Process();
+
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.FileName = "tracert";
+                    p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
+                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
+                    p.Start();
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+
+                    // simplified (lazy) IP address
+                    Regex rx = new Regex(@"([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})");
+
+                    string[] lines = output.Split('\n');
+                    for (int i = 2; i < lines.Length; i++)
+                    {
+                        MatchCollection matches = rx.Matches(lines[i]);
+                        if (matches.Count > 0)
+                        {
+                            _gatewayIp = matches[0].ToString();
+                            break;
+                        }
+                    }
+                }
+
+                // we have a gateway IP address
+                Ping pingSender = new Ping();
+                PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
+                WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
+
+                PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
+                WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
+
+                Thread.Sleep(30000);
+            }
+        }
+
         // a thread function that uploads log data to Azure
         private void UploadLogThreadFunc()
         {
             while (!_fKillThreads)
             {
                 UploadLogs();
-                Thread.Sleep(55000); // delay 55 secs, no real reason for this number!
+                Thread.Sleep(60000); // delay 60 secs
             }
         }
 
@@ -344,20 +404,40 @@ namespace WindowsFormsAppCamera
         private void WorkerThreadFunc()
         {
             var dtDronesStart = DateTime.Now;
-            DateTime dtLastDroneSpotted = DateTime.Now;
+            var dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
-            Int64 _showDroneText = 0;
+            int showDroneText = 0;
+            int showNoDronesSeenText = 0;
 
             WriteLog("Worker thread start");
 
             SetSkillTimer();
+
+            uint traceCounter = 0;
 
             while (!_fKillThreads)
             {
                 // using camera
                 if (_fUsingLiveScreen)
                 {
+                    bool tracing = false;
+
+                    // See if we need to dump traces
+                    if (DateTime.Now - _startTraceTimer <= _maxTraceTime)
+                    {
+                        tracing = true;
+                        var img = pictCamera.Image;
+                        var date = DateTime.Now;
+                        var dtFormat = date.ToString("MMdd-HH-mm-ss");
+                        img.Save(_sLogFilePath + @"\Trace\Div" + dtFormat + "-" + traceCounter.ToString("D6") + ".bmp");
+                        traceCounter++;
+                    } 
+                    else
+                    {
+                        btnTrace.Enabled = true;
+                    }
+
                     // need to check that if drones have not been spotted for a while then
                     // throw out the EMP and deploy the turret
                     // this is an emergency measure
@@ -371,6 +451,9 @@ namespace WindowsFormsAppCamera
 
                         dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
 
+                        showNoDronesSeenText = 30;
+
+                        // Send a SMS message
                         if (_smsAlert != null)
                             if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName}"))
                                 WriteLog("SMS alert failed");
@@ -404,28 +487,27 @@ namespace WindowsFormsAppCamera
                     RGBTotal rbgTotal = new RGBTotal() ;
                     GetRGBInRange(bmp, ref rbgTotal);
 
-                    const int X = 4;
-
                     float redSpottedValue = GetRedSpottedPercent();
 
                     // calcluate current RGB as discrete values and percentages and write into the bmp
+                    const int xOffset = 4;
                     int percentChange = (int)(rbgTotal.R / (float)_calibrationData.R * 100);
                     string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string r = $"R: {rbgTotal.R:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 70, bmp.Width, 24));
+                    gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 70, bmp.Width, 24));
 
                     percentChange = (int)(rbgTotal.G / (float)_calibrationData.G * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string g = $"G: {rbgTotal.G:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 48, bmp.Width, 24));
+                    gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 48, bmp.Width, 24));
 
                     percentChange = (int)(rbgTotal.B / (float)_calibrationData.B * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string b = $"B: {rbgTotal.B:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 24, bmp.Width, 24));
+                    gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(X, bmp.Height - 100, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 100, bmp.Width, 24));
 
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
                     // start the countdown for displaying the "incoming" text
@@ -439,19 +521,36 @@ namespace WindowsFormsAppCamera
 
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
-                        _showDroneText = 12; // display the drone text for 12 frames
+                        showDroneText = 12; // display the drone text for 12 frames
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
                     }
 
-                    // display the "Incoming text" - this is written the the image
-                    if (_showDroneText > 0)
+                    // Display a '!' which shows there's been no drones spotted
+                    if (showNoDronesSeenText > 0)
                     {
-                        Rectangle rectDrone = new Rectangle(180, bmp.Height - 100, bmp.Width, 100);
-                        gd.DrawString("Drones Incoming", new Font("Tahoma", 30), Brushes.Firebrick, rectDrone);
+                        Rectangle rectDronesNotSeen = new Rectangle(310, 10, 50, 220);
+                        gd.DrawString("!", new Font("Courier", 120, FontStyle.Bold), Brushes.Firebrick, rectDronesNotSeen);
 
-                        _showDroneText--;
+                        showNoDronesSeenText--;
+                    }
+
+                    // display the "Incoming text" - this is written to the image
+                    if (showDroneText > 0)
+                    {
+                        Rectangle rect = new Rectangle(180, bmp.Height - 100, bmp.Width, 100);
+                        gd.DrawString("Drones Incoming", new Font("Tahoma", 30), Brushes.Firebrick, rect);
+
+                        showDroneText--;
+                    }
+
+                    // dislpay Tracing 'T' if tracing
+                    if (tracing == true)
+                    {
+                        const int boxsize = 30;
+                        Rectangle rect = new Rectangle(640- boxsize, bmp.Height - boxsize, boxsize, boxsize);
+                        gd.DrawString("T", new Font("Tahoma", 14), Brushes.WhiteSmoke, rect);
                     }
 
                     // write the camera image + text etc to the UI
@@ -472,16 +571,17 @@ namespace WindowsFormsAppCamera
 
             KillSkillTimer();
         }
-#endregion
+        #endregion
 
 #region UI Elements
 
         // Code to read command-line args
-        // -n "machinename" -c "connectionstring" -f "from sms #"  -t "to sms #"
+        // -n "machinename" -c "connectionstring" -f "from sms #"  -t "to sms #" -u "log app URI"
         bool GetCmdLineArgs(ref string machineName,         // -n
                             ref string azureCommsString,    // -c
                             ref string azureSmsFrom,        // -f
-                            ref string azureSmsTo)          // -t
+                            ref string azureSmsTo,          // -t
+                            ref string logUri)              // -u 
         {
             bool success = true;
 
@@ -512,6 +612,11 @@ namespace WindowsFormsAppCamera
                     {
                         azureSmsTo = args[i + 1];
                     }
+
+                    if (args[i].ToLower().StartsWith("-u") == true)
+                    {
+                        logUri = args[i + 1];
+                    }
                 }
             }
             catch (Exception)
@@ -522,7 +627,7 @@ namespace WindowsFormsAppCamera
             return success;
         }
 
-        // WInForm version of main()
+        // The main entry point
         public Form1()
         {
             InitializeComponent();
@@ -533,13 +638,13 @@ namespace WindowsFormsAppCamera
             // get the date this binary was last created
             string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             System.IO.FileInfo fi = new System.IO.FileInfo(strpath);
-            string buildDate = fi.LastWriteTime.ToString();
+            string buildDate = fi.LastWriteTime.ToString("yyMMdd:HHmm");
 
             // machine name
             string machine = Dns.GetHostName();
 
             // add info to title of the tools
-            Text = $"DivGrind [Last Built {buildDate}] on {machine}";
+            Text = $"DivGrind [{buildDate}] on {machine}";
 
             numTrigger.Value = (decimal)_triggerPercent;
 
@@ -551,8 +656,9 @@ namespace WindowsFormsAppCamera
             string azureConnection = "";
             string azureSmsFrom = "";
             string azureSmsTo = "";
+            string logUri = "";
 
-            bool ok = GetCmdLineArgs(ref machineName, ref azureConnection, ref azureSmsFrom, ref azureSmsTo);
+            bool ok = GetCmdLineArgs(ref machineName, ref azureConnection, ref azureSmsFrom, ref azureSmsTo, ref logUri);
             if (ok)
             {
                 // set machine name
@@ -570,6 +676,9 @@ namespace WindowsFormsAppCamera
                     txtSmsEnabled.Text = "Yes";
                     btnTestSms.Enabled = true;
                 }
+
+                if (string.IsNullOrEmpty(logUri) == false)
+                    _logUri = logUri;
             }
         }
 
@@ -593,6 +702,9 @@ namespace WindowsFormsAppCamera
 
             _threadLog = new Thread(UploadLogThreadFunc);
             _threadLog.Start();
+
+            _threadPinger = new Thread(PingerThread);
+            _threadPinger.Start();
         }
 
         // Stop the drone monitoring
@@ -617,17 +729,16 @@ namespace WindowsFormsAppCamera
         private void btnSaveBmp_Click(object sender, EventArgs e)
         {
             Bitmap bmp = _camera.GetBitmap();
-            var date1 = DateTime.Now;
-            var folder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var dtFormat = date1.ToString("MMddTHH-mmss");
-            bmp.Save(folder + @"\Div" + dtFormat + ".bmp");
+            var date = DateTime.Now;
+            var dtFormat = date.ToString("MMddHH-mmss");
+            bmp.Save(_sLogFilePath + @"\Div" + dtFormat + ".bmp");
         }
 
         // switch between live and blank (timer) screen
         private void btnToggleBlankOrLiveScreen_Click(object sender, EventArgs e)
         {
             WriteLog(_fUsingLiveScreen ? "Flipping to Blank" : "Flipping to Live");
-            btnToggleBlankOrLiveScreen.Text = (_fUsingLiveScreen) ? "Flip to Live" : "Flip to Blank";
+            btnToggleBlankOrLiveScreen.Text = _fUsingLiveScreen ? "To Live" : "To Blank";
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 
@@ -749,6 +860,8 @@ namespace WindowsFormsAppCamera
                 return; // no camera.
             }
 
+            numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString();
+
             foreach (string d in devices)
                 cmbCamera.Items.Add(d);
         }
@@ -770,6 +883,18 @@ namespace WindowsFormsAppCamera
             else
                 if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}"))
                     WriteLog("SMS test alert failed");
+        }
+
+        // start a timer that creates screen shots
+        private void btnTrace_Click(object sender, EventArgs e)
+        {
+            _startTraceTimer = DateTime.Now;
+            btnTrace.Enabled = false;
+        }
+
+        private void numDroneDelay_ValueChanged(object sender, EventArgs e)
+        {
+            _elapseBetweenDrones = new TimeSpan(0,0, (int)numDroneDelay.Value);
         }
 
         // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
