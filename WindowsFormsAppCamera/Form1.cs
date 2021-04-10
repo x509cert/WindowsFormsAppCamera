@@ -155,6 +155,9 @@ namespace WindowsFormsAppCamera
         Thread                  _threadLog = null;
         Thread                  _threadPinger = null;
 
+        SerialPort              _sComPort = null;
+        const int               _ComPortSpeed = 9600;
+
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
 
@@ -269,9 +272,9 @@ namespace WindowsFormsAppCamera
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
             }
         }
-#endregion
+        #endregion
 
-#region Arduino Interface
+        #region Arduino Interface
 
         // Send command to the Arduino over the COM port (ie; USB port)
         // The USB port is treated as a COM port
@@ -287,18 +290,26 @@ namespace WindowsFormsAppCamera
         {
             WriteLog(msg);
 
+            if (_sComPort == null)
+            {
+                WriteLog("FATAL: COM Port is not set.");
+                return;
+            }       
+
+            if (_sComPort.IsOpen == false)
+            { 
+                WriteLog("FATAL: COM Port is not open.");
+                return;
+            }       
+
             try
             {
-                string s = cmbComPorts.SelectedItem.ToString();
-                SerialPort port = new SerialPort(s, 9600);
-                port.Open();
-                port.Write(msg);
+                _sComPort.Write(msg);
                 Thread.Sleep(200);
-                port.Close();
             }
             catch (Exception ex)
             {
-                WriteLog($"EXCEPTION: Arduino COM port not open {ex.Message}.");
+                WriteLog($"EXCEPTION: Arduino COM error {ex.Message}.");
             }
         }
 
@@ -783,6 +794,16 @@ namespace WindowsFormsAppCamera
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnTestComPort.Enabled = true;
+            
+            string sPort = cmbComPorts.SelectedItem.ToString();
+            try
+            {
+                _sComPort = new SerialPort(sPort, _ComPortSpeed);
+                _sComPort.Open();
+            } catch (Exception ex)
+            {
+                WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
+            }
         }
 
         // test the COM port
@@ -818,6 +839,9 @@ namespace WindowsFormsAppCamera
 
             Thread.Sleep(400);
             e.Cancel = false;
+
+            _sComPort.Close();
+            _sComPort = null;
         }
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
