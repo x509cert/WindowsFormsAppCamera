@@ -533,6 +533,9 @@ namespace WindowsFormsAppCamera
             if (selectFormat.Size.Width != 640 && selectFormat.Size.Height != 480)
                 MessageBox.Show("Warning! Only 640x480 has been tested","Warning");
 
+            if (selectFormat.Caps.MinBitsPerSecond == 0)
+                MessageBox.Show("Warning! Selected format streams no data, choose another format", "Warning");
+
             _camera = new UsbCamera(camera, selectFormat);
             _camera.Start();
 
