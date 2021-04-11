@@ -590,8 +590,10 @@ namespace WindowsFormsAppCamera
             Thread.Sleep(400);
             e.Cancel = false;
 
-            _sComPort.Close();
-            _sComPort = null;
+            if (_sComPort != null) { 
+                _sComPort.Close();
+                _sComPort = null;
+            }
         }
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
@@ -715,11 +717,12 @@ namespace WindowsFormsAppCamera
                 for (int y = _yHitBoxStart; y < _yHitBoxEnd; y++)
                 {
                     Color px = bmp.GetPixel(x, y);
+                    countPixel++;
 
+                    // RGB totals
                     rbgTotal.R += (Int32)px.R; 
                     rbgTotal.G += (Int32)px.G;
                     rbgTotal.B += (Int32)px.B;
-                    countPixel++;
                 }
             }
 
@@ -728,7 +731,7 @@ namespace WindowsFormsAppCamera
             rbgTotal.B /= countPixel;
         }
 
-#endregion
+        #endregion
 
     }
 }

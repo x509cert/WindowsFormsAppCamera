@@ -98,7 +98,7 @@ namespace WindowsFormsAppCamera
 
                     float redSpottedValue = GetRedSpottedPercent();
 
-                    // calcluate current RGB as discrete values and percentages and write into the bmp
+                    // calculate current RGB as discrete values and percentages and write into the bmp
                     const int xOffset = 4;
                     int percentChange = (int)(rbgTotal.R / (float)_calibrationData.R * 100);
                     string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
