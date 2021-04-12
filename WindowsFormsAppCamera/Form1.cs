@@ -62,16 +62,20 @@ namespace WindowsFormsAppCamera
         #region Class member variables
         UsbCamera               _camera;
 
-        readonly LogQueue       _logQueue;
-        readonly string         _sLogFilePath;
+        Config                  _cfg = null;
+
+        LogQueue                _logQueue;
+        string                  _sLogFilePath;
         const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
-        string                  _logUri;
         string                  _gatewayIp = null;
 
-        readonly int            _xHitBoxStart = 200,    // this is the hit box rectangle 
-                                _yHitBoxStart = 200, 
-                                _xHitBoxEnd = 460, 
-                                _yHitBoxEnd = 270; 
+        const int               _xHitBoxStart = 200,    // this is the hit box rectangle 
+                                _yHitBoxStart = 200,
+                                _xHitBoxEnd = 460,
+                                _yHitBoxEnd = 270,
+                                _widthHitBox = _xHitBoxEnd - _xHitBoxStart,
+                                _heightHitBox = _yHitBoxEnd - _yHitBoxStart;
+        Rectangle               _rectHitBox = new Rectangle(_xHitBoxStart, _yHitBoxStart, _widthHitBox, _heightHitBox);
 
         Thread                  _threadWorker = null;
         Thread                  _threadLog = null;
@@ -83,13 +87,10 @@ namespace WindowsFormsAppCamera
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
 
-        RGBTotal                _calibrationData;
         bool                    _fUsingLiveScreen = true;
-        float                   _triggerPercent = 50F;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
 
-        string                  _machineName;
         SmsAlert                _smsAlert = null;
 
         readonly Brush          _colorInfo = Brushes.AliceBlue;
@@ -152,16 +153,13 @@ namespace WindowsFormsAppCamera
         // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
-            // URL to the Azure Function
-            _logUri = "https://divgrind.azurewebsites.net/api/DivGrindLog?verb=u";
-
             // if no log upload UI is set, then don't attempt to upload the data
-            if (string.IsNullOrEmpty(_logUri))
+            if (string.IsNullOrEmpty(_cfg.LogUri))
                 return;
 
             // title for the log collection
             // by default this is the machine name or whatever was passed in on the command-line using -n
-            var title = _machineName;
+            var title = _cfg.MachineName;
 
             // build the packet of data that goes to Azure
             var sb = new StringBuilder(512);
@@ -188,7 +186,7 @@ namespace WindowsFormsAppCamera
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 
-                wc.UploadString(_logUri, sb.ToString());
+                wc.UploadString(_cfg.LogUri, sb.ToString());
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -227,7 +225,7 @@ namespace WindowsFormsAppCamera
             try
             {
                 _sComPort.Write(msg);
-                Thread.Sleep(200);
+                Thread.Sleep(100);
             }
             catch (Exception ex)
             {
@@ -332,6 +330,20 @@ namespace WindowsFormsAppCamera
             }
         }
 
+        private void StartAllThreads()
+        {
+            // start the two extra worker threads
+            _fKillThreads = false;
+            _threadWorker = new Thread(WorkerThreadFunc);
+            _threadWorker.Start();
+
+            _threadLog = new Thread(UploadLogThreadFunc);
+            _threadLog.Start();
+
+            _threadPinger = new Thread(PingerThread);
+            _threadPinger.Start();
+        }
+
         #endregion
 
         #region UI Elements
@@ -349,16 +361,7 @@ namespace WindowsFormsAppCamera
 
             btnTestComPort.Enabled = false;
 
-            // start the two extra worker threads
-            _fKillThreads = false;
-            _threadWorker = new Thread(WorkerThreadFunc);
-            _threadWorker.Start();
-
-            _threadLog = new Thread(UploadLogThreadFunc);
-            _threadLog.Start();
-
-            _threadPinger = new Thread(PingerThread);
-            _threadPinger.Start();
+            StartAllThreads();
         }
 
         // Stop the drone monitoring
@@ -402,74 +405,8 @@ namespace WindowsFormsAppCamera
         private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); }
         private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); }
         private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); }
-
-        private void cmbCamera_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int cameraIndex = cmbCamera.SelectedIndex;
-            UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
-
-            cmbCameraFormat.Items.Clear();
-            for (int i = 0; i < formats.Length; i++)
-            {
-                string f = "Resolution: " + formats[i].Caps.InputSize.ToString() + ", bits/sec: " + formats[i].Caps.MinBitsPerSecond;
-                cmbCameraFormat.Items.Add(f);
-            }
-        }
-
-        private void cmbCameraFormat_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            // create usb camera object with selected resolution and start.
-            int camera = cmbCamera.SelectedIndex;
-            UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(camera);
-            
-            var selectFormat = formats[cmbCameraFormat.SelectedIndex];
-            if (selectFormat.Size.Width != 640 && selectFormat.Size.Height != 480)
-                MessageBox.Show("Warning! Only 640x480 has been tested","Warning");
-
-            if (selectFormat.Caps.MinBitsPerSecond == 0)
-                MessageBox.Show("Warning! Selected format streams no data, choose another format", "Warning");
-
-            _camera = new UsbCamera(camera, selectFormat);
-            _camera.Start();
-
-            foreach (string p in SerialPort.GetPortNames())
-                cmbComPorts.Items.Add(p);
-        }
-
-        // COM port selected
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            btnTestComPort.Enabled = true;
-            
-            string sPort = cmbComPorts.SelectedItem.ToString();
-            try
-            {
-                _sComPort = new SerialPort(sPort, _ComPortSpeed);
-                _sComPort.Open();
-            } catch (Exception ex)
-            {
-                WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
-            }
-        }
-
-        // test the COM port
-        private void btnTestComPort_Click(object sender, EventArgs e)
-        {
-            cmbComPorts.Items[cmbComPorts.SelectedIndex].ToString();
-            TriggerArduino("V");
-        }
-
-        // send an EMP
-        private void button3_Click_1(object sender, EventArgs e)
-        {
-            TriggerArduino("E");
-        }
-
-        // deploy Turret
-        private void button2_Click_1(object sender, EventArgs e)
-        {
-            TriggerArduino("T");
-        }
+        private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
+        private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
 
         // switch text colors in the bitmap (kinda useless!)
         private void pictureBox1_Click(object sender, EventArgs e)
@@ -480,7 +417,8 @@ namespace WindowsFormsAppCamera
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)
         {
-            _triggerPercent = (float)numTrigger.Value;
+            _cfg.ThreshHold = (float)numTrigger.Value;
+            WriteConfig(_cfg);
         }
 
         // The Calibrate Button
@@ -488,8 +426,6 @@ namespace WindowsFormsAppCamera
         {
             // read the camera
             var bmp = _camera.GetBitmap();
-
-            _calibrationData.Init();
 
             // Get Calibration data
             var rbgTotal = new RGBTotal();
@@ -499,28 +435,14 @@ namespace WindowsFormsAppCamera
             lblGreenCount.Text = rbgTotal.G.ToString("N0");
             lblBlueCount.Text = rbgTotal.B.ToString("N0");
 
-            _calibrationData.R = rbgTotal.R;
-            _calibrationData.B = rbgTotal.B;
-            _calibrationData.G = rbgTotal.G;
+            _cfg.LastCalibratedR = (int)rbgTotal.R;
+            _cfg.LastCalibratedB = (int)rbgTotal.B;
+            _cfg.LastCalibratedG = (int)rbgTotal.G;
+            WriteConfig(_cfg);
 
             // draw yellow hit box
             DrawTargetRange(bmp);
             pictCamera.Image = bmp;
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            string[] devices = UsbCamera.FindDevices();
-            if (devices.Length == 0)
-            {
-                MessageBox.Show(this,"Uh oh! No Camera!");
-                return; // no camera.
-            }
-
-            numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString();
-
-            foreach (string d in devices)
-                cmbCamera.Items.Add(d);
         }
 
 #endregion
@@ -530,7 +452,7 @@ namespace WindowsFormsAppCamera
         // determines the increase in red required to determine if the drones are incoming
         private float GetRedSpottedPercent()
         {
-            return (float)_calibrationData.R + (((float)_calibrationData.R / 100.0F) * _triggerPercent);
+            return (float)_cfg.LastCalibratedR + (((float)_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
         }
 
         private void btnTestSms_Click(object sender, EventArgs e)
@@ -572,12 +494,8 @@ namespace WindowsFormsAppCamera
         {
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                int width = _xHitBoxEnd - _xHitBoxStart;
-                int height = _yHitBoxEnd - _yHitBoxStart;
-                Rectangle rectTarget = new Rectangle(_xHitBoxStart, _yHitBoxStart, width, height);
-
-                g.FillRectangle(_brushYellow, rectTarget);
-                g.DrawRectangle(_penYellow, rectTarget);
+                g.FillRectangle(_brushYellow, _rectHitBox);
+                g.DrawRectangle(_penYellow, _rectHitBox);
             }
         }
 

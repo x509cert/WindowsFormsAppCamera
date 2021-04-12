@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Net;
 using System.IO;
+using System.IO.Ports;
 
 namespace WindowsFormsAppCamera
 {
@@ -12,6 +13,25 @@ namespace WindowsFormsAppCamera
         public Form1()
         {
             InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            string[] devices = UsbCamera.FindDevices();
+            if (devices.Length == 0)
+            {
+                MessageBox.Show(this, "Uh oh! No Camera!");
+                return; // no camera.
+            }
+
+            foreach (string d in devices)
+                cmbCamera.Items.Add(d);
+
+            // GET A WHOLE BUNCH OF DEFAULTS
+            // Format here is:
+            //  1) Set defaults
+            //  2) Read from Config
+            //  3) Override with any command-line args
 
             // logs go in user's profile folder (eg; c:\users\mikehow)
             _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -21,88 +41,64 @@ namespace WindowsFormsAppCamera
             FileInfo fi = new FileInfo(strpath);
             string buildDate = fi.LastWriteTime.ToString("yyMMdd:HHmm");
 
+            _logQueue = new LogQueue(50);
+
             // machine name
             string machine = Dns.GetHostName();
 
+            string isDebug = "";
+#if DEBUG
+            isDebug = "[DBG] ";
+#endif
+
             // add info to title of the tools
-            Text = $"DivGrind [{buildDate}] on {machine}";
+            Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
 
-            numTrigger.Value = (decimal)_triggerPercent;
+            // get config TODO - add error checking
+            _cfg = new Config();
+            _cfg = ReadConfig();
 
-            _logQueue = new LogQueue(50);
+            txtName.Text = _cfg.MachineName;
 
-            _machineName = Dns.GetHostName();
+            // set the RGB values
+            lblRedCount.Text = _cfg.LastCalibratedR.ToString();
+            lblGreenCount.Text = _cfg.LastCalibratedG.ToString();
+            lblBlueCount.Text = _cfg.LastCalibratedB.ToString();
 
-            string machineName = "";
-            string azureConnection = "";
-            string azureSmsFrom = "";
-            string azureSmsTo = "";
-            string logUri = "";
+            numTrigger.Value = (decimal)_cfg.ThreshHold;
+            numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // todo from config
 
-            bool ok = GetCmdLineArgs(ref machineName, ref azureConnection, ref azureSmsFrom, ref azureSmsTo, ref logUri);
-            if (ok)
+            // COM ports
+            foreach (string p in SerialPort.GetPortNames())
+                cmbComPorts.Items.Add(p);
+
+            cmbComPorts.Text = _cfg.ComPort;
+
+            // camera
+            cmbCamera.SelectedIndex = _cfg.Camera;
+            cmbCameraFormat.SelectedIndex = _cfg.VideoMode;
+
+            // if the three args are available for SMS, then create an SmsAlert object
+            if (string.IsNullOrEmpty(_cfg.AzureConnection) == false &&
+                string.IsNullOrEmpty(_cfg.FromNumber) == false &&
+                string.IsNullOrEmpty(_cfg.ToNumber) == false)
             {
-                // set machine name
-                if (string.IsNullOrEmpty(machineName) == false) _machineName = machineName;
-
-                // if the three args are available for SMS, then create an SmsAlert object
-                if (string.IsNullOrEmpty(azureConnection) == false &&
-                    string.IsNullOrEmpty(azureSmsFrom) == false &&
-                    string.IsNullOrEmpty(azureSmsTo) == false)
+                _smsAlert = new SmsAlert(_cfg.MachineName, _cfg.AzureConnection, _cfg.FromNumber, _cfg.ToNumber)
                 {
-                    _smsAlert = new SmsAlert(machineName, azureConnection, azureSmsFrom, azureSmsTo)
-                    {
-                        BlockLateNightSms = true
-                    };
+                    BlockLateNightSms = true
+                };
 
-                    txtSmsEnabled.Text = "Yes";
-                    btnTestSms.Enabled = true;
-                }
-
-                if (string.IsNullOrEmpty(logUri) == false)
-                    _logUri = logUri;
+                txtSmsEnabled.Text = "Yes";
+                btnTestSms.Enabled = true;
             }
-        }
 
-        // Code to read command-line args
-        // -n "machinename" -c "connectionstring" -f "from sms #"  -t "to sms #" -u "log app URI"
-        bool GetCmdLineArgs(ref string machineName,         // -n
-                            ref string azureCommsString,    // -c
-                            ref string azureSmsFrom,        // -f
-                            ref string azureSmsTo,          // -t
-                            ref string logUri)              // -u 
-        {
-            bool success = true;
-
+            // now see if there's a -run argument
             string[] args = Environment.GetCommandLineArgs();
-            if (args.Length == 0) return false;
-
-            try
+            if (args.Length == 2 && args[1].ToLower().StartsWith("-run") == true)
             {
-                for (int i = 1; i < args.Length; i++)
-                {
-                    if (args[i].ToLower().StartsWith("-n") == true)
-                        txtName.Text = machineName = args[i + 1];
-
-                    if (args[i].ToLower().StartsWith("-c") == true)
-                        azureCommsString = args[i + 1];
-
-                    if (args[i].ToLower().StartsWith("-f") == true)
-                        azureSmsFrom = args[i + 1];
-
-                    if (args[i].ToLower().StartsWith("-t") == true)
-                        azureSmsTo = args[i + 1];
-
-                    if (args[i].ToLower().StartsWith("-u") == true)
-                        logUri = args[i + 1];
-                }
+                StartAllThreads();
+                btnStart.Enabled = false;
             }
-            catch (Exception)
-            {
-                success = false;
-            }
-
-            return success;
         }
 
         // this gives the code a chance to kill the main worker thread gracefully

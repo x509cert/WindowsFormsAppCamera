@@ -19,6 +19,9 @@ namespace WindowsFormsAppCamera
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
 
+            // text that goes into the image and the rectangles inwhich they reside
+            Font imageFont = new Font("Tahoma", 14);
+
             WriteLog("Worker thread start");
 
             SetSkillTimer();
@@ -100,23 +103,23 @@ namespace WindowsFormsAppCamera
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
                     const int xOffset = 4;
-                    int percentChange = (int)(rbgTotal.R / (float)_calibrationData.R * 100);
+                    int percentChange = (int)(rbgTotal.R / (float)_cfg.LastCalibratedR * 100);
                     string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string r = $"R: {rbgTotal.R:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(r, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 70, bmp.Width, 24));
+                    gd.DrawString(r, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 70, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.G / (float)_calibrationData.G * 100);
+                    percentChange = (int)(rbgTotal.G / (float)_cfg.LastCalibratedG * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string g = $"G: {rbgTotal.G:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(g, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 48, bmp.Width, 24));
+                    gd.DrawString(g, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 48, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.B / (float)_calibrationData.B * 100);
+                    percentChange = (int)(rbgTotal.B / (float)_cfg.LastCalibratedB * 100);
                     wouldTrigger = redSpottedValue < percentChange ? " *" : "";
                     string b = $"B: {rbgTotal.B:N0} ({percentChange}%) {wouldTrigger}";
-                    gd.DrawString(b, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
+                    gd.DrawString(b, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, new Font("Tahoma", 14), _colorInfo, new Rectangle(xOffset, bmp.Height - 100, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 100, bmp.Width, 24));
 
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
                     // start the countdown for displaying the "incoming" text
