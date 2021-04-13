@@ -43,15 +43,13 @@ namespace WindowsFormsAppCamera
 
             _logQueue = new LogQueue(50);
 
-            // machine name
-            string machine = Dns.GetHostName();
-
             string isDebug = "";
 #if DEBUG
             isDebug = "[DBG] ";
 #endif
 
-            // add info to title of the tools
+            // add info to title of the tool
+            string machine = Dns.GetHostName();
             Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
 
             // get config TODO - add error checking
@@ -60,13 +58,13 @@ namespace WindowsFormsAppCamera
 
             txtName.Text = _cfg.MachineName;
 
-            // set the RGB values
+            // set the RGB values - these are the last saved settings - updated when Calibrate is pressed
             lblRedCount.Text = _cfg.LastCalibratedR.ToString();
             lblGreenCount.Text = _cfg.LastCalibratedG.ToString();
             lblBlueCount.Text = _cfg.LastCalibratedB.ToString();
 
             numTrigger.Value = (decimal)_cfg.ThreshHold;
-            numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // todo from config
+            numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // TODO get from config
 
             // COM ports
             foreach (string p in SerialPort.GetPortNames())
@@ -83,8 +81,7 @@ namespace WindowsFormsAppCamera
                 string.IsNullOrEmpty(_cfg.FromNumber) == false &&
                 string.IsNullOrEmpty(_cfg.ToNumber) == false)
             {
-                _smsAlert = new SmsAlert(_cfg.MachineName, _cfg.AzureConnection, _cfg.FromNumber, _cfg.ToNumber)
-                {
+                _smsAlert = new SmsAlert(_cfg.MachineName, _cfg.AzureConnection, _cfg.FromNumber, _cfg.ToNumber) {
                     BlockLateNightSms = true
                 };
 
@@ -92,7 +89,7 @@ namespace WindowsFormsAppCamera
                 btnTestSms.Enabled = true;
             }
 
-            // now see if there's a -run argument
+            // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length == 2 && args[1].ToLower().StartsWith("-run") == true)
             {
