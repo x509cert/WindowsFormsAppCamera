@@ -21,7 +21,7 @@ namespace WindowsFormsAppCamera
         // when the camera changes, populate the possible video modes
         private void cmbCamera_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int cameraIndex = cmbCamera.SelectedIndex;
+            int cameraIndex = _cfg.Camera = cmbCamera.SelectedIndex;
             PopulateVideoFormatCombo(cameraIndex);
         }
 
@@ -30,6 +30,7 @@ namespace WindowsFormsAppCamera
         {
             // create usb camera object with selected resolution and start.
             UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(camera);
+            _cfg.VideoMode = cmbCameraFormat.SelectedIndex;
             return formats[cmbCameraFormat.SelectedIndex];
         }
 
@@ -69,12 +70,13 @@ namespace WindowsFormsAppCamera
             {
                 WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
             }
+
+            WriteConfig(_cfg);
         }
 
         // test the COM port
         private void btnTestComPort_Click(object sender, EventArgs e)
         {
-            //cmbComPorts.Items[cmbComPorts.SelectedIndex].ToString();
             TriggerArduino("V");
         }
     }

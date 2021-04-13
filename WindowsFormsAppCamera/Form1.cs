@@ -316,7 +316,7 @@ namespace WindowsFormsAppCamera
                 PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
                 WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
 
-                Thread.Sleep(30000);
+                SpinDelay(30);
             }
         }
 
@@ -326,7 +326,7 @@ namespace WindowsFormsAppCamera
             while (!_fKillThreads)
             {
                 UploadLogs();
-                Thread.Sleep(60000); // delay 60 secs
+                SpinDelay(60);
             }
         }
 

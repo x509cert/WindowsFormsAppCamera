@@ -95,6 +95,10 @@ namespace WindowsFormsAppCamera
             {
                 StartAllThreads();
                 btnStart.Enabled = false;
+                cmbCamera.Enabled = false;
+                cmbCameraFormat.Enabled = false;
+                cmbComPorts.Enabled = false;
+                txtName.Enabled = false;
             }
         }
 
@@ -111,6 +115,18 @@ namespace WindowsFormsAppCamera
             {
                 _sComPort.Close();
                 _sComPort = null;
+            }
+        }
+
+        // this is a pause function that accommodates for thread abandonment
+        private void SpinDelay(int secs)
+        {
+            for (int i = 0; i < secs; i++)
+            {
+                if (_fKillThreads == true)
+                    break;
+
+                Thread.Sleep(1000);
             }
         }
     }
