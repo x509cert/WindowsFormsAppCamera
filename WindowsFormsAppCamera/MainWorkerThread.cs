@@ -165,6 +165,15 @@ namespace WindowsFormsAppCamera
                         gd.DrawString("T", new Font("Tahoma", 14), Brushes.WhiteSmoke, rect);
                     }
 
+                    if (_heartBeatSent > 0)
+                    {
+                        const int boxsize = 30;
+                        Rectangle rect = new Rectangle(640 - boxsize, bmp.Height - boxsize, boxsize, boxsize);
+                        gd.DrawString("Y", new Font("Webdings", 24), Brushes.Red, rect);
+
+                        _heartBeatSent--;
+                    }
+
                     // write the camera image + text etc to the UI
                     DrawTargetRange(bmp);
                     pictCamera.Image = bmp;

@@ -86,10 +86,12 @@ namespace WindowsFormsAppCamera
 
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer = null;
+        System.Timers.Timer      _heartbeatTimer = null;
 
         bool                    _fUsingLiveScreen = true;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
+        int                     _heartBeatSent = 0;
 
         SmsAlert                _smsAlert = null;
 
@@ -125,6 +127,7 @@ namespace WindowsFormsAppCamera
                     case 'r': s += "Dec RB sweep (-1)"; break;
                     case 'L': s += "Inc LB sweep (+1)"; break;
                     case 'l': s += "Dec LB sweep (-1)"; break;
+                    case 'H': s += "Heartbeat"; break;
                     default:  s += "!!Unknown command!!"; break;
                 }    
             }
@@ -206,6 +209,7 @@ namespace WindowsFormsAppCamera
         // T - deploy Turret
         // U - all triggers up
         // V - verify comms
+        // H - heartbeat - notifies the Arduino that this code is alive
         void TriggerArduino(string msg)
         {
             WriteLog(msg);
@@ -245,6 +249,14 @@ namespace WindowsFormsAppCamera
                 TriggerArduino("E");
             }
         }
+
+        void SendHeartbeat(Object source, ElapsedEventArgs e)
+        {
+            WriteLog("Heartbeat sent");
+            TriggerArduino("H");
+
+            _heartBeatSent = 6;
+        }
         #endregion
 
         #region Secondary Thread Functions
@@ -274,6 +286,34 @@ namespace WindowsFormsAppCamera
             }
         }
 
+        // this is a message sent to the Arduino to indicate the DivGrind is alive
+        // this prevents the Arduino from going into failsafe mode
+        private void SetHeartbeat()
+        {
+            if (_heartbeatTimer == null)
+            {
+                _heartbeatTimer = new System.Timers.Timer(15000);
+                _heartbeatTimer.Elapsed += SendHeartbeat;
+                _heartbeatTimer.AutoReset = true;
+                _heartbeatTimer.Enabled = true;
+                _heartbeatTimer.Start();
+            } 
+            else
+            {
+                _heartbeatTimer.Start();
+            }
+        }
+
+        private void StopHeartbeat()
+        {
+            if (_heartbeatTimer != null)
+            {
+                _heartbeatTimer.Stop();
+                _heartbeatTimer = null;
+            }
+        }
+
+
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThread()
         {
@@ -290,10 +330,11 @@ namespace WindowsFormsAppCamera
                     p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
                     p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
                     p.Start();
+
                     string output = p.StandardOutput.ReadToEnd();
                     p.WaitForExit();
 
-                    // simplified (lazy) IP address
+                    // simplified (lazy) IP address regex
                     Regex rx = new Regex(@"([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})");
 
                     string[] lines = output.Split('\n');
@@ -306,15 +347,17 @@ namespace WindowsFormsAppCamera
                             break;
                         }
                     }
+                } 
+                else 
+                {
+                    // we have a gateway IP address
+                    Ping pingSender = new Ping();
+                    PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
+                    WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
+
+                    PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
+                    WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
                 }
-
-                // we have a gateway IP address
-                Ping pingSender = new Ping();
-                PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
-                WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
-
-                PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
-                WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
 
                 SpinDelay(30);
             }
@@ -330,10 +373,11 @@ namespace WindowsFormsAppCamera
             }
         }
 
+        // starts all the worker threads
         private void StartAllThreads()
         {
-            // start the two extra worker threads
             _fKillThreads = false;
+
             _threadWorker = new Thread(WorkerThreadFunc);
             _threadWorker.Start();
 
@@ -380,6 +424,8 @@ namespace WindowsFormsAppCamera
             
             _fKillThreads = true;
             KillSkillTimer();
+
+            // DO NOT KILL THE HEARTBEAT TIMER
         }
 
         // save current camera image to a bitmap
@@ -476,15 +522,11 @@ namespace WindowsFormsAppCamera
             _elapseBetweenDrones = new TimeSpan(0,0, (int)numDroneDelay.Value);
         }
 
-        // logic to determine if drones are coming - need to use floats owing to small numbers (0..255)
+        // logic to determine if drones are coming
         bool DronesSpotted(ref RGBTotal rbgTotal)
         {
             // if there is no increase in red, then no drones
-            float spottedRed = GetRedSpottedPercent();
-            if (rbgTotal.R <= spottedRed)
-                return false;
-
-            return true;
+            return rbgTotal.R > GetRedSpottedPercent();
         }
 
         // draws the yellow rectangle 'hitbox' -

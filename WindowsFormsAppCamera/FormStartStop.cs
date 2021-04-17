@@ -28,12 +28,10 @@ namespace WindowsFormsAppCamera
                 cmbCamera.Items.Add(d);
 
             // GET A WHOLE BUNCH OF DEFAULTS
-            // Format here is:
             //  1) Set defaults
             //  2) Read from Config
-            //  3) Override with any command-line args
 
-            // logs go in user's profile folder (eg; c:\users\mikehow)
+            // logs go in user's profile folder (eg; c:\users\frodob)
             _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             // get the date this binary was last modified
@@ -67,12 +65,14 @@ namespace WindowsFormsAppCamera
             numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // TODO get from config
 
             // COM ports
+            cmbComPorts.Items.Clear();
             foreach (string p in SerialPort.GetPortNames())
                 cmbComPorts.Items.Add(p);
 
-            cmbComPorts.Text = _cfg.ComPort;
+            cmbComPorts.SelectedItem = _cfg.ComPort;
+            openComPort(_cfg.ComPort);
 
-            // camera
+            // camera details
             cmbCamera.SelectedIndex = _cfg.Camera;
             cmbCameraFormat.SelectedIndex = _cfg.VideoMode;
 
@@ -94,18 +94,24 @@ namespace WindowsFormsAppCamera
             if (args.Length == 2 && args[1].ToLower().StartsWith("-run") == true)
             {
                 StartAllThreads();
+
                 btnStart.Enabled = false;
                 cmbCamera.Enabled = false;
                 cmbCameraFormat.Enabled = false;
-                cmbComPorts.Enabled = false;
                 txtName.Enabled = false;
+
+                cmbComPorts.Enabled = true;         // keep this as true so if the wrong COM is selected it can be changed
             }
+
+            // indicate the DivGrind is alive - this stays enabled until the tool is killed.
+            SetHeartbeat();
         }
 
-        // this gives the code a chance to kill the main worker thread gracefully
+        // this gives the code a chance to kill the worker threads gracefully
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
             KillSkillTimer();
+            StopHeartbeat();
             _fKillThreads = true;
 
             Thread.Sleep(400);

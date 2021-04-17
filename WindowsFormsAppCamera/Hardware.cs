@@ -49,19 +49,24 @@ namespace WindowsFormsAppCamera
             _camera = new UsbCamera(camera, selectFormat);
             _camera.Start();
 
+            cmbComPorts.Items.Clear();
             foreach (string p in SerialPort.GetPortNames())
                 cmbComPorts.Items.Add(p);
+
+            cmbComPorts.SelectedItem = _cfg.ComPort;
         }
 
-        // COM port selected
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        // open the COM port
+        private void openComPort(string comport)
         {
-            btnTestComPort.Enabled = true;
+            if (_sComPort != null)
+                return;
 
-            string sPort = cmbComPorts.SelectedItem.ToString();
+            WriteLog($"Attempting to open COM port {comport}");
             try
             {
-                _sComPort = new SerialPort(sPort, _ComPortSpeed) {
+                _sComPort = new SerialPort(comport, _ComPortSpeed)
+                {
                     WriteTimeout = 500 // 500 msec timeout
                 };
                 _sComPort.Open();
@@ -72,6 +77,15 @@ namespace WindowsFormsAppCamera
             }
 
             WriteConfig(_cfg);
+        }
+
+        // COM port selected
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnTestComPort.Enabled = true;
+
+            string sPort = cmbComPorts.SelectedItem.ToString();
+            openComPort(sPort);
         }
 
         // test the COM port

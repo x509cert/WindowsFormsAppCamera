@@ -16,7 +16,7 @@ namespace WindowsFormsAppCamera
 #if DEBUG
         private TimeSpan    _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug
 #else
-        private TimeSpan _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
+        private TimeSpan    _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
 #endif
 
         public string   MachineName { get => _machineName; set => _machineName = value; }
@@ -59,18 +59,29 @@ namespace WindowsFormsAppCamera
                     return false;
             }
 
-            // finally, send the SMS msg!
-            SmsSendResult sendResult = _smsClient.Send(
-                from: SmsFrom,
-                to: SmsTo,
-                message: msg
-            );
+            bool ok = false;
+            try
+            {
+                // send the SMS msg!
+                SmsSendResult sendResult = _smsClient.Send(
+                    from: SmsFrom,
+                    to: SmsTo,
+                    message: msg
+                );
 
-            // start the cooldown
-            if (sendResult.Successful == true)
-                _cooldownLastMessageSent = now;
+                // start the cooldown
+                if (sendResult.Successful == true)
+                {
+                    _cooldownLastMessageSent = now;
+                    ok = true;
+                }
+            } 
+            catch(Exception)
+            {
+                ok = false;
+            }
 
-            return sendResult.Successful;
+            return ok;
         }
 
         // reset cooldown
