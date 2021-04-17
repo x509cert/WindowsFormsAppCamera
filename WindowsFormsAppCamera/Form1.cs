@@ -327,6 +327,7 @@ namespace WindowsFormsAppCamera
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.RedirectStandardOutput = true;
                     p.StartInfo.FileName = "tracert";
+                    p.StartInfo.CreateNoWindow = true;
                     p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
                     p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
                     p.Start();
