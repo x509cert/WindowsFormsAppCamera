@@ -13,7 +13,7 @@ namespace WindowsFormsAppCamera
             if (br >= 11 && br < 30) return Color.Gray;
             if (br > 90 && s < 10) return Color.White;
 
-            // if RG and B are all close to each other, then this is gray(ish)
+            // if R,G and B are all close to each other, then this is gray(ish)
             float range = 0.15F;
             float rr1 = r - (r * range), rr2 = r + (r * range);
             float gr1 = g - (g * range), gr2 = g + (g * range);
@@ -24,6 +24,7 @@ namespace WindowsFormsAppCamera
                 g >= rr1 && g <= rr2)
                 return Color.Gray;
 
+            // the HSB color wheel
             if (h > 330 || h <= 30)  return Color.Red;
             if (h > 30  && h <= 90)  return Color.Yellow;
             if (h > 90  && h <= 150) return Color.Green;
