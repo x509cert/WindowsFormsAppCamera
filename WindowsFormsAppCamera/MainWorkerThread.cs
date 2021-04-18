@@ -156,9 +156,7 @@ namespace WindowsFormsAppCamera
                     // if this is max frames less 2 of the 'drones detected' screen capture (only one frame so the log info is entered once)
                     // and the hit region is now blue - this means we have seen the EMP pulse
                     if (showDroneText == _maxIncomingFrames - 2 && hitboxColor == RgbToHsb.Color.Blue) 
-                    {
                         WriteLog("EMP Pulse detected");
-                    }
 
                     // Display a '!' which shows there's been no drones spotted
                     if (showNoDronesSeenText > 0)
