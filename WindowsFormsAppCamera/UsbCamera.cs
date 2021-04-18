@@ -203,13 +203,12 @@ namespace WindowsFormsAppCamera
                         PropertyItems.Property prop = null;
                         try
                         {
-                            var cam_ctrl = vcap_source as DirectShow.IAMCameraControl;
-                            if (cam_ctrl == null) throw new NotSupportedException("no IAMCameraControl Interface."); // will catch.
+                            if (!(vcap_source is DirectShow.IAMCameraControl cam_ctrl)) throw new NotSupportedException("no IAMCameraControl Interface."); // will catch.
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
                             cam_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if no support.
 
-                            Action<DirectShow.CameraControlFlags, int> set = (flag, value) => cam_ctrl.Set(item, value, (int)flag);
-                            Func<int> get = () => { int value = 0; cam_ctrl.Get(item, ref value, ref flags); return value; };
+                            void set(DirectShow.CameraControlFlags flag, int value) => cam_ctrl.Set(item, value, (int)flag);
+                            int get() { int value = 0; cam_ctrl.Get(item, ref value, ref flags); return value; }
                             prop = new Property(min, max, step, def, flags, set, get);
                         }
                         catch (Exception) { prop = new Property(); } // available = false
@@ -223,13 +222,12 @@ namespace WindowsFormsAppCamera
                         PropertyItems.Property prop = null;
                         try
                         {
-                            var vid_ctrl = vcap_source as DirectShow.IAMVideoProcAmp;
-                            if (vid_ctrl == null) throw new NotSupportedException("no IAMVideoProcAmp Interface."); // will catch.
+                            if (!(vcap_source is DirectShow.IAMVideoProcAmp vid_ctrl)) throw new NotSupportedException("no IAMVideoProcAmp Interface."); // will catch.
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
                             vid_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if not supported
 
-                            Action<DirectShow.CameraControlFlags, int> set = (flag, value) => vid_ctrl.Set(item, value, (int)flag);
-                            Func<int> get = () => { int value = 0; vid_ctrl.Get(item, ref value, ref flags); return value; };
+                            void set(DirectShow.CameraControlFlags flag, int value) => vid_ctrl.Set(item, value, (int)flag);
+                            int get() { int value = 0; vid_ctrl.Get(item, ref value, ref flags); return value; }
                             prop = new Property(min, max, step, def, flags, set, get);
                         }
                         catch (Exception) { prop = new Property(); } // available = false
@@ -238,10 +236,10 @@ namespace WindowsFormsAppCamera
             }
 
             /// <summary>Camera Control properties.</summary>
-            private Dictionary<DirectShow.CameraControlProperty, Property> CameraControl;
+            private readonly Dictionary<DirectShow.CameraControlProperty, Property> CameraControl;
 
             /// <summary>Video Processing Amplifier properties.</summary>
-            private Dictionary<DirectShow.VideoProcAmpProperty, Property> VideoProcAmp;
+            private readonly Dictionary<DirectShow.VideoProcAmpProperty, Property> VideoProcAmp;
 
             /// <summary>Get CameraControl Property. Check Available before use.</summary>
             public Property this[DirectShow.CameraControlProperty item] { get { return CameraControl[item]; } }
@@ -290,7 +288,7 @@ namespace WindowsFormsAppCamera
         private class SampleGrabberCallback : DirectShow.ISampleGrabberCB
         {
             private byte[] Buffer;
-            private object BufferLock = new object();
+            private readonly object BufferLock = new object();
 
 #if USBCAMERA_WPF
             public BitmapSource
@@ -342,56 +340,6 @@ namespace WindowsFormsAppCamera
             return () => sampler.GetBitmap(width, height, stride);
         }
 
-        /// <summary>Get Bitmap from Sample Grabber Current Buffer</summary>
-#if USBCAMERA_WPF
-        private BitmapSource
-#else
-        private Bitmap
-#endif
-        GetBitmapFromSampleGrabberBuffer(DirectShow.ISampleGrabber i_grabber, int width, int height, int stride)
-        {
-            try
-            {
-                return GetBitmapFromSampleGrabberBufferMain(i_grabber, width, height, stride);
-            }
-            catch (COMException ex)
-            {
-                const uint VFW_E_WRONG_STATE = 0x80040227;
-                if ((uint)ex.ErrorCode == VFW_E_WRONG_STATE)
-                {
-                    // image data is not ready yet. return empty bitmap.
-                    return EmptyBitmap(width, height);
-                }
-
-                throw;
-            }
-        }
-
-        /// <summary>Get Bitmap from Sample Grabber Current Buffer</summary>
-#if USBCAMERA_WPF
-        private BitmapSource
-#else
-        private Bitmap
-#endif
-        GetBitmapFromSampleGrabberBufferMain(DirectShow.ISampleGrabber i_grabber, int width, int height, int stride)
-        {
-            int sz = 0;
-            i_grabber.GetCurrentBuffer(ref sz, IntPtr.Zero); 
-            if (sz == 0) return null;
-
-            var ptr = Marshal.AllocCoTaskMem(sz);
-            i_grabber.GetCurrentBuffer(ref sz, ptr);
-
-            var data = new byte[sz];
-            Marshal.Copy(ptr, data, 0, sz);
-
-            var result = BufferToBitmap(data, width, height, stride);
-
-            Marshal.FreeCoTaskMem(ptr);
-
-            return result;
-        }
-
         private static Bitmap BufferToBitmap(byte[] buffer, int width, int height, int stride)
         {
             var result = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
@@ -419,9 +367,11 @@ namespace WindowsFormsAppCamera
             var filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_SampleGrabber);
             var ismp = filter as DirectShow.ISampleGrabber;
 
-            var mt = new DirectShow.AM_MEDIA_TYPE();
-            mt.MajorType = DirectShow.DsGuid.MEDIATYPE_Video;
-            mt.SubType = DirectShow.DsGuid.MEDIASUBTYPE_RGB24;
+            var mt = new DirectShow.AM_MEDIA_TYPE
+            {
+                MajorType = DirectShow.DsGuid.MEDIATYPE_Video,
+                SubType = DirectShow.DsGuid.MEDIASUBTYPE_RGB24
+            };
             ismp.SetMediaType(mt);
             return filter;
         }
@@ -484,8 +434,7 @@ namespace WindowsFormsAppCamera
 
         private static VideoFormat[] GetVideoOutputFormat(DirectShow.IPin pin)
         {
-            var config = pin as DirectShow.IAMStreamConfig;
-            if (config == null)
+            if (!(pin is DirectShow.IAMStreamConfig config))
             {
                 throw new InvalidOperationException("no IAMStreamConfig interface.");
             }
@@ -537,8 +486,7 @@ namespace WindowsFormsAppCamera
 
         private static void SetVideoOutputFormat(DirectShow.IPin pin, int index, Size size, long timePerFrame)
         {
-            var config = pin as DirectShow.IAMStreamConfig;
-            if (config == null)
+            if (!(pin is DirectShow.IAMStreamConfig config))
             {
                 throw new InvalidOperationException("no IAMStreamConfig interface.");
             }
@@ -633,8 +581,7 @@ namespace WindowsFormsAppCamera
 
         public static void PlayGraph(IGraphBuilder graph, FILTER_STATE state)
         {
-            var mediaControl = graph as IMediaControl;
-            if (mediaControl == null) return;
+            if (!(graph is IMediaControl mediaControl)) return;
 
             switch (state)
             {
@@ -677,9 +624,8 @@ namespace WindowsFormsAppCamera
                 if (index != curr_index++) return false;
 
                 {
-                    object value = null;
                     Guid guid = DirectShow.DsGuid.IID_IBaseFilter;
-                    moniker.BindToObject(null, null, ref guid, out value);
+                    moniker.BindToObject(null, null, ref guid, out object value);
                     result = value as IBaseFilter;
                     return true;
                 }
@@ -708,9 +654,8 @@ namespace WindowsFormsAppCamera
                 {
                     var moniker = monikers[0];
 
-                    object value = null;
                     Guid guid = DsGuid.IID_IPropertyBag;
-                    moniker.BindToStorage(null, null, ref guid, out value);
+                    moniker.BindToStorage(null, null, ref guid, out object value);
                     var prop = (IPropertyBag)value;
 
                     try

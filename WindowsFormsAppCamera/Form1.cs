@@ -93,7 +93,7 @@ namespace WindowsFormsAppCamera
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
         int                     _heartBeatSent = 0;
-        int                     _maxIncomingFrames = 10;
+        const int               _maxIncomingFrames = 10;
 
         SmsAlert                _smsAlert = null;
 

@@ -7,11 +7,11 @@ namespace WindowsFormsAppCamera
     // option to block between 0100 and 0559
     public class SmsAlert
     {
-        private string      _machineName;
-        private string      _connectionString, _smsFrom, _smsTo;
-        private bool        _blockLateNightSms = true;
-        private SmsClient   _smsClient;
-        private DateTime    _cooldownLastMessageSent;
+        private             string      _machineName;
+        private             string      _connectionString, _smsFrom, _smsTo;
+        private             bool        _blockLateNightSms = true;
+        private readonly    SmsClient   _smsClient;
+        private             DateTime    _cooldownLastMessageSent;
 
 #if DEBUG
         private TimeSpan    _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug

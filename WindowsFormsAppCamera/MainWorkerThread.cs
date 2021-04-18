@@ -176,7 +176,7 @@ namespace WindowsFormsAppCamera
                         showDroneText--;
                     }
 
-                    // dislpay Tracing 'T' if tracing
+                    // display 'T' if tracing
                     if (tracing == true)
                     {
                         const int boxsize = 30;
