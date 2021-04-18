@@ -92,38 +92,55 @@ namespace WindowsFormsAppCamera
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
-                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 98, 640 / 3, 480 - 2);
+                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 120, 640 / 3, 480 - 2);
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
-                    // Write amount of red/green/blue in the bmp
-                    RGBTotal rbgTotal = new RGBTotal();
-                    GetRGBInRange(bmp, ref rbgTotal);
+                    // Get amount of red/green/blue in the drone hitbox
+                    RGBTotal rbgDroneHitboxTotal = new RGBTotal();
+                    GetRGBInRange(bmp, _xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox, ref rbgDroneHitboxTotal);
 
-                    float redSpottedValue = GetRedSpottedPercent();
+                    // convert RGB to HSB on the average
+                    float h=0, s=0, l=0;
+                    RgbToHsb.RGBtoHSB(
+                        (int)rbgDroneHitboxTotal.R, 
+                        (int)rbgDroneHitboxTotal.G, 
+                        (int)rbgDroneHitboxTotal.B, 
+                        ref h, ref s, ref l);
+
+                    RgbToHsb.Color col = RgbToHsb.GetColorFromRgbHsb(
+                        (int)rbgDroneHitboxTotal.R,
+                        (int)rbgDroneHitboxTotal.G,
+                        (int)rbgDroneHitboxTotal.B,
+                        h, s, l);
+
+                    // Get amount of red/green/blue in the EMP hitbox
+                    RGBTotal rbgEmpHitboxTotal = new RGBTotal();
+                    GetRGBInRange(bmp, _xEmpHitBoxStart, _yEmpHitBoxStart, _widthEmpHitBox, _heightEmpHitBox, ref rbgEmpHitboxTotal);
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
                     const int xOffset = 4;
-                    int percentChange = (int)(rbgTotal.R / (float)_cfg.LastCalibratedR * 100);
-                    string wouldTrigger = redSpottedValue < percentChange ? " *" : "";
-                    string r = $"R: {rbgTotal.R:N0} ({percentChange}%) {wouldTrigger}";
+
+                    string c = $"Color: {col}";
+                    gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
+
+                    int percentChange = (int)(rbgDroneHitboxTotal.R / (float)_cfg.LastCalibratedR * 100);
+                    string r = $"R: {rbgDroneHitboxTotal.R:N0} ({percentChange}%)";
                     gd.DrawString(r, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 70, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.G / (float)_cfg.LastCalibratedG * 100);
-                    wouldTrigger = redSpottedValue < percentChange ? " *" : "";
-                    string g = $"G: {rbgTotal.G:N0} ({percentChange}%) {wouldTrigger}";
+                    percentChange = (int)(rbgDroneHitboxTotal.G / (float)_cfg.LastCalibratedG * 100);
+                    string g = $"G: {rbgDroneHitboxTotal.G:N0} ({percentChange}%)";
                     gd.DrawString(g, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 48, bmp.Width, 24));
 
-                    percentChange = (int)(rbgTotal.B / (float)_cfg.LastCalibratedB * 100);
-                    wouldTrigger = redSpottedValue < percentChange ? " *" : "";
-                    string b = $"B: {rbgTotal.B:N0} ({percentChange}%) {wouldTrigger}";
+                    percentChange = (int)(rbgDroneHitboxTotal.B / (float)_cfg.LastCalibratedB * 100);
+                    string b = $"B: {rbgDroneHitboxTotal.B:N0} ({percentChange}%)";
                     gd.DrawString(b, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 100, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 118, bmp.Width, 24));
 
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
                     // start the countdown for displaying the "incoming" text
-                    if (!fDronesIncoming && DronesSpotted(ref rbgTotal))
+                    if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
                     {
                         dtLastDroneSpotted = DateTime.Now;
 

@@ -69,13 +69,23 @@ namespace WindowsFormsAppCamera
         const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
         string                  _gatewayIp = null;
 
-        const int               _xHitBoxStart = 200,    // this is the hit box rectangle 
-                                _yHitBoxStart = 200,
-                                _xHitBoxEnd = 460,
-                                _yHitBoxEnd = 270,
-                                _widthHitBox = _xHitBoxEnd - _xHitBoxStart,
-                                _heightHitBox = _yHitBoxEnd - _yHitBoxStart;
-        Rectangle               _rectHitBox = new Rectangle(_xHitBoxStart, _yHitBoxStart, _widthHitBox, _heightHitBox);
+        // Drone hitbox 
+        const int               _xDroneHitBoxStart = 200,     
+                                _yDroneHitBoxStart = 200,
+                                _xDroneHitBoxEnd = 460,
+                                _yDroneHitBoxEnd = 270,
+                                _widthDroneHitBox = _xDroneHitBoxEnd - _xDroneHitBoxStart,
+                                _heightDroneHitBox = _yDroneHitBoxEnd - _yDroneHitBoxStart;
+        Rectangle               _rectDroneHitBox = new Rectangle(_xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox);
+
+        // EMP hitbox
+        const int               _xEmpHitBoxStart = 200,     
+                                _yEmpHitBoxStart = 140,
+                                _xEmpHitBoxEnd = 460,
+                                _yEmpHitBoxEnd = 190,
+                                _widthEmpHitBox = _xEmpHitBoxEnd - _xEmpHitBoxStart,
+                                _heightEmpHitBox = _yEmpHitBoxEnd - _yEmpHitBoxStart;
+        Rectangle               _rectEmpHitBox = new Rectangle(_xEmpHitBoxStart, _yEmpHitBoxStart, _widthEmpHitBox, _heightEmpHitBox);
 
         Thread                  _threadWorker = null;
         Thread                  _threadLog = null;
@@ -98,6 +108,8 @@ namespace WindowsFormsAppCamera
         readonly Brush          _colorInfo = Brushes.AliceBlue;
         readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(99, Color.Yellow));
         readonly Pen            _penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
+        readonly SolidBrush     _brushBlue = new SolidBrush(Color.FromArgb(99, Color.LightBlue));
+        readonly Pen            _penBlue = new Pen(Color.FromKnownColor(KnownColor.LightBlue));
 
         DateTime                _startTraceTimer;                       // this is for dumping a trace of the screenshots for 20secs - approx 100 images
         readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); // trace for 20secs
@@ -315,7 +327,7 @@ namespace WindowsFormsAppCamera
 
 
         // Code to ping the local gateway and ubisoft every 30secs
-        private void PingerThread()
+        private void PingerThreadFunc()
         {
             while (_fKillThreads == false)
             {
@@ -385,7 +397,7 @@ namespace WindowsFormsAppCamera
             _threadLog = new Thread(UploadLogThreadFunc);
             _threadLog.Start();
 
-            _threadPinger = new Thread(PingerThread);
+            _threadPinger = new Thread(PingerThreadFunc);
             _threadPinger.Start();
         }
 
@@ -474,7 +486,7 @@ namespace WindowsFormsAppCamera
             // read the camera
             var bmp = _camera.GetBitmap();
 
-            // Get Calibration data
+            // Get RGB calibration data from the hitbox
             var rbgTotal = new RGBTotal();
             GetRGBInRange(bmp, ref rbgTotal);
 
@@ -487,7 +499,7 @@ namespace WindowsFormsAppCamera
             _cfg.LastCalibratedG = (int)rbgTotal.G;
             WriteConfig(_cfg);
 
-            // draw yellow hit box
+            // draw hit box
             DrawTargetRange(bmp);
             pictCamera.Image = bmp;
         }
@@ -533,12 +545,16 @@ namespace WindowsFormsAppCamera
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red
         // that indicates the drones are incoming
+        // then draw the blue EMP detection box
         private void DrawTargetRange(Bitmap bmp)
         {
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.FillRectangle(_brushYellow, _rectHitBox);
-                g.DrawRectangle(_penYellow, _rectHitBox);
+                g.FillRectangle(_brushYellow, _rectDroneHitBox);
+                g.DrawRectangle(_penYellow, _rectDroneHitBox);
+
+                g.FillRectangle(_brushBlue, _rectEmpHitBox);
+                g.DrawRectangle(_penBlue, _rectEmpHitBox);
             }
         }
 
@@ -549,15 +565,42 @@ namespace WindowsFormsAppCamera
             rbgTotal.Init();
             Int32 countPixel = 0;
 
-            for (int x = _xHitBoxStart; x < _xHitBoxEnd; x+=2)
+            for (int x = _xDroneHitBoxStart; x < _xDroneHitBoxEnd; x+=2)
             {
-                for (int y = _yHitBoxStart; y < _yHitBoxEnd; y++)
+                for (int y = _yDroneHitBoxStart; y < _yDroneHitBoxEnd; y++)
                 {
                     Color px = bmp.GetPixel(x, y);
                     countPixel++;
 
                     // RGB totals
                     rbgTotal.R += (Int32)px.R; 
+                    rbgTotal.G += (Int32)px.G;
+                    rbgTotal.B += (Int32)px.B;
+                }
+            }
+
+            rbgTotal.R /= countPixel;
+            rbgTotal.G /= countPixel;
+            rbgTotal.B /= countPixel;
+        }
+
+        // overload
+        // counts the number of RGB elements in pixels in the hitbox
+        // skips every other pixel on the x-axis for perf
+        private void GetRGBInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RGBTotal rbgTotal)
+        {
+            rbgTotal.Init();
+            Int32 countPixel = 0;
+
+            for (int x = xRect; x < xRect + width; x += 2)
+            {
+                for (int y = yRect; y < yRect + height; y++)
+                {
+                    Color px = bmp.GetPixel(x, y);
+                    countPixel++;
+
+                    // RGB totals
+                    rbgTotal.R += (Int32)px.R;
                     rbgTotal.G += (Int32)px.G;
                     rbgTotal.B += (Int32)px.B;
                 }

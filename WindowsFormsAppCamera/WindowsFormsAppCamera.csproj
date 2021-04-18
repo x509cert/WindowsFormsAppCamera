@@ -126,7 +126,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RgbToLab.cs" />
+    <Compile Include="RgbToHsb.cs" />
     <Compile Include="Sms.cs" />
     <Compile Include="UsbCamera.cs" />
     <EmbeddedResource Include="Form1.resx">
