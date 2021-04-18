@@ -17,6 +17,18 @@ namespace WindowsFormsAppCamera
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // get config
+            try
+            {
+                _cfg = new Config();
+                _cfg = ReadConfig();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Application.Exit();
+            }
+
             string[] devices = UsbCamera.FindDevices();
             if (devices.Length == 0)
             {
@@ -49,10 +61,6 @@ namespace WindowsFormsAppCamera
             // add info to title of the tool
             string machine = Dns.GetHostName();
             Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
-
-            // get config TODO - add error checking
-            _cfg = new Config();
-            _cfg = ReadConfig();
 
             txtName.Text = _cfg.MachineName;
 
