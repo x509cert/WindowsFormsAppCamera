@@ -554,7 +554,7 @@ namespace WindowsFormsAppCamera
 
             DirectShow.AM_MEDIA_TYPE mt = null;
             config.GetStreamCaps(index, ref mt, cap_data);
-            var cap = PtrToStructure<DirectShow.VIDEO_STREAM_CONFIG_CAPS>(cap_data);
+            //var cap = PtrToStructure<DirectShow.VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
             if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo)
             {

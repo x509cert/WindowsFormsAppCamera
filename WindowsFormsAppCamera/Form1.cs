@@ -78,15 +78,6 @@ namespace WindowsFormsAppCamera
                                 _heightDroneHitBox = _yDroneHitBoxEnd - _yDroneHitBoxStart;
         Rectangle               _rectDroneHitBox = new Rectangle(_xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox);
 
-        // EMP hitbox
-        const int               _xEmpHitBoxStart = 200,     
-                                _yEmpHitBoxStart = 140,
-                                _xEmpHitBoxEnd = 460,
-                                _yEmpHitBoxEnd = 190,
-                                _widthEmpHitBox = _xEmpHitBoxEnd - _xEmpHitBoxStart,
-                                _heightEmpHitBox = _yEmpHitBoxEnd - _yEmpHitBoxStart;
-        Rectangle               _rectEmpHitBox = new Rectangle(_xEmpHitBoxStart, _yEmpHitBoxStart, _widthEmpHitBox, _heightEmpHitBox);
-
         Thread                  _threadWorker = null;
         Thread                  _threadLog = null;
         Thread                  _threadPinger = null;
@@ -102,14 +93,13 @@ namespace WindowsFormsAppCamera
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
         int                     _heartBeatSent = 0;
+        int                     _maxIncomingFrames = 10;
 
         SmsAlert                _smsAlert = null;
 
         readonly Brush          _colorInfo = Brushes.AliceBlue;
-        readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(99, Color.Yellow));
+        readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(33, Color.Yellow));
         readonly Pen            _penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
-        readonly SolidBrush     _brushBlue = new SolidBrush(Color.FromArgb(99, Color.LightBlue));
-        readonly Pen            _penBlue = new Pen(Color.FromKnownColor(KnownColor.LightBlue));
 
         DateTime                _startTraceTimer;                       // this is for dumping a trace of the screenshots for 20secs - approx 100 images
         readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); // trace for 20secs
@@ -552,9 +542,6 @@ namespace WindowsFormsAppCamera
             {
                 g.FillRectangle(_brushYellow, _rectDroneHitBox);
                 g.DrawRectangle(_penYellow, _rectDroneHitBox);
-
-                g.FillRectangle(_brushBlue, _rectEmpHitBox);
-                g.DrawRectangle(_penBlue, _rectEmpHitBox);
             }
         }
 

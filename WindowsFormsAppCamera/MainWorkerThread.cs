@@ -107,22 +107,19 @@ namespace WindowsFormsAppCamera
                         (int)rbgDroneHitboxTotal.B, 
                         ref h, ref s, ref l);
 
-                    RgbToHsb.Color col = RgbToHsb.GetColorFromRgbHsb(
+                    RgbToHsb.Color hitboxColor = RgbToHsb.GetColorFromRgbHsb(
                         (int)rbgDroneHitboxTotal.R,
                         (int)rbgDroneHitboxTotal.G,
                         (int)rbgDroneHitboxTotal.B,
                         h, s, l);
 
-                    // Get amount of red/green/blue in the EMP hitbox
-                    RGBTotal rbgEmpHitboxTotal = new RGBTotal();
-                    GetRGBInRange(bmp, _xEmpHitBoxStart, _yEmpHitBoxStart, _widthEmpHitBox, _heightEmpHitBox, ref rbgEmpHitboxTotal);
-
-                    // calculate current RGB as discrete values and percentages and write into the bmp
                     const int xOffset = 4;
 
-                    string c = $"Color: {col}";
+                    // write predominant color
+                    string c = $"Color: {hitboxColor}";
                     gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
+                    // calculate current RGB as discrete values and percentages and write into the bmp
                     int percentChange = (int)(rbgDroneHitboxTotal.R / (float)_cfg.LastCalibratedR * 100);
                     string r = $"R: {rbgDroneHitboxTotal.R:N0} ({percentChange}%)";
                     gd.DrawString(r, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 70, bmp.Width, 24));
@@ -150,10 +147,17 @@ namespace WindowsFormsAppCamera
 
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
-                        showDroneText = 10; // display the drone text for 10 frames
+                        showDroneText = _maxIncomingFrames; // display the drone text for a small number of frames
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
+                    }
+
+                    // if this is max frames less 2 of the 'drones detected' screen capture (only one frame so the log info is entered once)
+                    // and the hit region is now blue - this means we have seen the EMP pulse
+                    if (showDroneText == _maxIncomingFrames - 2 && hitboxColor == RgbToHsb.Color.Blue) 
+                    {
+                        WriteLog("EMP Pulse detected");
                     }
 
                     // Display a '!' which shows there's been no drones spotted
