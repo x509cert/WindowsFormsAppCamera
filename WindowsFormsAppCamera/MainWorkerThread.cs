@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Threading;
+using System.Diagnostics;
 
 namespace WindowsFormsAppCamera
 {
@@ -12,12 +13,16 @@ namespace WindowsFormsAppCamera
         // this is so we don't use the UI thread for the work which would make the UI sluggish
         private void WorkerThreadFunc()
         {
+            Trace.TraceInformation("Main WorkerThreadStart");
+            Trace.Indent();
+
             var dtDronesStart = DateTime.Now;
             var dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
+            bool fAllowLogEmpDetection = false;
 
             // text that goes into the image and the rectangles inwhich they reside
             Font imageFont = new Font("Tahoma", 14);
@@ -30,6 +35,9 @@ namespace WindowsFormsAppCamera
 
             while (!_fKillThreads)
             {
+                Trace.TraceInformation("Main thread loop start");
+                Trace.Indent();
+
                 // using camera
                 if (_fUsingLiveScreen)
                 {
@@ -38,6 +46,8 @@ namespace WindowsFormsAppCamera
                     // See if we need to dump traces
                     if (DateTime.Now - _startTraceTimer <= _maxTraceTime)
                     {
+                        Trace.TraceInformation("Dump image");
+
                         tracing = true;
                         var img = pictCamera.Image;
                         var date = DateTime.Now;
@@ -57,6 +67,8 @@ namespace WindowsFormsAppCamera
                     TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                     if (tSpan > _longestTimeBetweenDrones)
                     {
+                        Trace.TraceInformation($"Drone last seen {tSpan.TotalSeconds}s");
+
                         WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
                         TriggerArduino("E");
                         TriggerArduino("T");
@@ -66,6 +78,7 @@ namespace WindowsFormsAppCamera
                         showNoDronesSeenText = 30;
 
                         // Send a SMS message
+                        Trace.TraceInformation("Send Emergency SMS");
                         if (_smsAlert != null)
                             if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName}"))
                                 WriteLog("SMS alert failed");
@@ -88,6 +101,9 @@ namespace WindowsFormsAppCamera
                     }
 
                     // get the image from the camera
+                    Trace.TraceInformation("Getting graphics");
+                    Trace.Indent();
+
                     var bmp = _camera.GetBitmap();
                     Graphics gd = Graphics.FromImage(bmp);
 
@@ -100,6 +116,7 @@ namespace WindowsFormsAppCamera
                     GetRGBInRange(bmp, _xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox, ref rbgDroneHitboxTotal);
 
                     // convert RGB to HSB on the average
+                    Trace.TraceInformation("Convert RGB -> HSB");
                     float h=0, s=0, l=0;
                     RgbToHsb.RGBtoHSB(
                         (int)rbgDroneHitboxTotal.R, 
@@ -107,16 +124,33 @@ namespace WindowsFormsAppCamera
                         (int)rbgDroneHitboxTotal.B, 
                         ref h, ref s, ref l);
 
-                    RgbToHsb.Color hitboxColor = RgbToHsb.GetColorFromRgbHsb(
+                    RgbToHsb.Color hitboxColorHsb = RgbToHsb.GetColorFromRgbHsb(
                         (int)rbgDroneHitboxTotal.R,
                         (int)rbgDroneHitboxTotal.G,
                         (int)rbgDroneHitboxTotal.B,
                         h, s, l);
 
+                    // convert RGB to L*a*b*
+                    Trace.TraceInformation("Convert RGB -> L*a*b*");
+                    float l2 = 0, a = 0, b2 = 0;
+                    RgbToLab.RGBToLab(
+                        (int)rbgDroneHitboxTotal.R,
+                        (int)rbgDroneHitboxTotal.G,
+                        (int)rbgDroneHitboxTotal.B,
+                        ref l2, ref a, ref b2);
+
+                    RgbToLab.Color hitboxColorLab = RgbToLab.GetColorFromRgbLab(
+                        (int)rbgDroneHitboxTotal.R,
+                        (int)rbgDroneHitboxTotal.G,
+                        (int)rbgDroneHitboxTotal.B,
+                        l2, a, b2);
+
                     const int xOffset = 4;
 
+                    Trace.TraceInformation("Write info to bitmap");
+
                     // write predominant color
-                    string c = $"Color: {hitboxColor}";
+                    string c = $"Color: {hitboxColorHsb} {hitboxColorLab}";
                     gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
@@ -139,6 +173,8 @@ namespace WindowsFormsAppCamera
                     // start the countdown for displaying the "incoming" text
                     if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
                     {
+                        Trace.TraceInformation("Drone Spotted");
+
                         dtLastDroneSpotted = DateTime.Now;
 
                         // send out the EMP
@@ -148,21 +184,26 @@ namespace WindowsFormsAppCamera
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
                         showDroneText = _maxIncomingFrames; // display the drone text for a small number of frames
+                        fAllowLogEmpDetection = true;       // get ready to detect the EMP
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
                     }
 
-                    // if this is max frames less 2 of the 'drones detected' screen capture (only one frame so the log info is entered once)
+                    // if this is max frames less N of the 'drones detected' screen capture (only one frame so the log info is entered once)
                     // and the hit region is now blue - this means we have seen the EMP pulse
-                    if (showDroneText == _maxIncomingFrames - 2 && hitboxColor == RgbToHsb.Color.Blue) 
+                    if (fAllowLogEmpDetection == true &&
+                        (hitboxColorHsb == RgbToHsb.Color.Blue || hitboxColorHsb == RgbToHsb.Color.Purple))
+                    {
+                        fAllowLogEmpDetection = false;
                         WriteLog("EMP Pulse detected");
+                    }
 
                     // Display a '!' which shows there's been no drones spotted
                     if (showNoDronesSeenText > 0)
                     {
                         Rectangle rectDronesNotSeen = new Rectangle(310, 10, 50, 220);
-                        gd.DrawString("!", new Font("Courier", 120, FontStyle.Bold), Brushes.Firebrick, rectDronesNotSeen);
+                        gd.DrawString("!", new Font("Tahoma", 120, FontStyle.Bold), Brushes.Firebrick, rectDronesNotSeen);
 
                         showNoDronesSeenText--;
                     }
@@ -170,6 +211,7 @@ namespace WindowsFormsAppCamera
                     // display the "Incoming text" - this is written to the image
                     if (showDroneText > 0)
                     {
+                        Trace.TraceInformation("Drone text");
                         Rectangle rect = new Rectangle(180, bmp.Height - 100, bmp.Width, 100);
                         gd.DrawString("Drones Incoming", new Font("Tahoma", 30), Brushes.Firebrick, rect);
 
@@ -187,6 +229,7 @@ namespace WindowsFormsAppCamera
                     // displays a small heart at the bottom right of the screen when the heartbeat is sent
                     if (_heartBeatSent > 0)
                     {
+                        Trace.TraceInformation("Heartbeat");
                         const int boxsize = 36;
                         Rectangle rect = new Rectangle(640 - boxsize, bmp.Height - boxsize, boxsize, boxsize);
                         gd.DrawString("Y", new Font("Webdings", 24), Brushes.Red, rect);
@@ -207,8 +250,16 @@ namespace WindowsFormsAppCamera
                     pictCamera.Image = bmp;
                 }
 
+                Trace.Unindent();
+                Trace.TraceInformation("Graphics loop completed");
+
+                Trace.Unindent();
+                Trace.TraceInformation("Main thread loop end");
+
                 Thread.Sleep(210);
             }
+
+            Trace.Unindent();
 
             KillSkillTimer();
         }

@@ -14,7 +14,7 @@ namespace WindowsFormsAppCamera
             if (br > 90 && s < 10) return Color.White;
 
             // if R,G and B are all close to each other, then this is gray(ish)
-            float range = 0.15F;
+            float range = 0.17F;
             float rr1 = r - (r * range), rr2 = r + (r * range);
             float gr1 = g - (g * range), gr2 = g + (g * range);
             float br1 = b - (b * range), br2 = b + (b * range);
@@ -73,6 +73,43 @@ namespace WindowsFormsAppCamera
     // uses Vector4 to take advantage of SIMD instructions https://docs.microsoft.com/en-us/dotnet/standard/simd
     class RgbToLab
     {
+        public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple };
+
+        // using the L*a*b* rules
+        // A Channel; -ve is green, +ve is red
+        // B Channel; -ve is blue, +ve is yellow
+        public static Color GetColorFromRgbLab(int r, int g, int bl, float l, float a, float b)
+        {
+            if (l > 86) return Color.White;
+            if (l > 16) return Color.Black;
+
+            // if R,G and B are all close to each other, then this is gray(ish)
+            float range = 0.17F;
+            float rr1 = r - (r * range), rr2 = r + (r * range);
+            float gr1 = g - (g * range), gr2 = g + (g * range);
+            float br1 = bl - (bl * range), br2 = bl + (bl * range);
+            if (r >= gr1 && r <= gr2 &&
+                g >= br1 && g <= br2 &&
+                bl >= rr1 && bl <= rr2 &&
+                g >= rr1 && g <= rr2)
+                return Color.Gray;
+
+            // L*a*b* colors
+            if (a > b && a > 0 && b > 0) return Color.Red;
+            if (a > b && b < 0 && a < 0) return Color.Blue;
+
+
+            return Color.Unknown;
+        }
+
+        public static void RGBToLab(int red, int green, int blue, ref float l, ref float a, ref float b)
+        {
+            Vector4 lab = RGBToLab(new Vector4(red, green, blue, 0));
+            l = lab.X;
+            a = lab.Y;
+            b = lab.Z;
+        }
+
         public static Vector4 RGBToLab(Vector4 color)
         {
             float[] xyz = new float[3];
@@ -154,7 +191,7 @@ namespace WindowsFormsAppCamera
             lab[1] = 500.0f * (xyz[0] - xyz[1]);
             lab[2] = 200.0f * (xyz[1] - xyz[2]);
 
-            return new Vector4(lab[0], lab[1], lab[2], color.W);
+            return new Vector4(lab[0], lab[1], lab[2], 0.0F);
         }
     }
 }

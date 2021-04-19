@@ -4,6 +4,7 @@ using System.Threading;
 using System.Net;
 using System.IO;
 using System.IO.Ports;
+using System.Diagnostics;
 
 namespace WindowsFormsAppCamera
 {
@@ -17,6 +18,8 @@ namespace WindowsFormsAppCamera
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            Trace.TraceInformation("Form_Load");
+
             // get config
             try
             {
@@ -49,7 +52,7 @@ namespace WindowsFormsAppCamera
             // get the date this binary was last modified
             string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             FileInfo fi = new FileInfo(strpath);
-            string buildDate = fi.LastWriteTime.ToString("yyMMdd:HHmm");
+            string buildDate = fi.LastWriteTime.ToString("yy-MM-dd:HHmm");
 
             _logQueue = new LogQueue(50);
 
@@ -101,6 +104,8 @@ namespace WindowsFormsAppCamera
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length == 2 && args[1].ToLower().StartsWith("-run") == true)
             {
+                Trace.TraceInformation("Autostart");
+
                 StartAllThreads();
 
                 btnStart.Enabled = false;
@@ -118,6 +123,8 @@ namespace WindowsFormsAppCamera
         // this gives the code a chance to kill the worker threads gracefully
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
+            Trace.TraceInformation("Form_Closing");
+
             KillSkillTimer();
             StopHeartbeat();
             _fKillThreads = true;
@@ -135,6 +142,8 @@ namespace WindowsFormsAppCamera
         // this is a pause function that accommodates for thread abandonment
         private void SpinDelay(int secs)
         {
+            Trace.TraceInformation($"SpinDelay -> {secs}s");
+
             for (int i = 0; i < secs; i++)
             {
                 if (_fKillThreads == true)

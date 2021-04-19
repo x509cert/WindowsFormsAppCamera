@@ -1,5 +1,6 @@
 ﻿using System;
 using Azure.Communication.Sms;
+using System.Diagnostics;
 
 namespace WindowsFormsAppCamera
 {
@@ -36,11 +37,15 @@ namespace WindowsFormsAppCamera
             ResetCooldown();
 
             _smsClient = new SmsClient(ConnectionString);
+
+            Trace.TraceInformation("SmsAlert -> ctor");
         }
 
         // send an SMS message to the recipient
         public bool RaiseAlert(string msg)
         {
+            Trace.TraceInformation("SmsAlert -> RaiseAlert");
+
             if (_smsClient == null)
                 return false;
 
@@ -55,6 +60,8 @@ namespace WindowsFormsAppCamera
             // block SMS messages between 0100 and 0559
             if (BlockLateNightSms)
             {
+                Trace.TraceInformation("SmsAlert -> block nights");
+
                 if (now.Hour >= 1 && now.Hour <= 5)
                     return false;
             }
@@ -62,6 +69,8 @@ namespace WindowsFormsAppCamera
             bool ok = false;
             try
             {
+                Trace.TraceInformation("SmsAlert -> sending");
+
                 // send the SMS msg!
                 SmsSendResult sendResult = _smsClient.Send(
                     from: SmsFrom,
@@ -76,8 +85,9 @@ namespace WindowsFormsAppCamera
                     ok = true;
                 }
             } 
-            catch(Exception)
+            catch(Exception ex)
             {
+                Trace.TraceWarning($"EXCEPTION in SmsAlert - {ex.Message}");
                 ok = false;
             }
 

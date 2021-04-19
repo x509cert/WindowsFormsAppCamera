@@ -30,6 +30,7 @@ namespace WindowsFormsAppCamera
 
             public void Init()
             {
+                Trace.TraceInformation("RGBTotal::Init()");
                 r = g = b = 0L;
             }
         }
@@ -47,12 +48,17 @@ namespace WindowsFormsAppCamera
 
             public void Enqueue2(string s)
             {
+                Trace.TraceInformation($"LogQueue::Enqueue2, len = {Count}");
+
                 if (s.Length == 0)
                     return;
 
                 // if we have reached the max size of the queue, then remove the oldest item
                 if (Count > _max)
+                {
+                    Trace.TraceInformation($"LogQueue::Enqueue2, dropping old data. len = {Count}, max= {_max}");
                     Dequeue();
+                }
 
                 Enqueue(s);
             }
@@ -110,6 +116,8 @@ namespace WindowsFormsAppCamera
         // writes log data to a local log file
         private void WriteLog(string s)
         {
+            Trace.TraceInformation($"WriteLog -> {s}");
+
             DateTime dt = DateTime.UtcNow;
             var dts = dt.ToString(_dateTemplate);
 
@@ -138,19 +146,21 @@ namespace WindowsFormsAppCamera
             string entry = dts + ", " + s;
             
             // log filename
-            string sLogFile = _sLogFilePath + "\\DivGrind-" + dt.Year.ToString() + dt.Month.ToString() + dt.Day.ToString() + ".log";
+            string sLogFile = $"{_sLogFilePath}\\DivGrind-{dt:yyyyMMMdd}.log";
 
             // log to file
             try
             {
+                _logQueue.Enqueue2(entry);
+
                 using (StreamWriter w = File.AppendText(sLogFile))
                 {
                     w.WriteLine(entry);
-                    _logQueue.Enqueue2(entry);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Trace.TraceWarning($"EXCEPTION: {ex.Message}");
                 // keep on chugging
             }
         }
@@ -158,9 +168,14 @@ namespace WindowsFormsAppCamera
         // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
+            Trace.TraceInformation($"UploadLogs()");
+
             // if no log upload UI is set, then don't attempt to upload the data
             if (string.IsNullOrEmpty(_cfg.LogUri))
                 return;
+
+            Trace.Indent();
+            Trace.TraceInformation("Building log data series to send to Azure");
 
             // title for the log collection
             // by default this is the machine name or whatever was passed in on the command-line using -n
@@ -178,6 +193,7 @@ namespace WindowsFormsAppCamera
             sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
+            Trace.TraceInformation("Writing each entry");
             while (_logQueue.Count > 0)
             {
                 sb.Append(_logQueue.Dequeue());
@@ -185,6 +201,7 @@ namespace WindowsFormsAppCamera
             }
 
             // push up to an Azure Function
+            Trace.TraceInformation("Sending logs");
             try
             {
                 WebClient wc = new WebClient();
@@ -195,7 +212,11 @@ namespace WindowsFormsAppCamera
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
+                Trace.TraceWarning($"EXCEPTION: Error uploading to Azure {ex.Message}.");
             }
+
+            Trace.Unindent();
+            Trace.TraceInformation("Logs sent");
         }
         #endregion
 
@@ -214,6 +235,8 @@ namespace WindowsFormsAppCamera
         // H - heartbeat - notifies the Arduino that this code is alive
         void TriggerArduino(string msg)
         {
+            Trace.TraceInformation($"TriggerArduino() -> {msg}");
+
             WriteLog(msg);
 
             if (_sComPort == null)
@@ -241,6 +264,8 @@ namespace WindowsFormsAppCamera
 
         void DeploySkill(Object source, ElapsedEventArgs e)
         {
+            Trace.TraceInformation($"DeploySkill");
+
             WriteLog("Deploy turret");
             TriggerArduino("T");
 
@@ -254,6 +279,8 @@ namespace WindowsFormsAppCamera
 
         void SendHeartbeat(Object source, ElapsedEventArgs e)
         {
+            Trace.TraceInformation($"Heartbeat sent");
+
             WriteLog("Heartbeat sent");
             TriggerArduino("H");
 
@@ -266,6 +293,8 @@ namespace WindowsFormsAppCamera
         // if the screen is blank, then hit the EMP too
         private void SetSkillTimer()
         {
+            Trace.TraceInformation($"SetSkillTimer");
+
             if (_skillTimer == null)
             {
                 _skillTimer = new System.Timers.Timer(15000);
@@ -281,6 +310,8 @@ namespace WindowsFormsAppCamera
 
         private void KillSkillTimer()
         {
+            Trace.TraceInformation($"KillSkillTimer");
+
             if (_skillTimer != null)
             {
                 _skillTimer.Stop();
@@ -292,6 +323,8 @@ namespace WindowsFormsAppCamera
         // this prevents the Arduino from going into failsafe mode
         private void SetHeartbeat()
         {
+            Trace.TraceInformation($"SetHeartBeat");
+
             if (_heartbeatTimer == null)
             {
                 _heartbeatTimer = new System.Timers.Timer(15000);
@@ -308,6 +341,7 @@ namespace WindowsFormsAppCamera
 
         private void StopHeartbeat()
         {
+            Trace.TraceInformation($"StopHeartbeat");
             if (_heartbeatTimer != null)
             {
                 _heartbeatTimer.Stop();
@@ -319,6 +353,8 @@ namespace WindowsFormsAppCamera
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThreadFunc()
         {
+            Trace.TraceInformation($"PingerThreadFunc");
+
             while (_fKillThreads == false)
             {
                 // if there's no gateway IP address, then use tracert to get it
@@ -369,6 +405,8 @@ namespace WindowsFormsAppCamera
         // a thread function that uploads log data to Azure
         private void UploadLogThreadFunc()
         {
+            Trace.TraceInformation($"UplaodThreadFunc");
+
             while (!_fKillThreads)
             {
                 UploadLogs();
@@ -379,6 +417,8 @@ namespace WindowsFormsAppCamera
         // starts all the worker threads
         private void StartAllThreads()
         {
+            Trace.TraceInformation($"StartAllThreads");
+
             _fKillThreads = false;
 
             _threadWorker = new Thread(WorkerThreadFunc);
@@ -394,6 +434,22 @@ namespace WindowsFormsAppCamera
         #endregion
 
         #region UI Elements
+
+        private void btnTestSms_Click(object sender, EventArgs e)
+        {
+            if (_smsAlert == null)
+                MessageBox.Show("No SMS Client is defined.");
+            else
+                if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}"))
+                    WriteLog("SMS test alert failed");
+        }
+
+        // start a timer that creates screen shots
+        private void btnTrace_Click(object sender, EventArgs e)
+        {
+            _startTraceTimer = DateTime.Now;
+            btnTrace.Enabled = false;
+        }
 
         // start drone monitoring
         private void btnStart_Click(object sender, EventArgs e)
@@ -457,12 +513,6 @@ namespace WindowsFormsAppCamera
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
 
-        // switch text colors in the bitmap (kinda useless!)
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-            // Nothing
-        }
-
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)
         {
@@ -504,22 +554,6 @@ namespace WindowsFormsAppCamera
             return (float)_cfg.LastCalibratedR + (((float)_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
         }
 
-        private void btnTestSms_Click(object sender, EventArgs e)
-        {
-            if (_smsAlert == null)
-                MessageBox.Show("No SMS Client is defined.");
-            else
-                if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}"))
-                    WriteLog("SMS test alert failed");
-        }
-
-        // start a timer that creates screen shots
-        private void btnTrace_Click(object sender, EventArgs e)
-        {
-            _startTraceTimer = DateTime.Now;
-            btnTrace.Enabled = false;
-        }
-
         private void numDroneDelay_ValueChanged(object sender, EventArgs e)
         {
             _elapseBetweenDrones = new TimeSpan(0,0, (int)numDroneDelay.Value);
@@ -535,9 +569,9 @@ namespace WindowsFormsAppCamera
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red
         // that indicates the drones are incoming
-        // then draw the blue EMP detection box
         private void DrawTargetRange(Bitmap bmp)
         {
+            Trace.TraceInformation("DrawTargetRange (hitbox)");
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.FillRectangle(_brushYellow, _rectDroneHitBox);
@@ -549,6 +583,8 @@ namespace WindowsFormsAppCamera
         // skips every other pixel on the x-axis for perf
         private void GetRGBInRange(Bitmap bmp, ref RGBTotal rbgTotal)
         {
+            Trace.TraceInformation("GetRGBInRange");
+
             rbgTotal.Init();
             Int32 countPixel = 0;
 
@@ -576,6 +612,8 @@ namespace WindowsFormsAppCamera
         // skips every other pixel on the x-axis for perf
         private void GetRGBInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RGBTotal rbgTotal)
         {
+            Trace.TraceInformation("GetRGBInRange (overload)");
+
             rbgTotal.Init();
             Int32 countPixel = 0;
 

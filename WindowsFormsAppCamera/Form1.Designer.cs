@@ -85,7 +85,6 @@ namespace WindowsFormsAppCamera
             this.pictCamera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictCamera.TabIndex = 0;
             this.pictCamera.TabStop = false;
-            this.pictCamera.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // btnCalibrate
             // 
