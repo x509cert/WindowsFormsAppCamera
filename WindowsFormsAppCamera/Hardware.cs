@@ -70,13 +70,13 @@ namespace WindowsFormsAppCamera
                     WriteTimeout = 500 // 500 msec timeout
                 };
                 _sComPort.Open();
+
+                WriteConfig(_cfg);
             }
             catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
             }
-
-            WriteConfig(_cfg);
         }
 
         // COM port selected

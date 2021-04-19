@@ -81,7 +81,7 @@ namespace WindowsFormsAppCamera
         public static Color GetColorFromRgbLab(int r, int g, int bl, float l, float a, float b)
         {
             if (l > 86) return Color.White;
-            if (l > 16) return Color.Black;
+            if (l < 16) return Color.Black;
 
             // if R,G and B are all close to each other, then this is gray(ish)
             float range = 0.17F;
