@@ -110,6 +110,9 @@ namespace WindowsFormsAppCamera
         DateTime                _startTraceTimer;                       // this is for dumping a trace of the screenshots for 20secs - approx 100 images
         readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); // trace for 20secs
 
+        Chart                   _chartR, _chartG, _chartB;
+        byte[]                  _arrR, _arrG, _arrB;
+
 #endregion
 
         #region Logs
@@ -353,49 +356,73 @@ namespace WindowsFormsAppCamera
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThreadFunc()
         {
-            Trace.TraceInformation($"PingerThreadFunc");
+            bool fPingProcessFailed = false;
+
+            Trace.TraceInformation($"PingerThreadFunc start");
 
             while (_fKillThreads == false)
             {
+                Trace.TraceInformation($"PingerThreadFunc -> getting trace route etc and setting up ");
+
                 // if there's no gateway IP address, then use tracert to get it
-                if (String.IsNullOrEmpty(_gatewayIp))
+                // unless we have been here before and it failed - so don't keep trying!
+                if (fPingProcessFailed == false && String.IsNullOrEmpty(_gatewayIp))
                 {
-                    Process p = new Process();
-
-                    p.StartInfo.UseShellExecute = false;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    p.StartInfo.FileName = "tracert";
-                    p.StartInfo.CreateNoWindow = true;
-                    p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
-                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
-                    p.Start();
-
-                    string output = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit();
-
-                    // simplified (lazy) IP address regex
-                    Regex rx = new Regex(@"([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})");
-
-                    string[] lines = output.Split('\n');
-                    for (int i = 2; i < lines.Length; i++)
+                    try
                     {
-                        MatchCollection matches = rx.Matches(lines[i]);
-                        if (matches.Count > 0)
+                        Process p = new Process();
+
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.FileName = "tracert";
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
+                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
+                        p.Start();
+
+                        string output = p.StandardOutput.ReadToEnd();
+                        p.WaitForExit();
+
+                        // simplified (lazy) IP address regex
+                        Regex rx = new Regex(@"([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})");
+
+                        string[] lines = output.Split('\n');
+                        for (int i = 2; i < lines.Length; i++)
                         {
-                            _gatewayIp = matches[0].ToString();
-                            break;
+                            MatchCollection matches = rx.Matches(lines[i]);
+                            if (matches.Count > 0)
+                            {
+                                _gatewayIp = matches[0].ToString();
+                                break;
+                            }
                         }
+                    } catch (Exception ex)
+                    {
+                        Trace.TraceWarning($"ERROR: Creating tracert etc {ex.Message}");
+                        WriteLog($"ERROR: ping {ex.Message}");
+
+                        fPingProcessFailed = true;
                     }
                 } 
                 else 
                 {
-                    // we have a gateway IP address
-                    Ping pingSender = new Ping();
-                    PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
-                    WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
+                    try
+                    {
+                        Trace.TraceInformation($"PingerThreadFunc -> ping {_gatewayIp}");
+                        // we have a gateway IP address
+                        Ping pingSender = new Ping();
+                        PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
+                        WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
 
-                    PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
-                    WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
+                        Trace.TraceInformation($"PingerThreadFunc -> ping ubisoft");
+                        PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
+                        WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
+                    } 
+                    catch (Exception ex)
+                    {
+                        Trace.TraceWarning($"ERROR: ping {ex.Message}");
+                        WriteLog($"ERROR: ping {ex.Message}");
+                    }
                 }
 
                 SpinDelay(30);
@@ -530,10 +557,6 @@ namespace WindowsFormsAppCamera
             var rbgTotal = new RGBTotal();
             GetRGBInRange(bmp, ref rbgTotal);
 
-            lblRedCount.Text = rbgTotal.R.ToString("N0");
-            lblGreenCount.Text = rbgTotal.G.ToString("N0");
-            lblBlueCount.Text = rbgTotal.B.ToString("N0");
-
             _cfg.LastCalibratedR = (int)rbgTotal.R;
             _cfg.LastCalibratedB = (int)rbgTotal.B;
             _cfg.LastCalibratedG = (int)rbgTotal.G;
@@ -552,6 +575,11 @@ namespace WindowsFormsAppCamera
         private float GetRedSpottedPercent()
         {
             return (float)_cfg.LastCalibratedR + (((float)_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
+
         }
 
         private void numDroneDelay_ValueChanged(object sender, EventArgs e)

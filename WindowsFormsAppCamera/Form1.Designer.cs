@@ -32,8 +32,6 @@ namespace WindowsFormsAppCamera
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.pictCamera = new System.Windows.Forms.PictureBox();
             this.btnCalibrate = new System.Windows.Forms.Button();
-            this.lblRed = new System.Windows.Forms.Label();
-            this.lblRedCount = new System.Windows.Forms.Label();
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.lblDrones = new System.Windows.Forms.Label();
@@ -52,10 +50,6 @@ namespace WindowsFormsAppCamera
             this.label6 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.btnPressRB = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.lblGreenCount = new System.Windows.Forms.Label();
-            this.lblBlueCount = new System.Windows.Forms.Label();
             this.numTrigger = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -69,17 +63,23 @@ namespace WindowsFormsAppCamera
             this.btnTrace = new System.Windows.Forms.Button();
             this.numDroneDelay = new System.Windows.Forms.NumericUpDown();
             this.lblDroneDelay = new System.Windows.Forms.Label();
+            this.pictR = new System.Windows.Forms.PictureBox();
+            this.pictG = new System.Windows.Forms.PictureBox();
+            this.pictB = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictR)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictG)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictB)).BeginInit();
             this.SuspendLayout();
             // 
             // pictCamera
             // 
             this.pictCamera.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictCamera.Location = new System.Drawing.Point(19, 184);
+            this.pictCamera.Location = new System.Drawing.Point(19, 179);
             this.pictCamera.Name = "pictCamera";
             this.pictCamera.Size = new System.Drawing.Size(640, 480);
             this.pictCamera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -88,35 +88,17 @@ namespace WindowsFormsAppCamera
             // 
             // btnCalibrate
             // 
-            this.btnCalibrate.Location = new System.Drawing.Point(19, 677);
+            this.btnCalibrate.Location = new System.Drawing.Point(19, 752);
             this.btnCalibrate.Name = "btnCalibrate";
-            this.btnCalibrate.Size = new System.Drawing.Size(106, 41);
+            this.btnCalibrate.Size = new System.Drawing.Size(106, 40);
             this.btnCalibrate.TabIndex = 1;
             this.btnCalibrate.Text = "Calibrate";
             this.btnCalibrate.UseVisualStyleBackColor = true;
             this.btnCalibrate.Click += new System.EventHandler(this.btnCalibrate_Click);
             // 
-            // lblRed
-            // 
-            this.lblRed.AutoSize = true;
-            this.lblRed.Location = new System.Drawing.Point(134, 677);
-            this.lblRed.Name = "lblRed";
-            this.lblRed.Size = new System.Drawing.Size(25, 20);
-            this.lblRed.TabIndex = 2;
-            this.lblRed.Text = "R:";
-            // 
-            // lblRedCount
-            // 
-            this.lblRedCount.AutoSize = true;
-            this.lblRedCount.Location = new System.Drawing.Point(155, 677);
-            this.lblRedCount.Name = "lblRedCount";
-            this.lblRedCount.Size = new System.Drawing.Size(18, 20);
-            this.lblRedCount.TabIndex = 8;
-            this.lblRedCount.Text = "0";
-            // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(335, 678);
+            this.btnStart.Location = new System.Drawing.Point(129, 752);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(106, 40);
             this.btnStart.TabIndex = 13;
@@ -126,9 +108,9 @@ namespace WindowsFormsAppCamera
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(447, 678);
+            this.btnStop.Location = new System.Drawing.Point(240, 752);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(106, 41);
+            this.btnStop.Size = new System.Drawing.Size(106, 40);
             this.btnStop.TabIndex = 14;
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
@@ -144,7 +126,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnSaveBmp
             // 
-            this.btnSaveBmp.Location = new System.Drawing.Point(447, 740);
+            this.btnSaveBmp.Location = new System.Drawing.Point(464, 755);
             this.btnSaveBmp.Name = "btnSaveBmp";
             this.btnSaveBmp.Size = new System.Drawing.Size(95, 40);
             this.btnSaveBmp.TabIndex = 16;
@@ -154,9 +136,9 @@ namespace WindowsFormsAppCamera
             // 
             // btnToggleBlankOrLiveScreen
             // 
-            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(335, 738);
+            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(352, 754);
             this.btnToggleBlankOrLiveScreen.Name = "btnToggleBlankOrLiveScreen";
-            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(106, 41);
+            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(106, 40);
             this.btnToggleBlankOrLiveScreen.TabIndex = 17;
             this.btnToggleBlankOrLiveScreen.Text = "To Blank";
             this.btnToggleBlankOrLiveScreen.UseVisualStyleBackColor = true;
@@ -210,7 +192,7 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(19, 827);
+            this.btnAllUp.Location = new System.Drawing.Point(311, 840);
             this.btnAllUp.Name = "btnAllUp";
             this.btnAllUp.Size = new System.Drawing.Size(67, 41);
             this.btnAllUp.TabIndex = 24;
@@ -297,45 +279,9 @@ namespace WindowsFormsAppCamera
             this.btnPressRB.UseVisualStyleBackColor = true;
             this.btnPressRB.Click += new System.EventHandler(this.button3_Click_1);
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(187, 677);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(26, 20);
-            this.label2.TabIndex = 34;
-            this.label2.Text = "G:";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(248, 677);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(24, 20);
-            this.label7.TabIndex = 35;
-            this.label7.Text = "B:";
-            // 
-            // lblGreenCount
-            // 
-            this.lblGreenCount.AutoSize = true;
-            this.lblGreenCount.Location = new System.Drawing.Point(209, 677);
-            this.lblGreenCount.Name = "lblGreenCount";
-            this.lblGreenCount.Size = new System.Drawing.Size(18, 20);
-            this.lblGreenCount.TabIndex = 37;
-            this.lblGreenCount.Text = "0";
-            // 
-            // lblBlueCount
-            // 
-            this.lblBlueCount.AutoSize = true;
-            this.lblBlueCount.Location = new System.Drawing.Point(270, 677);
-            this.lblBlueCount.Name = "lblBlueCount";
-            this.lblBlueCount.Size = new System.Drawing.Size(18, 20);
-            this.lblBlueCount.TabIndex = 38;
-            this.lblBlueCount.Text = "0";
-            // 
             // numTrigger
             // 
-            this.numTrigger.Location = new System.Drawing.Point(138, 723);
+            this.numTrigger.Location = new System.Drawing.Point(398, 135);
             this.numTrigger.Minimum = new decimal(new int[] {
             10,
             0,
@@ -354,18 +300,19 @@ namespace WindowsFormsAppCamera
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(22, 729);
+            this.label8.Location = new System.Drawing.Point(313, 139);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(80, 20);
             this.label8.TabIndex = 40;
             this.label8.Text = "Trigger %:";
+            this.label8.Click += new System.EventHandler(this.label8_Click);
             // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.btnRecalLeftLess);
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
-            this.groupBox1.Location = new System.Drawing.Point(125, 802);
+            this.groupBox1.Location = new System.Drawing.Point(19, 815);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(260, 91);
             this.groupBox1.TabIndex = 41;
@@ -377,7 +324,7 @@ namespace WindowsFormsAppCamera
             this.groupBox2.Controls.Add(this.btnPressRB);
             this.groupBox2.Controls.Add(this.btnRecalRightLess);
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
-            this.groupBox2.Location = new System.Drawing.Point(405, 802);
+            this.groupBox2.Location = new System.Drawing.Point(405, 815);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(260, 91);
             this.groupBox2.TabIndex = 42;
@@ -397,7 +344,7 @@ namespace WindowsFormsAppCamera
             // 
             this.txtName.Location = new System.Drawing.Point(138, 136);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(521, 26);
+            this.txtName.Size = new System.Drawing.Size(170, 26);
             this.txtName.TabIndex = 44;
             // 
             // label5
@@ -444,7 +391,7 @@ namespace WindowsFormsAppCamera
             // 
             // btnTrace
             // 
-            this.btnTrace.Location = new System.Drawing.Point(548, 740);
+            this.btnTrace.Location = new System.Drawing.Point(564, 755);
             this.btnTrace.Name = "btnTrace";
             this.btnTrace.Size = new System.Drawing.Size(95, 40);
             this.btnTrace.TabIndex = 48;
@@ -454,7 +401,7 @@ namespace WindowsFormsAppCamera
             // 
             // numDroneDelay
             // 
-            this.numDroneDelay.Location = new System.Drawing.Point(138, 753);
+            this.numDroneDelay.Location = new System.Drawing.Point(585, 137);
             this.numDroneDelay.Maximum = new decimal(new int[] {
             15,
             0,
@@ -478,17 +425,44 @@ namespace WindowsFormsAppCamera
             // lblDroneDelay
             // 
             this.lblDroneDelay.AutoSize = true;
-            this.lblDroneDelay.Location = new System.Drawing.Point(24, 759);
+            this.lblDroneDelay.Location = new System.Drawing.Point(480, 139);
             this.lblDroneDelay.Name = "lblDroneDelay";
             this.lblDroneDelay.Size = new System.Drawing.Size(101, 20);
             this.lblDroneDelay.TabIndex = 50;
             this.lblDroneDelay.Text = "Drone Delay:";
             // 
+            // pictR
+            // 
+            this.pictR.Location = new System.Drawing.Point(19, 665);
+            this.pictR.Name = "pictR";
+            this.pictR.Size = new System.Drawing.Size(210, 65);
+            this.pictR.TabIndex = 52;
+            this.pictR.TabStop = false;
+            // 
+            // pictG
+            // 
+            this.pictG.Location = new System.Drawing.Point(234, 665);
+            this.pictG.Name = "pictG";
+            this.pictG.Size = new System.Drawing.Size(210, 65);
+            this.pictG.TabIndex = 53;
+            this.pictG.TabStop = false;
+            // 
+            // pictB
+            // 
+            this.pictB.Location = new System.Drawing.Point(448, 665);
+            this.pictB.Name = "pictB";
+            this.pictB.Size = new System.Drawing.Size(210, 65);
+            this.pictB.TabIndex = 54;
+            this.pictB.TabStop = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(677, 922);
+            this.ClientSize = new System.Drawing.Size(677, 923);
+            this.Controls.Add(this.pictB);
+            this.Controls.Add(this.pictG);
+            this.Controls.Add(this.pictR);
             this.Controls.Add(this.lblDroneDelay);
             this.Controls.Add(this.numDroneDelay);
             this.Controls.Add(this.btnTrace);
@@ -501,10 +475,6 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.numTrigger);
-            this.Controls.Add(this.lblBlueCount);
-            this.Controls.Add(this.lblGreenCount);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.label2);
             this.Controls.Add(this.btnTestComPort);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label3);
@@ -518,8 +488,6 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.lblDrones);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
-            this.Controls.Add(this.lblRedCount);
-            this.Controls.Add(this.lblRed);
             this.Controls.Add(this.btnCalibrate);
             this.Controls.Add(this.pictCamera);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -533,6 +501,9 @@ namespace WindowsFormsAppCamera
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictR)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictG)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictB)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -542,8 +513,6 @@ namespace WindowsFormsAppCamera
 
         private System.Windows.Forms.PictureBox pictCamera;
         private System.Windows.Forms.Button btnCalibrate;
-        private System.Windows.Forms.Label lblRed;
-        private System.Windows.Forms.Label lblRedCount;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Label lblDrones;
@@ -562,10 +531,6 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnPressRB;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label lblGreenCount;
-        private System.Windows.Forms.Label lblBlueCount;
         private System.Windows.Forms.NumericUpDown numTrigger;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -579,6 +544,9 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Button btnTrace;
         private System.Windows.Forms.NumericUpDown numDroneDelay;
         private System.Windows.Forms.Label lblDroneDelay;
+        private System.Windows.Forms.PictureBox pictR;
+        private System.Windows.Forms.PictureBox pictG;
+        private System.Windows.Forms.PictureBox pictB;
     }
 }
 

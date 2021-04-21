@@ -97,7 +97,8 @@ namespace WindowsFormsAppCamera
             // L*a*b* colors
             if (a > b && a > 0 && b > 0) return Color.Red;
             if (a > b && b < 0 && a < 0) return Color.Blue;
-
+            if (b > 0 && b > a) return Color.Yellow;
+            if (a < 0 && b > 0) return Color.Green;
 
             return Color.Unknown;
         }

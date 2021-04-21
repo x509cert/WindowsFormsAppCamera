@@ -169,6 +169,10 @@ namespace WindowsFormsAppCamera
                     // Write elapsed time to next drone check
                     gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 118, bmp.Width, 24));
 
+                    _chartR.Draw(_arrR, (byte)rbgDroneHitboxTotal.R); pictR.Image = _chartR.Bmp;
+                    _chartG.Draw(_arrG, (byte)rbgDroneHitboxTotal.G); pictG.Image = _chartG.Bmp;
+                    _chartB.Draw(_arrB, (byte)rbgDroneHitboxTotal.B); pictB.Image = _chartB.Bmp;
+
                     // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
                     // start the countdown for displaying the "incoming" text
                     if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
