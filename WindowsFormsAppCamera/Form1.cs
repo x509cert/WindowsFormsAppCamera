@@ -362,12 +362,14 @@ namespace WindowsFormsAppCamera
 
             while (_fKillThreads == false)
             {
-                Trace.TraceInformation($"PingerThreadFunc -> getting trace route etc and setting up ");
+                Trace.TraceInformation($"PingerThreadFunc main loop");
 
                 // if there's no gateway IP address, then use tracert to get it
                 // unless we have been here before and it failed - so don't keep trying!
                 if (fPingProcessFailed == false && String.IsNullOrEmpty(_gatewayIp))
                 {
+                    Trace.TraceInformation($"PingerThreadFunc -> getting trace route etc and setting up");
+
                     try
                     {
                         Process p = new Process();
@@ -409,6 +411,7 @@ namespace WindowsFormsAppCamera
                     try
                     {
                         Trace.TraceInformation($"PingerThreadFunc -> ping {_gatewayIp}");
+
                         // we have a gateway IP address
                         Ping pingSender = new Ping();
                         PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
@@ -432,7 +435,7 @@ namespace WindowsFormsAppCamera
         // a thread function that uploads log data to Azure
         private void UploadLogThreadFunc()
         {
-            Trace.TraceInformation($"UplaodThreadFunc");
+            Trace.TraceInformation($"UploadThreadFunc");
 
             while (!_fKillThreads)
             {
