@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Windows.Forms;
 using System.IO;
 
@@ -15,7 +14,7 @@ namespace WindowsFormsAppCamera
         public float ThreshHold { get; set; }
         public bool UsingLiveScreen { get; set; }
 
-        // camera and videmode are an index into the iterators returned by UsbCamera
+        // camera and video mode are an index into the iterators returned by UsbCamera
         public int Camera { get; set; }
         public int VideoMode { get; set; }
         public string ComPort { get; set; }

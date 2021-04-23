@@ -11,9 +11,9 @@ namespace WindowsFormsAppCamera
             UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
 
             cmbCameraFormat.Items.Clear();
-            for (int i = 0; i < formats.Length; i++)
+            foreach (var t in formats)
             {
-                string f = "Resolution: " + formats[i].Caps.InputSize.ToString() + ", bits/sec: " + formats[i].Caps.MinBitsPerSecond;
+                string f = "Resolution: " + t.Caps.InputSize.ToString() + ", bits/sec: " + t.Caps.MinBitsPerSecond;
                 cmbCameraFormat.Items.Add(f);
             }
         }

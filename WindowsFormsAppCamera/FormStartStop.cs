@@ -53,7 +53,7 @@ namespace WindowsFormsAppCamera
             // get the date this binary was last modified
             string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             FileInfo fi = new FileInfo(strpath);
-            string buildDate = fi.LastWriteTime.ToString("yy-MM-dd:HHmm");
+            string buildDate = fi.LastWriteTime.ToString("yyyyMMMdd:HHmm");
 
             _logQueue = new LogQueue(50);
 
@@ -98,7 +98,7 @@ namespace WindowsFormsAppCamera
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            if (args.Length == 2 && args[1].ToLower().StartsWith("-run") == true)
+            if (args.Length == 2 && args[1].ToLower().StartsWith("-run"))
             {
                 Trace.TraceInformation("Autostart");
 
@@ -152,7 +152,7 @@ namespace WindowsFormsAppCamera
 
             for (int i = 0; i < secs; i++)
             {
-                if (_fKillThreads == true)
+                if (_fKillThreads)
                     break;
 
                 Thread.Sleep(1000);

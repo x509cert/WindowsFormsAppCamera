@@ -38,10 +38,10 @@ namespace WindowsFormsAppCamera
         // keeps track of log entries for uploading to Azure
         class LogQueue : Queue<string>
         {
-            private const int MAX = 20;
+            private const int Max = 20;
             private readonly int _max;
 
-            public LogQueue(int max = MAX)
+            public LogQueue(int max = Max)
             {
                 _max = max;
             }
@@ -68,12 +68,12 @@ namespace WindowsFormsAppCamera
         #region Class member variables
         UsbCamera               _camera;
 
-        Config                  _cfg = null;
+        Config                  _cfg;
 
         LogQueue                _logQueue;
         string                  _sLogFilePath;
         const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
-        string                  _gatewayIp = null;
+        string                  _gatewayIp;
 
         // Drone hitbox 
         const int               _xDroneHitBoxStart = 200,     
@@ -84,15 +84,15 @@ namespace WindowsFormsAppCamera
                                 _heightDroneHitBox = _yDroneHitBoxEnd - _yDroneHitBoxStart;
         Rectangle               _rectDroneHitBox = new Rectangle(_xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox);
 
-        Thread                  _threadWorker = null;
-        Thread                  _threadLog = null;
-        Thread                  _threadPinger = null;
+        Thread                  _threadWorker;
+        Thread                  _threadLog;
+        Thread                  _threadPinger;
 
-        SerialPort              _sComPort = null;
+        SerialPort              _sComPort;
         const int               _ComPortSpeed = 9600;
 
         bool                    _fKillThreads = false;
-        System.Timers.Timer     _skillTimer = null;
+        System.Timers.Timer     _skillTimer;
         System.Timers.Timer      _heartbeatTimer = null;
 
         bool                    _fUsingLiveScreen = true;
@@ -171,7 +171,7 @@ namespace WindowsFormsAppCamera
         // uploads the last log N-entries to Azure every few secs
         private void UploadLogs()
         {
-            Trace.TraceInformation($"UploadLogs()");
+            Trace.TraceInformation("UploadLogs()");
 
             // if no log upload UI is set, then don't attempt to upload the data
             if (string.IsNullOrEmpty(_cfg.LogUri))
@@ -267,7 +267,7 @@ namespace WindowsFormsAppCamera
 
         void DeploySkill(Object source, ElapsedEventArgs e)
         {
-            Trace.TraceInformation($"DeploySkill");
+            Trace.TraceInformation("DeploySkill");
 
             WriteLog("Deploy turret");
             TriggerArduino("T");
@@ -282,7 +282,7 @@ namespace WindowsFormsAppCamera
 
         void SendHeartbeat(Object source, ElapsedEventArgs e)
         {
-            Trace.TraceInformation($"Heartbeat sent");
+            Trace.TraceInformation("Heartbeat sent");
 
             WriteLog("Heartbeat sent");
             TriggerArduino("H");
@@ -296,7 +296,7 @@ namespace WindowsFormsAppCamera
         // if the screen is blank, then hit the EMP too
         private void SetSkillTimer()
         {
-            Trace.TraceInformation($"SetSkillTimer");
+            Trace.TraceInformation("SetSkillTimer");
 
             if (_skillTimer == null)
             {
@@ -313,7 +313,7 @@ namespace WindowsFormsAppCamera
 
         private void KillSkillTimer()
         {
-            Trace.TraceInformation($"KillSkillTimer");
+            Trace.TraceInformation("KillSkillTimer");
 
             if (_skillTimer != null)
             {
@@ -326,7 +326,7 @@ namespace WindowsFormsAppCamera
         // this prevents the Arduino from going into failsafe mode
         private void SetHeartbeat()
         {
-            Trace.TraceInformation($"SetHeartBeat");
+            Trace.TraceInformation("SetHeartBeat");
 
             if (_heartbeatTimer == null)
             {
@@ -344,7 +344,7 @@ namespace WindowsFormsAppCamera
 
         private void StopHeartbeat()
         {
-            Trace.TraceInformation($"StopHeartbeat");
+            Trace.TraceInformation("StopHeartbeat");
             if (_heartbeatTimer != null)
             {
                 _heartbeatTimer.Stop();
@@ -358,28 +358,33 @@ namespace WindowsFormsAppCamera
         {
             bool fPingProcessFailed = false;
 
-            Trace.TraceInformation($"PingerThreadFunc start");
+            Trace.TraceInformation("PingerThreadFunc start");
 
             while (_fKillThreads == false)
             {
-                Trace.TraceInformation($"PingerThreadFunc main loop");
+                Trace.TraceInformation("PingerThreadFunc main loop");
 
                 // if there's no gateway IP address, then use tracert to get it
                 // unless we have been here before and it failed - so don't keep trying!
                 if (fPingProcessFailed == false && String.IsNullOrEmpty(_gatewayIp))
                 {
-                    Trace.TraceInformation($"PingerThreadFunc -> getting trace route etc and setting up");
+                    Trace.TraceInformation("PingerThreadFunc -> getting trace route etc and setting up");
 
                     try
                     {
-                        Process p = new Process();
+                        Process p = new Process
+                        {
+                            StartInfo =
+                            {
+                                UseShellExecute = false,
+                                RedirectStandardOutput = true,
+                                FileName = "tracert",
+                                CreateNoWindow = true,
+                                Arguments = "-h 2 -d ubisoft.com",
+                                WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized
+                            }
+                        };
 
-                        p.StartInfo.UseShellExecute = false;
-                        p.StartInfo.RedirectStandardOutput = true;
-                        p.StartInfo.FileName = "tracert";
-                        p.StartInfo.CreateNoWindow = true;
-                        p.StartInfo.Arguments = "-h 2 -d ubisoft.com";
-                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized;
                         p.Start();
 
                         string output = p.StandardOutput.ReadToEnd();
@@ -417,7 +422,7 @@ namespace WindowsFormsAppCamera
                         PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
                         WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
 
-                        Trace.TraceInformation($"PingerThreadFunc -> ping ubisoft");
+                        Trace.TraceInformation("PingerThreadFunc -> ping ubisoft");
                         PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
                         WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
                     } 
@@ -435,7 +440,7 @@ namespace WindowsFormsAppCamera
         // a thread function that uploads log data to Azure
         private void UploadLogThreadFunc()
         {
-            Trace.TraceInformation($"UploadThreadFunc");
+            Trace.TraceInformation("UploadThreadFunc");
 
             while (!_fKillThreads)
             {
@@ -447,7 +452,7 @@ namespace WindowsFormsAppCamera
         // starts all the worker threads
         private void StartAllThreads()
         {
-            Trace.TraceInformation($"StartAllThreads");
+            Trace.TraceInformation("StartAllThreads");
 
             _fKillThreads = false;
 
@@ -577,7 +582,7 @@ namespace WindowsFormsAppCamera
         // determines the increase in red required to determine if the drones are incoming
         private float GetRedSpottedPercent()
         {
-            return (float)_cfg.LastCalibratedR + (((float)_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
+            return _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
         }
 
         private void label8_Click(object sender, EventArgs e)
@@ -627,9 +632,9 @@ namespace WindowsFormsAppCamera
                     countPixel++;
 
                     // RGB totals
-                    rbgTotal.R += (Int32)px.R; 
-                    rbgTotal.G += (Int32)px.G;
-                    rbgTotal.B += (Int32)px.B;
+                    rbgTotal.R += px.R; 
+                    rbgTotal.G += px.G;
+                    rbgTotal.B += px.B;
                 }
             }
 
@@ -656,9 +661,9 @@ namespace WindowsFormsAppCamera
                     countPixel++;
 
                     // RGB totals
-                    rbgTotal.R += (Int32)px.R;
-                    rbgTotal.G += (Int32)px.G;
-                    rbgTotal.B += (Int32)px.B;
+                    rbgTotal.R += px.R;
+                    rbgTotal.G += px.G;
+                    rbgTotal.B += px.B;
                 }
             }
 

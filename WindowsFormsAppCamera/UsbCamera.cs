@@ -87,17 +87,6 @@ namespace WindowsFormsAppCamera
         }
 
         /// <summary>
-        /// Create USB Camera. If device do not support the size, default size will applied.
-        /// </summary>
-        /// <param name="cameraIndex">Camera index in FindDevices() result.</param>
-        /// <param name="size">
-        /// Size you want to create. Normally use Size property of VideoFormat in GetVideoFormat() result.
-        /// </param>
-        public UsbCamera(int cameraIndex, Size size) : this(cameraIndex, new VideoFormat() { Size = size })
-        {
-        }
-
-        /// <summary>
         /// Create USB Camera. If device do not support the format, default format will applied.
         /// </summary>
         /// <param name="cameraIndex">Camera index in FindDevices() result.</param>

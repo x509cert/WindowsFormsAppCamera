@@ -5,14 +5,14 @@ namespace WindowsFormsAppCamera
 {
     class Chart
     {
-        readonly private Bitmap _bmp; 
+        private readonly Bitmap _bmp; 
         public Bitmap Bmp => _bmp;
 
-        readonly private int _x, _y, _scaling;
-        readonly private SolidBrush _background;
-        readonly private Pen _pen;
-        readonly private Pen _penCalibration;
-        readonly private Rectangle _rect;
+        private readonly int _x, _y, _scaling;
+        private readonly SolidBrush _background;
+        private readonly Pen _pen;
+        private readonly Pen _penCalibration;
+        private readonly Rectangle _rect;
 
         public Chart(int x, int y, Color col)
         {
@@ -23,8 +23,7 @@ namespace WindowsFormsAppCamera
             _bmp = new Bitmap(_x, _y);
             _background = new SolidBrush(Color.Black);
             _pen = new Pen(col);
-            _penCalibration = new Pen(Color.LightGray);
-            _penCalibration.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
+            _penCalibration = new Pen(Color.LightGray) {DashStyle = System.Drawing.Drawing2D.DashStyle.Dot};
             _rect = new Rectangle(0, 0, _x, _y);
         }
 

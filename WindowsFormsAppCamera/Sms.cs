@@ -8,9 +8,6 @@ namespace WindowsFormsAppCamera
     // option to block between 0100 and 0559
     public class SmsAlert
     {
-        private             string      _machineName;
-        private             string      _connectionString, _smsFrom, _smsTo;
-        private             bool        _blockLateNightSms = true;
         private readonly    SmsClient   _smsClient;
         private             DateTime    _cooldownLastMessageSent;
 
@@ -20,13 +17,12 @@ namespace WindowsFormsAppCamera
         private TimeSpan    _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
 #endif
 
-        public string   MachineName { get => _machineName; set => _machineName = value; }
-        public string   ConnectionString { get => _connectionString; set => _connectionString = value; }
-        public string   SmsFrom { get => _smsFrom; set => _smsFrom = value; }
-        public string   SmsTo { get => _smsTo; set => _smsTo = value; }
-        public bool     BlockLateNightSms { get => _blockLateNightSms; set => _blockLateNightSms = value; }
+        public string   MachineName { get; set; }
+        public string   ConnectionString { get; set; }
+        public string   SmsFrom { get; set; }
+        public string   SmsTo { get; set; }
+        public bool     BlockLateNightSms { get; set; } = true;
 
-        public SmsAlert() { }
         public SmsAlert(string machineName, string connectionString, string smsFrom, string smsTo)
         {
             MachineName = machineName;
@@ -79,7 +75,7 @@ namespace WindowsFormsAppCamera
                 );
 
                 // start the cooldown
-                if (sendResult.Successful == true)
+                if (sendResult.Successful)
                 {
                     _cooldownLastMessageSent = now;
                     ok = true;

@@ -196,7 +196,7 @@ namespace WindowsFormsAppCamera
 
                     // if this is max frames less N of the 'drones detected' screen capture (only one frame so the log info is entered once)
                     // and the hit region is now blue - this means we have seen the EMP pulse
-                    if (fAllowLogEmpDetection == true &&
+                    if (fAllowLogEmpDetection &&
                         (hitboxColorHsb == RgbToHsb.Color.Blue || hitboxColorHsb == RgbToHsb.Color.Purple))
                     {
                         fAllowLogEmpDetection = false;
@@ -223,7 +223,7 @@ namespace WindowsFormsAppCamera
                     }
 
                     // display 'T' if tracing
-                    if (tracing == true)
+                    if (tracing)
                     {
                         const int boxsize = 30;
                         Rectangle rect = new Rectangle(640 - boxsize, bmp.Height - boxsize, boxsize, boxsize);
