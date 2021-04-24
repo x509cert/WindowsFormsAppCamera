@@ -11,7 +11,7 @@ namespace WindowsFormsAppCamera
         {
             if (br < 10) return Color.Black;
             if (br >= 11 && br < 30) return Color.Gray;
-            if (br > 90 && s < 10) return Color.White;
+            if (br > 85 && s < 10) return Color.White;
 
             // if R,G and B are all close to each other, then this is gray(ish)
             float range = 0.17F;
@@ -80,7 +80,7 @@ namespace WindowsFormsAppCamera
         // B Channel; -ve is blue, +ve is yellow
         public static Color GetColorFromRgbLab(int r, int g, int bl, float l, float a, float b)
         {
-            if (l > 86) return Color.White;
+            if (l > 85) return Color.White;
             if (l < 16) return Color.Black;
 
             // if R,G and B are all close to each other, then this is gray(ish)

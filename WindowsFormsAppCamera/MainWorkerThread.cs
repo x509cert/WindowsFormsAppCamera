@@ -203,6 +203,13 @@ namespace WindowsFormsAppCamera
                         WriteLog("EMP Pulse detected");
                     }
 
+                    // this is experimental - to see if we see a flash from 
+                    if (hitboxColorLab == RgbToLab.Color.White && hitboxColorHsb == RgbToHsb.Color.White)
+                    {
+                        WriteLog("Possible flash from expired Turret.");
+                        Trace.TraceInformation("Possible flash from expired Turret.");
+                    }
+                    
                     // Display a '!' which shows there's been no drones spotted
                     if (showNoDronesSeenText > 0)
                     {
