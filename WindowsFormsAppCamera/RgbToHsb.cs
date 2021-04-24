@@ -35,7 +35,7 @@ namespace WindowsFormsAppCamera
             return Color.Unknown;
         }
 
-        public static void RGBtoHSB(int red, int green, int blue, ref float h, ref float s, ref float bright)
+        public static void ConvertRgBtoHsb(int red, int green, int blue, ref float h, ref float s, ref float bright)
         {
             // normalize red, green and blue values
             float r = ((float)red / 255);
@@ -103,15 +103,15 @@ namespace WindowsFormsAppCamera
             return Color.Unknown;
         }
 
-        public static void RGBToLab(int red, int green, int blue, ref float l, ref float a, ref float b)
+        public static void ConvertRgbToLab(int red, int green, int blue, ref float l, ref float a, ref float b)
         {
-            Vector4 lab = RGBToLab(new Vector4(red, green, blue, 0));
+            Vector4 lab = ConvertRgbToLab(new Vector4(red, green, blue, 0));
             l = lab.X;
             a = lab.Y;
             b = lab.Z;
         }
 
-        public static Vector4 RGBToLab(Vector4 color)
+        public static Vector4 ConvertRgbToLab(Vector4 color)
         {
             float[] xyz = new float[3];
             float[] lab = new float[3];

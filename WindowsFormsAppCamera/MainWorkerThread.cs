@@ -112,13 +112,13 @@ namespace WindowsFormsAppCamera
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
                     // Get amount of red/green/blue in the drone hitbox
-                    RGBTotal rbgDroneHitboxTotal = new RGBTotal();
-                    GetRGBInRange(bmp, _xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox, ref rbgDroneHitboxTotal);
+                    RgbTotal rbgDroneHitboxTotal = new RgbTotal();
+                    GetRgbInRange(bmp, XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox, ref rbgDroneHitboxTotal);
 
                     // convert RGB to HSB on the average
                     Trace.TraceInformation("Convert RGB -> HSB");
                     float h=0, s=0, l=0;
-                    RgbToHsb.RGBtoHSB(
+                    RgbToHsb.ConvertRgBtoHsb(
                         (int)rbgDroneHitboxTotal.R, 
                         (int)rbgDroneHitboxTotal.G, 
                         (int)rbgDroneHitboxTotal.B, 
@@ -133,7 +133,7 @@ namespace WindowsFormsAppCamera
                     // convert RGB to L*a*b*
                     Trace.TraceInformation("Convert RGB -> L*a*b*");
                     float l2 = 0, a = 0, b2 = 0;
-                    RgbToLab.RGBToLab(
+                    RgbToLab.ConvertRgbToLab(
                         (int)rbgDroneHitboxTotal.R,
                         (int)rbgDroneHitboxTotal.G,
                         (int)rbgDroneHitboxTotal.B,
@@ -187,7 +187,7 @@ namespace WindowsFormsAppCamera
 
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
-                        showDroneText = _maxIncomingFrames; // display the drone text for a small number of frames
+                        showDroneText = MaxIncomingFrames; // display the drone text for a small number of frames
                         fAllowLogEmpDetection = true;       // get ready to detect the EMP
 
                         // we have seen a drone, so kill the SMS cooldown

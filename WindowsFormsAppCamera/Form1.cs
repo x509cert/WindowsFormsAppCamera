@@ -18,20 +18,20 @@ namespace WindowsFormsAppCamera
     {
         #region Helper classes
         // used to track RGB pixel colors
-        struct RGBTotal
+        struct RgbTotal
         {
-            private long b;
-            private long g;
-            private long r;
+            private long _b;
+            private long _g;
+            private long _r;
 
-            public long R { get => r; set => r = value; }
-            public long G { get => g; set => g = value; }
-            public long B { get => b; set => b = value; }
+            public long R { get => _r; set => _r = value; }
+            public long G { get => _g; set => _g = value; }
+            public long B { get => _b; set => _b = value; }
 
             public void Init()
             {
                 Trace.TraceInformation("RGBTotal::Init()");
-                r = g = b = 0L;
+                _r = _g = _b = 0L;
             }
         }
 
@@ -72,24 +72,24 @@ namespace WindowsFormsAppCamera
 
         LogQueue                _logQueue;
         string                  _sLogFilePath;
-        const string            _dateTemplate = "yyyy MMM dd, HH:mm:ss";
+        const string            DateTemplate = "yyyy MMM dd, HH:mm:ss";
         string                  _gatewayIp;
 
         // Drone hitbox 
-        const int               _xDroneHitBoxStart = 200,     
-                                _yDroneHitBoxStart = 200,
-                                _xDroneHitBoxEnd = 460,
-                                _yDroneHitBoxEnd = 270,
-                                _widthDroneHitBox = _xDroneHitBoxEnd - _xDroneHitBoxStart,
-                                _heightDroneHitBox = _yDroneHitBoxEnd - _yDroneHitBoxStart;
-        Rectangle               _rectDroneHitBox = new Rectangle(_xDroneHitBoxStart, _yDroneHitBoxStart, _widthDroneHitBox, _heightDroneHitBox);
+        const int               XDroneHitBoxStart = 200,     
+                                YDroneHitBoxStart = 200,
+                                XDroneHitBoxEnd = 460,
+                                YDroneHitBoxEnd = 270,
+                                WidthDroneHitBox = XDroneHitBoxEnd - XDroneHitBoxStart,
+                                HeightDroneHitBox = YDroneHitBoxEnd - YDroneHitBoxStart;
+        Rectangle               _rectDroneHitBox = new Rectangle(XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox);
 
         Thread                  _threadWorker;
         Thread                  _threadLog;
         Thread                  _threadPinger;
 
         SerialPort              _sComPort;
-        const int               _ComPortSpeed = 9600;
+        const int               ComPortSpeed = 9600;
 
         bool                    _fKillThreads = false;
         System.Timers.Timer     _skillTimer;
@@ -99,7 +99,7 @@ namespace WindowsFormsAppCamera
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
         TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
         int                     _heartBeatSent = 0;
-        const int               _maxIncomingFrames = 10;
+        const int               MaxIncomingFrames = 10;
 
         SmsAlert                _smsAlert = null;
 
@@ -122,7 +122,7 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation($"WriteLog -> {s}");
 
             DateTime dt = DateTime.UtcNow;
-            var dts = dt.ToString(_dateTemplate);
+            var dts = dt.ToString(DateTemplate);
 
             // Arduino messages are only one char long, so add a little more context
             if (s.Length == 1)
@@ -191,7 +191,7 @@ namespace WindowsFormsAppCamera
             sb.Append(title);
             sb.Append(delim);
 
-            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(_dateTemplate) + "][Local:" + DateTime.Now.ToString(_dateTemplate)  + "]  Using ");
+            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(DateTemplate) + "][Local:" + DateTime.Now.ToString(DateTemplate)  + "]  Using ");
             sb.Append(_fUsingLiveScreen ? "live video" : "timer");
             sb.Append(delim);
 
@@ -420,11 +420,26 @@ namespace WindowsFormsAppCamera
                         // we have a gateway IP address
                         Ping pingSender = new Ping();
                         PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
-                        WriteLog("Ping: " + _gatewayIp + " " + replyGateway.Status.ToString() + "  " + replyGateway.RoundtripTime + "ms");
+                        if (replyGateway == null)
+                        {
+                            WriteLog($"Ping: {_gatewayIp} failed, and returned NULL");
+                        }
+                        else
+                        {
+                            WriteLog($"Ping: {_gatewayIp}  {replyGateway.Status} {replyGateway.RoundtripTime}ms");
+                        }
 
                         Trace.TraceInformation("PingerThreadFunc -> ping ubisoft");
                         PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
-                        WriteLog("Ping: ubisoft.com " + replyRemote.Status.ToString() + " " + replyRemote.RoundtripTime + "ms");
+                        if (replyRemote == null)
+                        {
+                            WriteLog($"Ping: ubisoft.com failed, and returned NULL");
+                        }
+                        else
+                        {
+                            WriteLog($"Ping: ubisoft.com {replyRemote.Status} {replyRemote.RoundtripTime}ms");
+                        }
+                        
                     } 
                     catch (Exception ex)
                     {
@@ -562,8 +577,8 @@ namespace WindowsFormsAppCamera
             var bmp = _camera.GetBitmap();
 
             // Get RGB calibration data from the hitbox
-            var rbgTotal = new RGBTotal();
-            GetRGBInRange(bmp, ref rbgTotal);
+            var rbgTotal = new RgbTotal();
+            GetRgbInRange(bmp, ref rbgTotal);
 
             _cfg.LastCalibratedR = (int)rbgTotal.R;
             _cfg.LastCalibratedB = (int)rbgTotal.B;
@@ -596,7 +611,7 @@ namespace WindowsFormsAppCamera
         }
 
         // logic to determine if drones are coming
-        bool DronesSpotted(ref RGBTotal rbgTotal)
+        bool DronesSpotted(ref RgbTotal rbgTotal)
         {
             // if there is no increase in red, then no drones
             return rbgTotal.R > GetRedSpottedPercent();
@@ -617,16 +632,16 @@ namespace WindowsFormsAppCamera
 
         // counts the number of RGB elements in pixels in the hitbox
         // skips every other pixel on the x-axis for perf
-        private void GetRGBInRange(Bitmap bmp, ref RGBTotal rbgTotal)
+        private void GetRgbInRange(Bitmap bmp, ref RgbTotal rbgTotal)
         {
             Trace.TraceInformation("GetRGBInRange");
 
             rbgTotal.Init();
             Int32 countPixel = 0;
 
-            for (int x = _xDroneHitBoxStart; x < _xDroneHitBoxEnd; x+=2)
+            for (int x = XDroneHitBoxStart; x < XDroneHitBoxEnd; x+=2)
             {
-                for (int y = _yDroneHitBoxStart; y < _yDroneHitBoxEnd; y++)
+                for (int y = YDroneHitBoxStart; y < YDroneHitBoxEnd; y++)
                 {
                     Color px = bmp.GetPixel(x, y);
                     countPixel++;
@@ -646,7 +661,7 @@ namespace WindowsFormsAppCamera
         // overload
         // counts the number of RGB elements in pixels in the hitbox
         // skips every other pixel on the x-axis for perf
-        private void GetRGBInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RGBTotal rbgTotal)
+        private void GetRgbInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RgbTotal rbgTotal)
         {
             Trace.TraceInformation("GetRGBInRange (overload)");
 

@@ -296,16 +296,16 @@ namespace WindowsFormsAppCamera
 
             // called when each sample completed.
             // The data processing thread blocks until the callback method returns. If the callback does not return quickly, it can interfere with playback.
-            public int BufferCB(double SampleTime, IntPtr pBuffer, int BufferLen)
+            public int BufferCB(double SampleTime, IntPtr pBuffer, int bufferLen)
             {
-                if (Buffer == null || Buffer.Length != BufferLen)
+                if (Buffer == null || Buffer.Length != bufferLen)
                 {
-                    Buffer = new byte[BufferLen];
+                    Buffer = new byte[bufferLen];
                 }
 
                 lock (BufferLock)
                 {
-                    Marshal.Copy(pBuffer, Buffer, 0, BufferLen);
+                    Marshal.Copy(pBuffer, Buffer, 0, bufferLen);
                 }
                 return 0;
             }
@@ -731,10 +731,10 @@ namespace WindowsFormsAppCamera
             return null;
         }
 
-        public static void ConnectFilter(IGraphBuilder graph, IBaseFilter out_flt, int out_no, IBaseFilter in_flt, int in_no)
+        public static void ConnectFilter(IGraphBuilder graph, IBaseFilter out_flt, int outNo, IBaseFilter inFlt, int inNo)
         {
-            var out_pin = FindPin(out_flt, out_no, PIN_DIRECTION.PINDIR_OUTPUT);
-            var inp_pin = FindPin(in_flt, in_no, PIN_DIRECTION.PINDIR_INPUT);
+            var out_pin = FindPin(out_flt, outNo, PIN_DIRECTION.PINDIR_OUTPUT);
+            var inp_pin = FindPin(inFlt, inNo, PIN_DIRECTION.PINDIR_INPUT);
             graph.Connect(out_pin, inp_pin);
         }
 
@@ -821,8 +821,8 @@ namespace WindowsFormsAppCamera
         public interface IAMCameraControl
         {
             int GetRange([In] CameraControlProperty Property, [In, Out] ref int pMin, [In, Out] ref int pMax, [In, Out] ref int pSteppingDelta, [In, Out] ref int pDefault, [In, Out] ref int pCapsFlag);
-            int Set([In] CameraControlProperty Property, [In] int lValue, [In] int Flags);
-            int Get([In] CameraControlProperty Property, [In, Out] ref int lValue, [In, Out] ref int Flags);
+            int Set([In] CameraControlProperty Property, [In] int lValue, [In] int flags);
+            int Get([In] CameraControlProperty Property, [In, Out] ref int lValue, [In, Out] ref int flags);
         }
 
 
@@ -830,8 +830,8 @@ namespace WindowsFormsAppCamera
         public interface IAMVideoProcAmp
         {
             int GetRange([In] VideoProcAmpProperty Property, [In, Out] ref int pMin, [In, Out] ref int pMax, [In, Out] ref int pSteppingDelta, [In, Out] ref int pDefault, [In, Out] ref int pCapsFlag);
-            int Set([In] VideoProcAmpProperty Property, [In] int lValue, [In] int Flags);
-            int Get([In] VideoProcAmpProperty Property, [In, Out] ref int lValue, [In, Out] ref int Flags);
+            int Set([In] VideoProcAmpProperty Property, [In] int lValue, [In] int flags);
+            int Get([In] VideoProcAmpProperty Property, [In, Out] ref int lValue, [In, Out] ref int flags);
         }
 
 
@@ -842,8 +842,8 @@ namespace WindowsFormsAppCamera
             int SetMode([In] IPin pPin, [In] int Mode);
             int GetMode([In] IPin pPin, [Out] out int Mode);
             int GetCurrentActualFrameRate([In] IPin pPin, [Out] out long ActualFrameRate);
-            int GetMaxAvailableFrameRate([In] IPin pPin, [In] int iIndex, [In] Size Dimensions, [Out] out long MaxAvailableFrameRate);
-            int GetFrameRateList([In] IPin pPin, [In] int iIndex, [In] Size Dimensions, [Out] out int ListSize, [Out] out IntPtr FrameRates);
+            int GetMaxAvailableFrameRate([In] IPin pPin, [In] int iIndex, [In] Size Dimensions, [Out] out long maxAvailableFrameRate);
+            int GetFrameRateList([In] IPin pPin, [In] int iIndex, [In] Size Dimensions, [Out] out int listSize, [Out] out IntPtr frameRates);
         }
 
         [ComVisible(true), ComImport(), Guid("56a86895-0ad4-11ce-b03a-0020af0ba770"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -967,8 +967,8 @@ namespace WindowsFormsAppCamera
         [ComVisible(true), ComImport(), Guid("55272A00-42CB-11CE-8135-00AA004BB851"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IPropertyBag
         {
-            int Read([MarshalAs(UnmanagedType.LPWStr)] string PropName, ref object Var, int ErrorLog);
-            int Write(string PropName, ref object Var);
+            int Read([MarshalAs(UnmanagedType.LPWStr)] string PropName, ref object var, int errorLog);
+            int Write(string PropName, ref object var);
         }
 
         [ComVisible(true), ComImport(), Guid("6B652FFF-11FE-4fce-92AD-0266B5D7C78F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -989,7 +989,7 @@ namespace WindowsFormsAppCamera
             [PreserveSig()]
             int SampleCB(double SampleTime, IMediaSample pSample);
             [PreserveSig()]
-            int BufferCB(double SampleTime, IntPtr pBuffer, int BufferLen);
+            int BufferCB(double SampleTime, IntPtr pBuffer, int bufferLen);
         }
 
         #endregion

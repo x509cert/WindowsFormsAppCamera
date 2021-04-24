@@ -57,7 +57,7 @@ namespace WindowsFormsAppCamera
         }
 
         // open the COM port
-        private void openComPort(string comport)
+        private void OpenComPort(string comport)
         {
             if (_sComPort != null)
                 return;
@@ -65,7 +65,7 @@ namespace WindowsFormsAppCamera
             WriteLog($"Attempting to open COM port {comport}");
             try
             {
-                _sComPort = new SerialPort(comport, _ComPortSpeed)
+                _sComPort = new SerialPort(comport, ComPortSpeed)
                 {
                     WriteTimeout = 500 // 500 msec timeout
                 };
@@ -85,7 +85,7 @@ namespace WindowsFormsAppCamera
             btnTestComPort.Enabled = true;
 
             string sPort = cmbComPorts.SelectedItem.ToString();
-            openComPort(sPort);
+            OpenComPort(sPort);
         }
 
         // test the COM port

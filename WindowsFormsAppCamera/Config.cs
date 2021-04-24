@@ -27,18 +27,18 @@ namespace WindowsFormsAppCamera
 
     public partial class Form1: Form
     {
-        private const string _configFileName = "DivGrind.config";
+        private const string ConfigFileName = "DivGrind.config";
 
         public void WriteConfig(Config cfg)
         {
             var options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true };
             var cf = JsonSerializer.Serialize(cfg, options);
-            File.WriteAllText(_configFileName, cf);
+            File.WriteAllText(ConfigFileName, cf);
         }
 
         public Config ReadConfig()
         {
-            var cf = File.ReadAllText(_configFileName);
+            var cf = File.ReadAllText(ConfigFileName);
             cf = cf.Replace("\n", "").Replace("\r", "");
             return JsonSerializer.Deserialize<Config>(cf);
         }
