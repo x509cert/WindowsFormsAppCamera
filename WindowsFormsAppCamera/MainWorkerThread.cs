@@ -21,7 +21,7 @@ namespace WindowsFormsAppCamera
             bool fDronesIncoming = false;
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
-            bool fAllowLogEmpDetection = false;
+            bool fAllowEmpDetection = false;
 
             // text that goes into the image and the rectangles inwhich they reside
             Font imageFont = new Font("Tahoma", 14);
@@ -29,7 +29,8 @@ namespace WindowsFormsAppCamera
             WriteLog("Worker thread start");
 
             SetSkillTimer();
-
+            
+            // give each screen shot image a unique number
             uint traceCounter = 0;
 
             while (!_fKillThreads)
@@ -71,6 +72,7 @@ namespace WindowsFormsAppCamera
                         WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
                         TriggerArduino("E");
                         TriggerArduino("T");
+                        WriteLog("Emergency EMP and Turret deployed");
 
                         dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
 
@@ -96,7 +98,7 @@ namespace WindowsFormsAppCamera
                         }
 
                         Int32 elapsed = (Int32)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
-                        droneCooldown = "Drone check: " + elapsed.ToString("N0") + "s";
+                        droneCooldown = $"Drone check: {elapsed.ToString("N0")}s";
                     }
 
                     // get the image from the camera
@@ -148,7 +150,7 @@ namespace WindowsFormsAppCamera
 
                     Trace.TraceInformation("Write info to bitmap");
 
-                    // write predominant color
+                    // write predominant color from HSB and L*a*b* color spaces
                     string c = $"Color: {hitboxColorHsb} {hitboxColorLab}";
                     gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
@@ -187,7 +189,7 @@ namespace WindowsFormsAppCamera
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
                         showDroneText = MaxIncomingFrames; // display the drone text for a small number of frames
-                        fAllowLogEmpDetection = true;       // get ready to detect the EMP
+                        fAllowEmpDetection = true;       // get ready to detect the EMP
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
@@ -195,18 +197,19 @@ namespace WindowsFormsAppCamera
 
                     // if this is max frames less N of the 'drones detected' screen capture (only one frame so the log info is entered once)
                     // and the hit region is now blue - this means we have seen the EMP pulse
-                    if (fAllowLogEmpDetection &&
+                    if (fAllowEmpDetection &&
                         (hitboxColorHsb == RgbToHsb.Color.Blue || hitboxColorHsb == RgbToHsb.Color.Purple))
                     {
-                        fAllowLogEmpDetection = false;
+                        fAllowEmpDetection = false;
                         WriteLog("EMP Pulse detected");
                     }
 
-                    // this is experimental - to see if we see a flash from 
-                    if (hitboxColorLab == RgbToLab.Color.White && hitboxColorHsb == RgbToHsb.Color.White)
+                    // this is experimental - to see if we see a flash from a blown-up turret
+                    // if we're on the drone spotted timer, then the increase in white could be the EMP
+                    if (showDroneText > 0 && hitboxColorLab == RgbToLab.Color.White && hitboxColorHsb == RgbToHsb.Color.White)
                     {
-                        WriteLog("Possible flash from expired Turret.");
-                        Trace.TraceInformation("Possible flash from expired Turret.");
+                        WriteLog("Possible flash from expired turret.");
+                        Trace.TraceInformation("Possible flash from expired turret.");
                     }
                     
                     // Display a '!' which shows there's been no drones spotted
