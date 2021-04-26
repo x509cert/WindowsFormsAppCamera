@@ -12,9 +12,9 @@ namespace WindowsFormsAppCamera
         private             DateTime    _cooldownLastMessageSent;
 
 #if DEBUG
-        private TimeSpan    _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug
+        private readonly TimeSpan       _cooldownTime = new TimeSpan(0, 1, 0);     // Send SMS message no more than every 1 min in debug
 #else
-        private TimeSpan    _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
+        private readonly TimeSpan       _cooldownTime = new TimeSpan(0, 15, 0);    // Send SMS message no more than every 15mins
 #endif
 
         public string   MachineName { get; set; }

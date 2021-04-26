@@ -238,11 +238,11 @@ namespace WindowsFormsAppCamera
 
             public class Property
             {
-                public int Min { get; private set; }
-                public int Max { get; private set; }
-                public int Step { get; private set; }
-                public int Default { get; private set; }
-                public DirectShow.CameraControlFlags Flags { get; private set; }
+                public int Min { get; }
+                public int Max { get;  }
+                public int Step { get; }
+                public int Default { get; }
+                public DirectShow.CameraControlFlags Flags { get; }
                 public Action<DirectShow.CameraControlFlags, int> SetValue { get; private set; }
                 public Func<int> GetValue { get; private set; }
                 public bool Available { get; private set; }
@@ -668,12 +668,8 @@ namespace WindowsFormsAppCamera
 
         public static IPin FindPin(IBaseFilter filter, string name)
         {
-            var result = EnumPins(filter, (info) =>
-            {
-                return (info.achName == name);
-            });
-
-            if (result == null) throw new ArgumentException("can't fild pin.");
+            var result = EnumPins(filter, (info) => (info.achName == name));
+            if (result == null) throw new ArgumentException("can't find pin.");
             return result;
         }
 

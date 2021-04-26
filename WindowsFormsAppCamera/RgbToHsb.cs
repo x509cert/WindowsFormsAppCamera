@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace WindowsFormsAppCamera
 {
+    // converts RGB to HSB color space
     public class RgbToHsb
     {
         public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple};
@@ -37,6 +38,8 @@ namespace WindowsFormsAppCamera
 
         public static void ConvertRgBtoHsb(int red, int green, int blue, ref float h, ref float s, ref float bright)
         {
+            const float delta = 0.009F;
+
             // normalize red, green and blue values
             float r = ((float)red / 255);
             float g = ((float)green / 255);
@@ -46,20 +49,19 @@ namespace WindowsFormsAppCamera
             float max = Math.Max(r, Math.Max(g, b));
             float min = Math.Min(r, Math.Min(g, b));
 
-            h = 0;
-            if (max == r && g >= b)
+            if (g >= b && Math.Abs(max - r) <= delta)
             {
                 h = 60 * (g - b) / (max - min);
             }
-            else if (max == r && g < b)
+            else if (g < b && Math.Abs(max - r) <= delta)
             {
                 h = 60 * (g - b) / (max - min) + 360;
             }
-            else if (max == g)
+            else if (Math.Abs(max - g) <= delta)
             {
                 h = 60 * (b - r) / (max - min) + 120;
             }
-            else if (max == b)
+            else if (Math.Abs(max - b) <= delta)
             {
                 h = 60 * (r - g) / (max - min) + 240;
             }
@@ -69,8 +71,8 @@ namespace WindowsFormsAppCamera
         }
     }
 
-    // added in case it's needed
-    // uses Vector4 to take advantage of SIMD instructions https://docs.microsoft.com/en-us/dotnet/standard/simd
+    // Converts RGB to L*a*b* color space
+    // Uses Vector4 to take advantage of SIMD instructions https://docs.microsoft.com/en-us/dotnet/standard/simd
     class RgbToLab
     {
         public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple };

@@ -4,7 +4,7 @@ using System.IO.Ports;
 
 namespace WindowsFormsAppCamera
 {
-    public partial class Form1 : Form
+    public partial class Form1
     {
         private void PopulateVideoFormatCombo(int cameraIndex)
         {

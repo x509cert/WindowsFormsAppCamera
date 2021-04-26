@@ -29,7 +29,7 @@ namespace WindowsFormsAppCamera
 
         public void Draw(byte[] arr, byte b, byte? calibration)
         {
-            using (Graphics g = Graphics.FromImage(_bmp))
+            using (var g = Graphics.FromImage(_bmp))
             {
                 g.FillRectangle(_background, _rect);
 
@@ -39,14 +39,14 @@ namespace WindowsFormsAppCamera
 
                 for (int i = 0; i < _x; i++)
                 {
-                    byte v = arr[i];
-                    int top = (255 - v) / _scaling;
+                    var v = arr[i];
+                    var top = (255 - v) / _scaling;
                     g.DrawLine(_pen, _x-i, _y - 1, _x-i, top);
                 }
 
                 if (calibration != null)
                 {
-                    int top = (int)(255 - calibration) / _scaling;
+                    var top = (int)(255 - calibration) / _scaling;
                     g.DrawLine(_penCalibration, 0, top, _x, top);
                 }
             }

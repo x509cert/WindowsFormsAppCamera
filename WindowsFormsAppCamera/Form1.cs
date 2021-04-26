@@ -82,7 +82,7 @@ namespace WindowsFormsAppCamera
                                 YDroneHitBoxEnd = 270,
                                 WidthDroneHitBox = XDroneHitBoxEnd - XDroneHitBoxStart,
                                 HeightDroneHitBox = YDroneHitBoxEnd - YDroneHitBoxStart;
-        Rectangle               _rectDroneHitBox = new Rectangle(XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox);
+        readonly Rectangle      _rectDroneHitBox = new Rectangle(XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox);
 
         Thread                  _threadWorker;
         Thread                  _threadLog;
@@ -91,17 +91,17 @@ namespace WindowsFormsAppCamera
         SerialPort              _sComPort;
         const int               ComPortSpeed = 9600;
 
-        bool                    _fKillThreads = false;
+        bool                    _fKillThreads;
         System.Timers.Timer     _skillTimer;
-        System.Timers.Timer      _heartbeatTimer = null;
+        System.Timers.Timer      _heartbeatTimer;
 
         bool                    _fUsingLiveScreen = true;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
-        TimeSpan                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
-        int                     _heartBeatSent = 0;
+        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
+        int                     _heartBeatSent;
         const int               MaxIncomingFrames = 10;
 
-        SmsAlert                _smsAlert = null;
+        SmsAlert                _smsAlert;
 
         readonly Brush          _colorInfo = Brushes.AliceBlue;
         readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(33, Color.Yellow));
@@ -381,7 +381,7 @@ namespace WindowsFormsAppCamera
                                 FileName = "tracert",
                                 CreateNoWindow = true,
                                 Arguments = "-h 2 -d ubisoft.com",
-                                WindowStyle = ProcessWindowStyle.Hidden | ProcessWindowStyle.Minimized
+                                WindowStyle = ProcessWindowStyle.Hidden
                             }
                         };
 
@@ -420,26 +420,15 @@ namespace WindowsFormsAppCamera
                         // we have a gateway IP address
                         Ping pingSender = new Ping();
                         PingReply replyGateway = pingSender.Send(_gatewayIp, 1000);
-                        if (replyGateway == null)
-                        {
-                            WriteLog($"Ping: {_gatewayIp} failed, and returned NULL");
-                        }
-                        else
-                        {
-                            WriteLog($"Ping: {_gatewayIp}  {replyGateway.Status} {replyGateway.RoundtripTime}ms");
-                        }
+                        WriteLog(replyGateway == null
+                            ? $"Ping: {_gatewayIp} failed, and returned NULL"
+                            : $"Ping: {_gatewayIp}  {replyGateway.Status} {replyGateway.RoundtripTime}ms");
 
                         Trace.TraceInformation("PingerThreadFunc -> ping ubisoft");
                         PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
-                        if (replyRemote == null)
-                        {
-                            WriteLog($"Ping: ubisoft.com failed, and returned NULL");
-                        }
-                        else
-                        {
-                            WriteLog($"Ping: ubisoft.com {replyRemote.Status} {replyRemote.RoundtripTime}ms");
-                        }
-                        
+                        WriteLog(replyRemote == null
+                            ? "Ping: ubisoft.com failed, and returned NULL"
+                            : $"Ping: ubisoft.com {replyRemote.Status} {replyRemote.RoundtripTime}ms");
                     } 
                     catch (Exception ex)
                     {

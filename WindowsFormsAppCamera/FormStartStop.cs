@@ -36,7 +36,7 @@ namespace WindowsFormsAppCamera
             string[] devices = UsbCamera.FindDevices();
             if (devices.Length == 0)
             {
-                MessageBox.Show(this, "Uh oh! No Camera!");
+                MessageBox.Show("FATAL: No Camera.");
                 return; // no camera.
             }
 
@@ -64,7 +64,7 @@ namespace WindowsFormsAppCamera
 
             // add info to title of the tool
             string machine = Dns.GetHostName();
-            Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
+            this.Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
 
             txtName.Text = _cfg.MachineName;
 

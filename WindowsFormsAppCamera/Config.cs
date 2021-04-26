@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Windows.Forms;
 using System.IO;
 
 namespace WindowsFormsAppCamera
@@ -25,7 +24,7 @@ namespace WindowsFormsAppCamera
         public string ToNumber { get; set; }
     }
 
-    public partial class Form1: Form
+    public partial class Form1
     {
         private const string ConfigFileName = "DivGrind.config";
 
