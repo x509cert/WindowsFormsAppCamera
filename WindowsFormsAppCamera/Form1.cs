@@ -236,6 +236,7 @@ namespace WindowsFormsAppCamera
         // U - all triggers up
         // V - verify comms
         // H - heartbeat - notifies the Arduino that this code is alive
+        // + - get Arduino code version
         void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
@@ -287,6 +288,7 @@ namespace WindowsFormsAppCamera
             WriteLog("Heartbeat sent");
             TriggerArduino("H");
 
+            // timer to display a heart on the screen for 6 frames
             _heartBeatSent = 6;
         }
         #endregion

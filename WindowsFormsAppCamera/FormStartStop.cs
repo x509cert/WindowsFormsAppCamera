@@ -17,6 +17,11 @@ namespace WindowsFormsAppCamera
             InitializeComponent();
         }
 
+        private void SetStatusBar(string v1, string v2)
+        {
+            lblVersionInfo.Text = $"{v1} {v2}";
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             Trace.TraceInformation("Form_Load");
@@ -53,7 +58,7 @@ namespace WindowsFormsAppCamera
             // get the date this binary was last modified
             string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             FileInfo fi = new FileInfo(strpath);
-            string buildDate = fi.LastWriteTime.ToString("yyyyMMMdd:HHmm");
+            string buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
 
             _logQueue = new LogQueue(50);
 
@@ -63,8 +68,8 @@ namespace WindowsFormsAppCamera
 #endif
 
             // add info to title of the tool
-            string machine = Dns.GetHostName();
-            this.Text = $"DivGrind {isDebug}[{buildDate}] on {machine}";
+            var machine = Dns.GetHostName();
+            var codeVersion =  $"{isDebug}[{buildDate}] [{machine}] ";
 
             txtName.Text = _cfg.MachineName;
 
@@ -78,6 +83,11 @@ namespace WindowsFormsAppCamera
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
             OpenComPort(_cfg.ComPort);
+            if (_sComPort != null && _sComPort.IsOpen)
+            {
+                string arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
+                SetStatusBar(codeVersion, arduinoVerion);
+            }
 
             // camera details
             cmbCamera.SelectedIndex = _cfg.Camera;

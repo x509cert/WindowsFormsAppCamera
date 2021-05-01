@@ -66,6 +66,7 @@ namespace WindowsFormsAppCamera
             this.pictR = new System.Windows.Forms.PictureBox();
             this.pictG = new System.Windows.Forms.PictureBox();
             this.pictB = new System.Windows.Forms.PictureBox();
+            this.lblVersionInfo = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -455,11 +456,21 @@ namespace WindowsFormsAppCamera
             this.pictB.TabIndex = 54;
             this.pictB.TabStop = false;
             // 
+            // lblVersionInfo
+            // 
+            this.lblVersionInfo.AutoSize = true;
+            this.lblVersionInfo.Location = new System.Drawing.Point(24, 921);
+            this.lblVersionInfo.Name = "lblVersionInfo";
+            this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
+            this.lblVersionInfo.TabIndex = 55;
+            this.lblVersionInfo.Text = "versioninfo";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(677, 923);
+            this.ClientSize = new System.Drawing.Size(677, 950);
+            this.Controls.Add(this.lblVersionInfo);
             this.Controls.Add(this.pictB);
             this.Controls.Add(this.pictG);
             this.Controls.Add(this.pictR);
@@ -547,6 +558,7 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.PictureBox pictR;
         private System.Windows.Forms.PictureBox pictG;
         private System.Windows.Forms.PictureBox pictB;
+        private System.Windows.Forms.Label lblVersionInfo;
     }
 }
 

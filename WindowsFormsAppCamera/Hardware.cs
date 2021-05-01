@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.IO.Ports;
+using System.Threading;
 
 namespace WindowsFormsAppCamera
 {
@@ -25,7 +26,7 @@ namespace WindowsFormsAppCamera
             PopulateVideoFormatCombo(cameraIndex);
         }
 
-        // retusn the selected video format from the camera
+        // return the selected video format from the camera
         private UsbCamera.VideoFormat GetCameraVideoFormat(int camera)
         {
             // create usb camera object with selected resolution and start.
@@ -57,10 +58,13 @@ namespace WindowsFormsAppCamera
         }
 
         // open the COM port
-        private void OpenComPort(string comport)
+        // returns false on failure, true on success
+        private bool OpenComPort(string comport)
         {
             if (_sComPort != null)
-                return;
+                return false;
+
+            var fOk = true;
 
             WriteLog($"Attempting to open COM port {comport}");
             try
@@ -76,7 +80,33 @@ namespace WindowsFormsAppCamera
             catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
+                fOk = false;
             }
+
+            return fOk;
+        }
+
+        private string GetArduinoCodeVersion()
+        {
+            string ret;
+
+            try
+            {
+                // now check there's an Arduino at the end of the COM port
+                // '+' gets the version info from the DivGrind software
+                _sComPort.Write("+");
+                Thread.Sleep(50);
+
+                byte[] buf = new byte[16];
+                ret = _sComPort.ReadExisting();
+            }
+            catch (Exception ex)
+            {
+                WriteLog($"ERROR: {ex.Message}");
+                ret = "";
+            }
+
+            return String.IsNullOrEmpty(ret) ? "" : ret;
         }
 
         // COM port selected
