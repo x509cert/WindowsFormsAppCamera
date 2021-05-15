@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace WindowsFormsAppCamera
 {
     // sends SMS alerts if drones not seen - usually indicates agent death or delta
-    // option to block between 0100 and 0559
+    // option to block between 0001 and 0659
     public class SmsAlert
     {
         private readonly    SmsClient   _smsClient;
@@ -53,12 +53,12 @@ namespace WindowsFormsAppCamera
             if (now.Subtract(_cooldownLastMessageSent) < _cooldownTime)
                 return false;
 
-            // block SMS messages between 0100 and 0559
+            // block SMS messages between 0001 and 0559
             if (BlockLateNightSms)
             {
                 Trace.TraceInformation("SmsAlert -> block nights");
 
-                if (now.Hour >= 1 && now.Hour <= 5)
+                if (now.Hour >= 0 && now.Hour <= 6)
                     return false;
             }
 

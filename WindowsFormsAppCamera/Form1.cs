@@ -258,7 +258,7 @@ namespace WindowsFormsAppCamera
             try
             {
                 _sComPort.Write(msg);
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
             catch (Exception ex)
             {
@@ -481,7 +481,7 @@ namespace WindowsFormsAppCamera
             if (_smsAlert == null)
                 MessageBox.Show("No SMS Client is defined.");
             else
-                if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName}"))
+                if (!_smsAlert.RaiseAlert($"Gen2 DivGrind Test from {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
                     WriteLog("SMS test alert failed");
         }
 

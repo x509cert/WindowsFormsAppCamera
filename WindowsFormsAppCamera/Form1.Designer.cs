@@ -459,7 +459,7 @@ namespace WindowsFormsAppCamera
             // lblVersionInfo
             // 
             this.lblVersionInfo.AutoSize = true;
-            this.lblVersionInfo.Location = new System.Drawing.Point(24, 921);
+            this.lblVersionInfo.Location = new System.Drawing.Point(17, 921);
             this.lblVersionInfo.Name = "lblVersionInfo";
             this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
             this.lblVersionInfo.TabIndex = 55;

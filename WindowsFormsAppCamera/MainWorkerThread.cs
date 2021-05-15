@@ -81,7 +81,7 @@ namespace WindowsFormsAppCamera
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
                         if (_smsAlert != null)
-                            if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName}"))
+                            if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
                                 WriteLog("SMS alert failed");
                     }
 

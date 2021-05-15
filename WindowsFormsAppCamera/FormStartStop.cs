@@ -132,7 +132,9 @@ namespace WindowsFormsAppCamera
             _arrB = new byte[pictB.Width];
             _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue);
 
-            // indicate the DivGrind is alive - this stays enabled until the tool is killed.
+            // send a message to the Arduino
+            // to indicate the DivGrind is alive
+            // this stays enabled until the tool is killed.
             SetHeartbeat();
         }
 
