@@ -73,7 +73,12 @@ namespace WindowsFormsAppCamera
 
             txtName.Text = _cfg.MachineName;
 
-            numTrigger.Value = (decimal)_cfg.ThreshHold;
+            var threshold = (decimal)_cfg.ThreshHold;
+            if (threshold < numTrigger.Minimum || threshold > numTrigger.Maximum)
+                numTrigger.Value = 0;
+            else
+                numTrigger.Value = threshold;
+
             numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // TODO get from config
 
             // COM ports

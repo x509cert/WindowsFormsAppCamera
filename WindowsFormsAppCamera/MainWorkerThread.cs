@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 
 namespace WindowsFormsAppCamera
 {
@@ -23,7 +24,7 @@ namespace WindowsFormsAppCamera
             int showNoDronesSeenText = 0;
             bool fAllowEmpDetection = false;
 
-            // text that goes into the image and the rectangles inwhich they reside
+            // text that goes into the image and the rectangles in which they reside
             Font imageFont = new Font("Tahoma", 14);
 
             WriteLog("Worker thread start");
@@ -52,7 +53,7 @@ namespace WindowsFormsAppCamera
                         var img = pictCamera.Image;
                         var date = DateTime.Now;
                         var dtFormat = date.ToString("MMdd-HH-mm-ss");
-                        img.Save(_sLogFilePath + @"\Trace\Div" + dtFormat + "-" + traceCounter.ToString("D6") + ".bmp");
+                        img.Save(_sLogFilePath + @"\Trace\Div" + dtFormat + "-" + traceCounter.ToString("D6") + ".jpg",ImageFormat.Jpeg);
                         traceCounter++;
                     }
                     else
@@ -97,8 +98,8 @@ namespace WindowsFormsAppCamera
                             fDronesIncoming = false;
                         }
 
-                        Int32 elapsed = (Int32)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
-                        droneCooldown = $"Drone check: {elapsed.ToString("N0")}s";
+                        var elapsed = (Int32)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
+                        droneCooldown = $"Drone check: {elapsed:N0}s";
                     }
 
                     // get the image from the camera
@@ -170,6 +171,7 @@ namespace WindowsFormsAppCamera
                     // Write elapsed time to next drone check
                     gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 118, bmp.Width, 24));
 
+                    // draw the RGB charts
                     _chartR.Draw(_arrR, (byte)rbgDroneHitboxTotal.R, (byte)_cfg.LastCalibratedR); pictR.Image = _chartR.Bmp;
                     _chartG.Draw(_arrG, (byte)rbgDroneHitboxTotal.G, (byte)_cfg.LastCalibratedG); pictG.Image = _chartG.Bmp;
                     _chartB.Draw(_arrB, (byte)rbgDroneHitboxTotal.B, (byte)_cfg.LastCalibratedB); pictB.Image = _chartB.Bmp;
@@ -225,8 +227,8 @@ namespace WindowsFormsAppCamera
                     if (showDroneText > 0)
                     {
                         Trace.TraceInformation("Drone text");
-                        Rectangle rect = new Rectangle(180, bmp.Height - 100, bmp.Width, 100);
-                        gd.DrawString("Drones Incoming", new Font("Tahoma", 30), Brushes.Firebrick, rect);
+                        Rectangle rect = new Rectangle(180, 20, bmp.Width, 100);
+                        gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), Brushes.Firebrick, rect);
 
                         showDroneText--;
                     }

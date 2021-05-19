@@ -121,7 +121,7 @@ namespace WindowsFormsAppCamera
         {
             Trace.TraceInformation($"WriteLog -> {s}");
 
-            DateTime dt = DateTime.UtcNow;
+            DateTime dt = DateTime.Now;
             var dts = dt.ToString(DateTemplate);
 
             // Arduino messages are only one char long, so add a little more context
@@ -141,6 +141,7 @@ namespace WindowsFormsAppCamera
                     case 'L': s += "Inc LB sweep (+1)"; break;
                     case 'l': s += "Dec LB sweep (-1)"; break;
                     case 'H': s += "Heartbeat"; break;
+                    case 'X': s += "Reset LB/RB offsets"; break;
                     default:  s += "!!Unknown command!!"; break;
                 }    
             }
@@ -191,8 +192,10 @@ namespace WindowsFormsAppCamera
             sb.Append(title);
             sb.Append(delim);
 
-            sb.Append("Last update [UTC:" + DateTime.UtcNow.ToString(DateTemplate) + "][Local:" + DateTime.Now.ToString(DateTemplate)  + "]  Using ");
-            sb.Append(_fUsingLiveScreen ? "live video" : "timer");
+            var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
+
+            sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
+            sb.Append(_fUsingLiveScreen ? "live video." : "timer.");
             sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
@@ -210,8 +213,8 @@ namespace WindowsFormsAppCamera
                 WebClient wc = new WebClient();
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-
                 wc.UploadString(_cfg.LogUri, sb.ToString());
+
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -553,6 +556,7 @@ namespace WindowsFormsAppCamera
         private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); }
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
+        private void btnResetOffsets_Click(object sender, EventArgs e)  { TriggerArduino("X"); } // Resets the LB/RB offset adjustments
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)

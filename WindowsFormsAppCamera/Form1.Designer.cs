@@ -67,6 +67,7 @@ namespace WindowsFormsAppCamera
             this.pictG = new System.Windows.Forms.PictureBox();
             this.pictB = new System.Windows.Forms.PictureBox();
             this.lblVersionInfo = new System.Windows.Forms.Label();
+            this.btnResetOffsets = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -193,9 +194,9 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(311, 840);
+            this.btnAllUp.Location = new System.Drawing.Point(311, 829);
             this.btnAllUp.Name = "btnAllUp";
-            this.btnAllUp.Size = new System.Drawing.Size(67, 41);
+            this.btnAllUp.Size = new System.Drawing.Size(67, 30);
             this.btnAllUp.TabIndex = 24;
             this.btnAllUp.Text = "All Up";
             this.btnAllUp.UseVisualStyleBackColor = true;
@@ -465,11 +466,23 @@ namespace WindowsFormsAppCamera
             this.lblVersionInfo.TabIndex = 55;
             this.lblVersionInfo.Text = "versioninfo";
             // 
+            // btnResetOffsets
+            // 
+            this.btnResetOffsets.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetOffsets.Location = new System.Drawing.Point(311, 874);
+            this.btnResetOffsets.Name = "btnResetOffsets";
+            this.btnResetOffsets.Size = new System.Drawing.Size(67, 30);
+            this.btnResetOffsets.TabIndex = 56;
+            this.btnResetOffsets.Text = "Reset";
+            this.btnResetOffsets.UseVisualStyleBackColor = true;
+            this.btnResetOffsets.Click += new System.EventHandler(this.btnResetOffsets_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 950);
+            this.Controls.Add(this.btnResetOffsets);
             this.Controls.Add(this.lblVersionInfo);
             this.Controls.Add(this.pictB);
             this.Controls.Add(this.pictG);
@@ -559,6 +572,7 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.PictureBox pictG;
         private System.Windows.Forms.PictureBox pictB;
         private System.Windows.Forms.Label lblVersionInfo;
+        private System.Windows.Forms.Button btnResetOffsets;
     }
 }
 

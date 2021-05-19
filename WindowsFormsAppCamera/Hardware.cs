@@ -95,9 +95,8 @@ namespace WindowsFormsAppCamera
                 // now check there's an Arduino at the end of the COM port
                 // '+' gets the version info from the DivGrind software
                 _sComPort.Write("+");
-                Thread.Sleep(50);
+                Thread.Sleep(100);
 
-                byte[] buf = new byte[16];
                 ret = _sComPort.ReadExisting();
             }
             catch (Exception ex)
