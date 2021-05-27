@@ -17,9 +17,30 @@ namespace WindowsFormsAppCamera
             InitializeComponent();
         }
 
-        private void SetStatusBar(string v1, string v2)
+        // writes version info to the status bar
+        private void SetStatusBar()
         {
-            lblVersionInfo.Text = $"{v1} {v2}";
+            // Status bar info
+
+            // get the date this binary was last modified
+            var strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var fi = new FileInfo(strpath);
+            var buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
+
+            var isDebug = "";
+#if DEBUG
+            isDebug = "[DBG] ";
+#endif
+
+            // add info to title of the tool
+            var machine = Dns.GetHostName();
+            var codeVersion = $"{isDebug}[{buildDate}] [{machine}] ";
+            var arduinoVerion = "?";
+
+            if (_sComPort != null && _sComPort.IsOpen)
+                arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
+
+            lblVersionInfo.Text = $"{codeVersion} {arduinoVerion}";
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -54,22 +75,7 @@ namespace WindowsFormsAppCamera
 
             // logs go in user's profile folder (eg; c:\users\frodob)
             _sLogFilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-            // get the date this binary was last modified
-            string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            FileInfo fi = new FileInfo(strpath);
-            string buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
-
             _logQueue = new LogQueue(50);
-
-            string isDebug = "";
-#if DEBUG
-            isDebug = "[DBG] ";
-#endif
-
-            // add info to title of the tool
-            var machine = Dns.GetHostName();
-            var codeVersion =  $"{isDebug}[{buildDate}] [{machine}] ";
 
             txtName.Text = _cfg.MachineName;
 
@@ -88,11 +94,7 @@ namespace WindowsFormsAppCamera
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
             OpenComPort(_cfg.ComPort);
-            if (_sComPort != null && _sComPort.IsOpen)
-            {
-                string arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
-                SetStatusBar(codeVersion, arduinoVerion);
-            }
+
 
             // camera details
             cmbCamera.SelectedIndex = _cfg.Camera;
@@ -136,6 +138,8 @@ namespace WindowsFormsAppCamera
 
             _arrB = new byte[pictB.Width];
             _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue);
+
+            SetStatusBar();
 
             // send a message to the Arduino
             // to indicate the DivGrind is alive

@@ -465,6 +465,7 @@ namespace WindowsFormsAppCamera
             this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
             this.lblVersionInfo.TabIndex = 55;
             this.lblVersionInfo.Text = "versioninfo";
+            this.lblVersionInfo.Click += new System.EventHandler(this.lblVersionInfo_Click);
             // 
             // btnResetOffsets
             // 

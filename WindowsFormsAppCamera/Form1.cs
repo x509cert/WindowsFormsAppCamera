@@ -73,6 +73,7 @@ namespace WindowsFormsAppCamera
         LogQueue                _logQueue;
         string                  _sLogFilePath;
         const string            DateTemplate = "yyyy MMM dd, HH:mm:ss";
+        const string            DateTemplateShort = "HH:mm:ss";
         string                  _gatewayIp;
 
         // Drone hitbox 
@@ -122,7 +123,7 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation($"WriteLog -> {s}");
 
             DateTime dt = DateTime.Now;
-            var dts = dt.ToString(DateTemplate);
+            var dts = dt.ToString(DateTemplateShort);
 
             // Arduino messages are only one char long, so add a little more context
             if (s.Length == 1)
@@ -147,7 +148,7 @@ namespace WindowsFormsAppCamera
             }
 
             // text for log file entry
-            string entry = dts + ", " + s;
+            string entry = dts + " " + s;
             
             // log filename
             string sLogFile = $"{_sLogFilePath}\\DivGrind-{dt:yyyyMMMdd}.log";
@@ -549,14 +550,15 @@ namespace WindowsFormsAppCamera
         }
 
         // these are used to send discrete commands to the Arduino
-        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); }
-        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); }
-        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); }
-        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); }
-        private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); }
+        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); } // Reduce offset on RB
+        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); } // Add more offset to LB
+        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); } // Reduce offset on RB
+        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); } // Add more offset to RB
+        private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); } // raise all servos
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
         private void btnResetOffsets_Click(object sender, EventArgs e)  { TriggerArduino("X"); } // Resets the LB/RB offset adjustments
+        private void lblVersionInfo_Click(object sender, EventArgs e)   { SetStatusBar(); }     
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)

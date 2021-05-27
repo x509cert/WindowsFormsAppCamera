@@ -98,6 +98,7 @@ namespace WindowsFormsAppCamera
                 Thread.Sleep(100);
 
                 ret = _sComPort.ReadExisting();
+                Thread.Sleep(100);
             }
             catch (Exception ex)
             {
