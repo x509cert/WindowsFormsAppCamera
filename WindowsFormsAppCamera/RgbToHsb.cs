@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Drawing;
 using System.Numerics;
+using System.Linq;
 
 namespace WindowsFormsAppCamera
 {
-    // converts RGB to HSB color space
+    // Converts RGB to HSB color space
     public class RgbToHsb
     {
         public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple};
@@ -73,9 +75,9 @@ namespace WindowsFormsAppCamera
 
     // Converts RGB to L*a*b* color space
     // Uses Vector4 to take advantage of SIMD instructions https://docs.microsoft.com/en-us/dotnet/standard/simd
-    class RgbToLab
+    public class RgbToLab
     {
-        public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple };
+        public enum Color { Unk, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple };
 
         // using the L*a*b* rules
         // A Channel; -ve is green, +ve is red
@@ -102,7 +104,7 @@ namespace WindowsFormsAppCamera
             if (b > 0 && b > a) return Color.Yellow;
             if (a < 0 && b > 0) return Color.Green;
 
-            return Color.Unknown;
+            return Color.Unk;
         }
 
         public static void ConvertRgbToLab(int red, int green, int blue, ref float l, ref float a, ref float b)
@@ -195,6 +197,43 @@ namespace WindowsFormsAppCamera
             lab[2] = 200.0f * (xyz[1] - xyz[2]);
 
             return new Vector4(lab[0], lab[1], lab[2], 0.0F);
+        }
+    }
+
+    // Converts RGB to closet known color
+    // Uses the algorithm here https://en.wikipedia.org/wiki/Color_difference
+    public class RgbToClosest
+    {
+        private static readonly Color[] ColorArray = {
+                Color.White,
+                Color.Gray,
+                Color.Black,
+                Color.Red,
+                Color.Blue,
+                Color.Green,
+                Color.Purple,
+                Color.Yellow,
+                Color.Orange
+            };
+
+        public static Color GetClosestColorFromRgb(int r, int g, int b) => GetClosestColor(Color.FromArgb(255, r, g, b));
+
+        private static Color GetClosestColor(Color baseColor)
+        {
+            var colors = ColorArray.Select(x => new { Value = x, Diff = GetDiff(x, baseColor) }).ToList();
+            var min = colors.Min(x => x.Diff);
+
+            return colors.Find(x => x.Diff == min).Value;
+        }
+
+        private static int GetDiff(Color color, Color baseColor)
+        {
+            int a = color.A - baseColor.A,
+                r = color.R - baseColor.R,
+                g = color.G - baseColor.G,
+                b = color.B - baseColor.B;
+
+            return a * a + r * r + g * g + b * b;
         }
     }
 }

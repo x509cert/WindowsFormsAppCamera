@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -26,6 +27,12 @@ namespace WindowsFormsAppCamera
 
             // text that goes into the image and the rectangles in which they reside
             Font imageFont = new Font("Tahoma", 14);
+
+            // sets the darkening red for "Drones Incoming"
+            SolidBrush[] colDronesIncomingFade = new SolidBrush[MaxIncomingFrames];
+            float ratio = 255 / MaxIncomingFrames;
+            for (int i=0; i < MaxIncomingFrames; i++)
+                colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
             WriteLog("Worker thread start");
 
@@ -117,42 +124,41 @@ namespace WindowsFormsAppCamera
                     RgbTotal rbgDroneHitboxTotal = new RgbTotal();
                     GetRgbInRange(bmp, XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox, ref rbgDroneHitboxTotal);
 
+                    // small optimization because integer RGB is used a lot
+                    int ir = (int)rbgDroneHitboxTotal.R;
+                    int ig = (int)rbgDroneHitboxTotal.G;
+                    int ib = (int)rbgDroneHitboxTotal.B;
+
                     // convert RGB to HSB on the average
                     Trace.TraceInformation("Convert RGB -> HSB");
                     float h=0, s=0, l=0;
-                    RgbToHsb.ConvertRgBtoHsb(
-                        (int)rbgDroneHitboxTotal.R, 
-                        (int)rbgDroneHitboxTotal.G, 
-                        (int)rbgDroneHitboxTotal.B, 
-                        ref h, ref s, ref l);
-
-                    RgbToHsb.Color hitboxColorHsb = RgbToHsb.GetColorFromRgbHsb(
-                        (int)rbgDroneHitboxTotal.R,
-                        (int)rbgDroneHitboxTotal.G,
-                        (int)rbgDroneHitboxTotal.B,
-                        h, s, l);
+                    RgbToHsb.ConvertRgBtoHsb(ir, ig, ib, ref h, ref s, ref l);
+                    RgbToHsb.Color hitboxColorHsb = 
+                        RgbToHsb.GetColorFromRgbHsb(ir, ig, ib, h, s, l);
 
                     // convert RGB to L*a*b*
                     Trace.TraceInformation("Convert RGB -> L*a*b*");
                     float l2 = 0, a = 0, b2 = 0;
-                    RgbToLab.ConvertRgbToLab(
-                        (int)rbgDroneHitboxTotal.R,
-                        (int)rbgDroneHitboxTotal.G,
-                        (int)rbgDroneHitboxTotal.B,
-                        ref l2, ref a, ref b2);
+                    RgbToLab.ConvertRgbToLab(ir, ig, ib, ref l2, ref a, ref b2);
+                    RgbToLab.Color hitboxColorLab = 
+                        RgbToLab.GetColorFromRgbLab(ir, ig, ib, l2, a, b2);
 
-                    RgbToLab.Color hitboxColorLab = RgbToLab.GetColorFromRgbLab(
-                        (int)rbgDroneHitboxTotal.R,
-                        (int)rbgDroneHitboxTotal.G,
-                        (int)rbgDroneHitboxTotal.B,
-                        l2, a, b2);
-
-                    const int xOffset = 4;
+                    // get the closest color from RGB
+                    string hitboxClosestColor = 
+                        RgbToClosest.GetClosestColorFromRgb(ir, ig, ib)
+                                                           .ToString()
+                                                           .Replace("Color", "")
+                                                           .Replace("[", "")
+                                                           .Replace("]", "")
+                                                           .Replace(" ", ""); 
 
                     Trace.TraceInformation("Write info to bitmap");
 
+                    // text offset in the main drawing rectangle
+                    const int xOffset = 4;
+
                     // write predominant color from HSB and L*a*b* color spaces
-                    string c = $"Color: {hitboxColorHsb} {hitboxColorLab}";
+                    string c = $"Color: {hitboxColorHsb} {hitboxColorLab} {hitboxClosestColor}";
                     gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
@@ -227,8 +233,9 @@ namespace WindowsFormsAppCamera
                     if (showDroneText > 0)
                     {
                         Trace.TraceInformation("Drone text");
-                        Rectangle rect = new Rectangle(180, 20, bmp.Width, 100);
-                        gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), Brushes.Firebrick, rect);
+                        Rectangle rect = new Rectangle(180, 20 + (showDroneText * 4), bmp.Width, 100);
+                        var col = colDronesIncomingFade[showDroneText-1];
+                        gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), col, rect);
 
                         showDroneText--;
                     }
