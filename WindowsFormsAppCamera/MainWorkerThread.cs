@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -33,6 +32,10 @@ namespace WindowsFormsAppCamera
             float ratio = 255 / MaxIncomingFrames;
             for (int i=0; i < MaxIncomingFrames; i++)
                 colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
+
+            // settings on the pen used to draw the hitbox
+            _penHitBox.Width = 1;
+            _penHitBox.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
             WriteLog("Worker thread start");
 
@@ -122,7 +125,14 @@ namespace WindowsFormsAppCamera
 
                     // Get amount of red/green/blue in the drone hitbox
                     RgbTotal rbgDroneHitboxTotal = new RgbTotal();
-                    GetRgbInRange(bmp, XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox, ref rbgDroneHitboxTotal);
+                    Color mainColor = Color.Transparent;
+                    GetRgbInRange(bmp, 
+                        XDroneHitBoxStart, 
+                        YDroneHitBoxStart, 
+                        WidthDroneHitBox, 
+                        HeightDroneHitBox, 
+                        ref rbgDroneHitboxTotal,
+                        ref mainColor);
 
                     // small optimization because integer RGB is used a lot
                     int ir = (int)rbgDroneHitboxTotal.R;
@@ -143,14 +153,12 @@ namespace WindowsFormsAppCamera
                     RgbToLab.Color hitboxColorLab = 
                         RgbToLab.GetColorFromRgbLab(ir, ig, ib, l2, a, b2);
 
-                    // get the closest color from RGB
-                    string hitboxClosestColor = 
-                        RgbToClosest.GetClosestColorFromRgb(ir, ig, ib)
-                                                           .ToString()
-                                                           .Replace("Color", "")
-                                                           .Replace("[", "")
-                                                           .Replace("]", "")
-                                                           .Replace(" ", ""); 
+                    // get the closest color from most common color
+                    string hitboxClosestColor = mainColor.ToString()
+                                                         .Replace("Color", "")
+                                                         .Replace("[", "")
+                                                         .Replace("]", "")
+                                                         .Replace(" ", ""); 
 
                     Trace.TraceInformation("Write info to bitmap");
 

@@ -535,10 +535,10 @@ namespace WindowsFormsAppCamera
             private string CapsString()
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("{0}, ", DirectShow.DsGuid.GetNickname(Caps.Guid));
+                _ = sb.AppendFormat("{0}, ", DirectShow.DsGuid.GetNickname(Caps.Guid));
                 foreach (var info in Caps.GetType().GetFields())
                 {
-                    sb.AppendFormat("{0}={1}, ", info.Name, info.GetValue(Caps));
+                    _ = sb.AppendFormat("{0}={1}, ", info.Name, info.GetValue(Caps));
                 }
                 return sb.ToString();
             }

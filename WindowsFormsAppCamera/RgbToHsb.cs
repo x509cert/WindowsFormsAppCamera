@@ -205,22 +205,20 @@ namespace WindowsFormsAppCamera
     public class RgbToClosest
     {
         private static readonly Color[] ColorArray = {
-                Color.White,
-                Color.Gray,
-                Color.Black,
-                Color.Red,
-                Color.Blue,
-                Color.Green,
+                Color.White,    Color.Gray,     Color.DarkGray, Color.Black,
+                Color.Red,      Color.DarkRed,  Color.Pink,     Color.Orange,
+                Color.Blue,     Color.DarkBlue,
+                Color.Green,    Color.DarkGreen,
+                
                 Color.Purple,
-                Color.Yellow,
-                Color.Orange
+                Color.Yellow
             };
 
         public static Color GetClosestColorFromRgb(int r, int g, int b) => GetClosestColor(Color.FromArgb(255, r, g, b));
 
         private static Color GetClosestColor(Color baseColor)
         {
-            var colors = ColorArray.Select(x => new { Value = x, Diff = GetDiff(x, baseColor) }).ToList();
+            var colors = ColorArray.Select(x => (Value: x, Diff: GetDiff(x, baseColor))).ToList();
             var min = colors.Min(x => x.Diff);
 
             return colors.Find(x => x.Diff == min).Value;

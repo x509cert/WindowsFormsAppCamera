@@ -72,7 +72,7 @@ namespace WindowsFormsAppCamera
 
         LogQueue                _logQueue;
         string                  _sLogFilePath;
-        const string            DateTemplate = "yyyy MMM dd, HH:mm:ss";
+        const string            DateTemplate = "MMM dd, HH:mm:ss";
         const string            DateTemplateShort = "HH:mm:ss";
         string                  _gatewayIp;
 
@@ -105,12 +105,13 @@ namespace WindowsFormsAppCamera
         SmsAlert                _smsAlert;
 
         readonly Brush          _colorInfo = Brushes.AliceBlue;
-        readonly SolidBrush     _brushYellow = new SolidBrush(Color.FromArgb(33, Color.Yellow));
-        readonly Pen            _penYellow = new Pen(Color.FromKnownColor(KnownColor.Yellow));
+        readonly Pen            _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
-        DateTime                _startTraceTimer;                       // this is for dumping a trace of the screenshots for 20secs - approx 100 images
-        readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); // trace for 20secs
+        // this is for dumping a trace of the screenshots for 20secs - approx 100 images
+        DateTime _startTraceTimer;                       
+        readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); 
 
+        // RBG sliding chart and data
         Chart                   _chartR, _chartG, _chartB;
         byte[]                  _arrR, _arrG, _arrB;
 
@@ -166,7 +167,7 @@ namespace WindowsFormsAppCamera
             catch (Exception ex)
             {
                 Trace.TraceWarning($"EXCEPTION: {ex.Message}");
-                // keep on chugging
+                // keep on chugging, yes, i know it's bad form to swallow exceptions
             }
         }
 
@@ -190,21 +191,21 @@ namespace WindowsFormsAppCamera
             var sb = new StringBuilder(512);
             const string delim = "|";
 
-            sb.Append(title);
-            sb.Append(delim);
+            _ = sb.Append(title);
+            _ = sb.Append(delim);
 
             var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
 
-            sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
-            sb.Append(_fUsingLiveScreen ? "live video." : "timer.");
-            sb.Append(delim);
+            _ = sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
+            _ = sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
+            _ = sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
             Trace.TraceInformation("Writing each entry");
             while (_logQueue.Count > 0)
             {
-                sb.Append(_logQueue.Dequeue());
-                sb.Append(delim);
+                _ = sb.Append(_logQueue.Dequeue());
+                _ = sb.Append(delim);
             }
 
             // push up to an Azure Function
@@ -530,6 +531,8 @@ namespace WindowsFormsAppCamera
             KillSkillTimer();
 
             // DO NOT KILL THE HEARTBEAT TIMER
+            // If the code is alive, but not actively engaged, it'll tell the Arduino it's alive
+            // otherwise the Arduino will go into failsafe mode
         }
 
         // save current camera image to a bitmap
@@ -622,8 +625,7 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("DrawTargetRange (hitbox)");
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.FillRectangle(_brushYellow, _rectDroneHitBox);
-                g.DrawRectangle(_penYellow, _rectDroneHitBox);
+                g.DrawRectangle(_penHitBox, _rectDroneHitBox);
             }
         }
 
@@ -658,12 +660,14 @@ namespace WindowsFormsAppCamera
         // overload
         // counts the number of RGB elements in pixels in the hitbox
         // skips every other pixel on the x-axis for perf
-        private void GetRgbInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RgbTotal rbgTotal)
+        private void GetRgbInRange(Bitmap bmp, int xRect, int yRect, int width, int height, ref RgbTotal rbgTotal, ref Color mainColor)
         {
             Trace.TraceInformation("GetRGBInRange (overload)");
 
             rbgTotal.Init();
             Int32 countPixel = 0;
+
+            Dictionary<Color, int> dictColor = new Dictionary<Color, int>();
 
             for (int x = xRect; x < xRect + width; x += 2)
             {
@@ -676,12 +680,33 @@ namespace WindowsFormsAppCamera
                     rbgTotal.R += px.R;
                     rbgTotal.G += px.G;
                     rbgTotal.B += px.B;
+
+                    // this keeps track of the count of the closest colors per pixel
+                    Color col = RgbToClosest.GetClosestColorFromRgb(px.R, px.G, px.B);
+                    if (dictColor.ContainsKey(col))
+                    {
+                        if (dictColor.TryGetValue(col, out int count) == true)
+                            dictColor[col] = ++count;
+                    }
+                    else
+                    {
+                        dictColor.Add(col, 1);
+                    }
                 }
             }
 
             rbgTotal.R /= countPixel;
             rbgTotal.G /= countPixel;
             rbgTotal.B /= countPixel;
+
+            // get the highest color count
+            Color highestColor = Color.Transparent;
+            int highestCount = -1;
+            foreach (var d in dictColor)
+                if (d.Value > highestCount)
+                    highestColor = d.Key;
+
+            mainColor = highestColor;
         }
 
         #endregion
