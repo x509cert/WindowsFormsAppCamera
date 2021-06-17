@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -43,6 +44,10 @@ namespace WindowsFormsAppCamera
             
             // give each screen shot image a unique number
             uint traceCounter = 0;
+
+            // memory-mapped IO for sending details to the camera app
+            _mmio = new MMIo();
+            if (_mmio != null) _mmio.Write(txtName.Text);
 
             while (!_fKillThreads)
             {
@@ -292,6 +297,8 @@ namespace WindowsFormsAppCamera
             Trace.Unindent();
 
             KillSkillTimer();
+
+            if (_mmio != null) _mmio.Close();
         }
     }
 }

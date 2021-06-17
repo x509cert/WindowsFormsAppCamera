@@ -115,7 +115,9 @@ namespace WindowsFormsAppCamera
         Chart                   _chartR, _chartG, _chartB;
         byte[]                  _arrR, _arrG, _arrB;
 
-#endregion
+        private MMIo            _mmio;
+
+        #endregion
 
         #region Logs
         // writes log data to a local log file
@@ -561,7 +563,13 @@ namespace WindowsFormsAppCamera
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
         private void btnResetOffsets_Click(object sender, EventArgs e)  { TriggerArduino("X"); } // Resets the LB/RB offset adjustments
-        private void lblVersionInfo_Click(object sender, EventArgs e)   { SetStatusBar(); }     
+        private void lblVersionInfo_Click(object sender, EventArgs e)   { SetStatusBar(); }
+
+        // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
+        private void txtName_TextChanged(object sender, EventArgs e)
+        {
+            if (_mmio != null) _mmio.Write(txtName.Text);
+        }
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
         private void numTrigger_ValueChanged(object sender, EventArgs e)

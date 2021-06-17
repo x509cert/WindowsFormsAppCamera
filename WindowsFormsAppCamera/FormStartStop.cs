@@ -95,7 +95,6 @@ namespace WindowsFormsAppCamera
             cmbComPorts.SelectedItem = _cfg.ComPort;
             OpenComPort(_cfg.ComPort);
 
-
             // camera details
             cmbCamera.SelectedIndex = _cfg.Camera;
             cmbCameraFormat.SelectedIndex = _cfg.VideoMode;
