@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -23,7 +22,6 @@ namespace WindowsFormsAppCamera
             bool fDronesIncoming = false;
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
-            bool fAllowEmpDetection = false;
 
             // text that goes into the image and the rectangles in which they reside
             Font imageFont = new Font("Tahoma", 14);
@@ -144,35 +142,10 @@ namespace WindowsFormsAppCamera
                     int ig = (int)rbgDroneHitboxTotal.G;
                     int ib = (int)rbgDroneHitboxTotal.B;
 
-                    // convert RGB to HSB on the average
-                    Trace.TraceInformation("Convert RGB -> HSB");
-                    float h=0, s=0, l=0;
-                    RgbToHsb.ConvertRgBtoHsb(ir, ig, ib, ref h, ref s, ref l);
-                    RgbToHsb.Color hitboxColorHsb = 
-                        RgbToHsb.GetColorFromRgbHsb(ir, ig, ib, h, s, l);
-
-                    // convert RGB to L*a*b*
-                    Trace.TraceInformation("Convert RGB -> L*a*b*");
-                    float l2 = 0, a = 0, b2 = 0;
-                    RgbToLab.ConvertRgbToLab(ir, ig, ib, ref l2, ref a, ref b2);
-                    RgbToLab.Color hitboxColorLab = 
-                        RgbToLab.GetColorFromRgbLab(ir, ig, ib, l2, a, b2);
-
-                    // get the closest color from most common color
-                    string hitboxClosestColor = mainColor.ToString()
-                                                         .Replace("Color", "")
-                                                         .Replace("[", "")
-                                                         .Replace("]", "")
-                                                         .Replace(" ", ""); 
-
                     Trace.TraceInformation("Write info to bitmap");
 
                     // text offset in the main drawing rectangle
                     const int xOffset = 4;
-
-                    // write predominant color from HSB and L*a*b* color spaces
-                    string c = $"Color: {hitboxColorHsb} {hitboxColorLab} {hitboxClosestColor}";
-                    gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
                     int percentChange = (int)(rbgDroneHitboxTotal.R / (float)_cfg.LastCalibratedR * 100);
@@ -210,27 +183,9 @@ namespace WindowsFormsAppCamera
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
                         showDroneText = MaxIncomingFrames; // display the drone text for a small number of frames
-                        fAllowEmpDetection = true;       // get ready to detect the EMP
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
-                    }
-
-                    // if this is max frames less N of the 'drones detected' screen capture (only one frame so the log info is entered once)
-                    // and the hit region is now blue - this means we have seen the EMP pulse
-                    if (fAllowEmpDetection &&
-                        (hitboxColorHsb == RgbToHsb.Color.Blue || hitboxColorHsb == RgbToHsb.Color.Purple))
-                    {
-                        fAllowEmpDetection = false;
-                        WriteLog("EMP Pulse detected");
-                    }
-
-                    // this is experimental - to see if we see a flash from a blown-up turret
-                    // if we're on the drone spotted timer, then the increase in white could be the EMP
-                    if (showDroneText > 0 && hitboxColorLab == RgbToLab.Color.White && hitboxColorHsb == RgbToHsb.Color.White)
-                    {
-                        WriteLog("Possible flash from expired turret.");
-                        Trace.TraceInformation("Possible flash from expired turret.");
                     }
                     
                     // Display a '!' which shows there's been no drones spotted
