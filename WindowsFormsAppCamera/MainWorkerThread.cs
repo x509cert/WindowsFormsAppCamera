@@ -45,7 +45,7 @@ namespace WindowsFormsAppCamera
 
             // memory-mapped IO for sending details to the camera app
             _mmio = new MMIo();
-            if (_mmio != null) _mmio.Write(txtName.Text);
+            _mmio?.Write(txtName.Text);
 
             while (!_fKillThreads)
             {
@@ -88,7 +88,8 @@ namespace WindowsFormsAppCamera
                         TriggerArduino("T");
                         WriteLog("Emergency EMP and Turret deployed");
 
-                        dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
+                        // This is to stop an infite set of msgs
+                        dtLastDroneSpotted = DateTime.Now; 
 
                         showNoDronesSeenText = 30;
 
@@ -116,7 +117,7 @@ namespace WindowsFormsAppCamera
                     }
 
                     // get the image from the camera
-                    Trace.TraceInformation("Getting graphics");
+                    Trace.TraceInformation("Getting camera image");
                     Trace.Indent();
 
                     var bmp = _camera.GetBitmap();
@@ -136,11 +137,6 @@ namespace WindowsFormsAppCamera
                         HeightDroneHitBox, 
                         ref rbgDroneHitboxTotal,
                         ref mainColor);
-
-                    // small optimization because integer RGB is used a lot
-                    int ir = (int)rbgDroneHitboxTotal.R;
-                    int ig = (int)rbgDroneHitboxTotal.G;
-                    int ib = (int)rbgDroneHitboxTotal.B;
 
                     Trace.TraceInformation("Write info to bitmap");
 
@@ -246,14 +242,14 @@ namespace WindowsFormsAppCamera
                 Trace.Unindent();
                 Trace.TraceInformation("Main thread loop end");
 
-                Thread.Sleep(210);
+                Thread.Sleep(_loopDelay);
             }
 
             Trace.Unindent();
 
             KillSkillTimer();
 
-            if (_mmio != null) _mmio.Close();
+            _mmio?.Close();
         }
     }
 }

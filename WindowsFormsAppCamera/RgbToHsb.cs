@@ -209,7 +209,6 @@ namespace WindowsFormsAppCamera
                 Color.Red,      Color.DarkRed,  Color.Pink,     Color.Orange,
                 Color.Blue,     Color.DarkBlue,
                 Color.Green,    Color.DarkGreen,
-                
                 Color.Purple,
                 Color.Yellow
             };

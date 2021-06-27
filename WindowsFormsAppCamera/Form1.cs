@@ -94,7 +94,8 @@ namespace WindowsFormsAppCamera
 
         bool                    _fKillThreads;
         System.Timers.Timer     _skillTimer;
-        System.Timers.Timer      _heartbeatTimer;
+        System.Timers.Timer     _heartbeatTimer;
+        const int               _loopDelay = 200; // 200msec
 
         bool                    _fUsingLiveScreen = true;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
@@ -108,13 +109,14 @@ namespace WindowsFormsAppCamera
         readonly Pen            _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
         // this is for dumping a trace of the screenshots for 20secs - approx 100 images
-        DateTime _startTraceTimer;                       
+        DateTime                _startTraceTimer;                       
         readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); 
 
         // RBG sliding chart and data
         Chart                   _chartR, _chartG, _chartB;
         byte[]                  _arrR, _arrG, _arrB;
 
+        // shared memory for comms to the camera app
         private MMIo            _mmio;
 
         #endregion

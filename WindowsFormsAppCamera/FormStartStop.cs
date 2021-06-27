@@ -125,18 +125,19 @@ namespace WindowsFormsAppCamera
                 cmbCameraFormat.Enabled = false;
                 txtName.Enabled = false;
 
-                cmbComPorts.Enabled = true;         // keep this as true so if the wrong COM is selected it can be changed
+                // keep this set to true so if the wrong COM port is selected it can be changed
+                cmbComPorts.Enabled = true;         
             }
 
             // used for the sliding RGB charts
             _arrR = new byte[pictR.Width];
-            _chartR = new Chart(pictR.Width, pictR.Height, Color.Red);
+            _chartR = new Chart(pictR.Width, pictR.Height, Color.Red, _loopDelay);
 
             _arrG = new byte[pictG.Width];
-            _chartG = new Chart(pictG.Width, pictG.Height, Color.Green);
+            _chartG = new Chart(pictG.Width, pictG.Height, Color.Green, _loopDelay);
 
             _arrB = new byte[pictB.Width];
-            _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue);
+            _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue, _loopDelay);
 
             SetStatusBar();
 
