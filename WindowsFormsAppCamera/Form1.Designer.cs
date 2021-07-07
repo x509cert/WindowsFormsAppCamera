@@ -48,12 +48,16 @@ namespace WindowsFormsAppCamera
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnPressLB = new System.Windows.Forms.Button();
             this.btnPressRB = new System.Windows.Forms.Button();
             this.numTrigger = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radLBShortPress = new System.Windows.Forms.RadioButton();
+            this.radLBLongPress = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.radRBShortPress = new System.Windows.Forms.RadioButton();
+            this.radRBLongPress = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -194,7 +198,7 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(311, 829);
+            this.btnAllUp.Location = new System.Drawing.Point(311, 851);
             this.btnAllUp.Name = "btnAllUp";
             this.btnAllUp.Size = new System.Drawing.Size(67, 30);
             this.btnAllUp.TabIndex = 24;
@@ -259,16 +263,16 @@ namespace WindowsFormsAppCamera
             this.label6.TabIndex = 30;
             this.label6.Text = "COM Port:";
             // 
-            // button2
+            // btnPressLB
             // 
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.button2.Location = new System.Drawing.Point(23, 25);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(67, 41);
-            this.button2.TabIndex = 32;
-            this.button2.Text = "Press";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            this.btnPressLB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
+            this.btnPressLB.Location = new System.Drawing.Point(23, 25);
+            this.btnPressLB.Name = "btnPressLB";
+            this.btnPressLB.Size = new System.Drawing.Size(67, 41);
+            this.btnPressLB.TabIndex = 32;
+            this.btnPressLB.Text = "Press";
+            this.btnPressLB.UseVisualStyleBackColor = true;
+            this.btnPressLB.Click += new System.EventHandler(this.button2_Click_1);
             // 
             // btnPressRB
             // 
@@ -311,27 +315,79 @@ namespace WindowsFormsAppCamera
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.button2);
+            this.groupBox1.Controls.Add(this.radLBShortPress);
+            this.groupBox1.Controls.Add(this.radLBLongPress);
+            this.groupBox1.Controls.Add(this.btnPressLB);
             this.groupBox1.Controls.Add(this.btnRecalLeftLess);
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
             this.groupBox1.Location = new System.Drawing.Point(19, 815);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(260, 91);
+            this.groupBox1.Size = new System.Drawing.Size(260, 129);
             this.groupBox1.TabIndex = 41;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "LB";
             // 
+            // radLBShortPress
+            // 
+            this.radLBShortPress.AutoSize = true;
+            this.radLBShortPress.Location = new System.Drawing.Point(134, 87);
+            this.radLBShortPress.Name = "radLBShortPress";
+            this.radLBShortPress.Size = new System.Drawing.Size(117, 24);
+            this.radLBShortPress.TabIndex = 58;
+            this.radLBShortPress.TabStop = true;
+            this.radLBShortPress.Text = "Short Press";
+            this.radLBShortPress.UseVisualStyleBackColor = true;
+            this.radLBShortPress.CheckedChanged += new System.EventHandler(this.radLBShortPress_CheckedChanged);
+            // 
+            // radLBLongPress
+            // 
+            this.radLBLongPress.AutoSize = true;
+            this.radLBLongPress.Location = new System.Drawing.Point(20, 87);
+            this.radLBLongPress.Name = "radLBLongPress";
+            this.radLBLongPress.Size = new System.Drawing.Size(114, 24);
+            this.radLBLongPress.TabIndex = 57;
+            this.radLBLongPress.TabStop = true;
+            this.radLBLongPress.Text = "Long Press";
+            this.radLBLongPress.UseVisualStyleBackColor = true;
+            this.radLBLongPress.CheckedChanged += new System.EventHandler(this.radLBLongPress_CheckedChanged);
+            // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.radRBShortPress);
+            this.groupBox2.Controls.Add(this.radRBLongPress);
             this.groupBox2.Controls.Add(this.btnPressRB);
             this.groupBox2.Controls.Add(this.btnRecalRightLess);
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
             this.groupBox2.Location = new System.Drawing.Point(405, 815);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(260, 91);
+            this.groupBox2.Size = new System.Drawing.Size(260, 129);
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
+            // 
+            // radRBShortPress
+            // 
+            this.radRBShortPress.AutoSize = true;
+            this.radRBShortPress.Location = new System.Drawing.Point(134, 84);
+            this.radRBShortPress.Name = "radRBShortPress";
+            this.radRBShortPress.Size = new System.Drawing.Size(117, 24);
+            this.radRBShortPress.TabIndex = 60;
+            this.radRBShortPress.TabStop = true;
+            this.radRBShortPress.Text = "Short Press";
+            this.radRBShortPress.UseVisualStyleBackColor = true;
+            this.radRBShortPress.CheckedChanged += new System.EventHandler(this.rabRBShortPress_CheckedChanged);
+            // 
+            // radRBLongPress
+            // 
+            this.radRBLongPress.AutoSize = true;
+            this.radRBLongPress.Location = new System.Drawing.Point(20, 84);
+            this.radRBLongPress.Name = "radRBLongPress";
+            this.radRBLongPress.Size = new System.Drawing.Size(114, 24);
+            this.radRBLongPress.TabIndex = 59;
+            this.radRBLongPress.TabStop = true;
+            this.radRBLongPress.Text = "Long Press";
+            this.radRBLongPress.UseVisualStyleBackColor = true;
+            this.radRBLongPress.CheckedChanged += new System.EventHandler(this.radRBLongPress_CheckedChanged);
             // 
             // label4
             // 
@@ -461,7 +517,7 @@ namespace WindowsFormsAppCamera
             // lblVersionInfo
             // 
             this.lblVersionInfo.AutoSize = true;
-            this.lblVersionInfo.Location = new System.Drawing.Point(17, 921);
+            this.lblVersionInfo.Location = new System.Drawing.Point(15, 970);
             this.lblVersionInfo.Name = "lblVersionInfo";
             this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
             this.lblVersionInfo.TabIndex = 55;
@@ -471,7 +527,7 @@ namespace WindowsFormsAppCamera
             // btnResetOffsets
             // 
             this.btnResetOffsets.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetOffsets.Location = new System.Drawing.Point(311, 874);
+            this.btnResetOffsets.Location = new System.Drawing.Point(311, 896);
             this.btnResetOffsets.Name = "btnResetOffsets";
             this.btnResetOffsets.Size = new System.Drawing.Size(67, 30);
             this.btnResetOffsets.TabIndex = 56;
@@ -483,7 +539,7 @@ namespace WindowsFormsAppCamera
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(677, 950);
+            this.ClientSize = new System.Drawing.Size(677, 1006);
             this.Controls.Add(this.btnResetOffsets);
             this.Controls.Add(this.lblVersionInfo);
             this.Controls.Add(this.pictB);
@@ -525,7 +581,9 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).EndInit();
             this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictR)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictG)).EndInit();
@@ -555,7 +613,7 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnPressLB;
         private System.Windows.Forms.Button btnPressRB;
         private System.Windows.Forms.NumericUpDown numTrigger;
         private System.Windows.Forms.Label label8;
@@ -575,6 +633,10 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.PictureBox pictB;
         private System.Windows.Forms.Label lblVersionInfo;
         private System.Windows.Forms.Button btnResetOffsets;
+        private System.Windows.Forms.RadioButton radLBShortPress;
+        private System.Windows.Forms.RadioButton radLBLongPress;
+        private System.Windows.Forms.RadioButton radRBShortPress;
+        private System.Windows.Forms.RadioButton radRBLongPress;
     }
 }
 

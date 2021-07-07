@@ -11,7 +11,7 @@ namespace WindowsFormsAppCamera
         private readonly int        _x, _y, _scaling;
         private readonly SolidBrush _background;
         private readonly Pen        _pen;
-        private readonly Pen        _whitePen;
+        private readonly Pen        _5secPen;
         private readonly Pen        _penCalibration;
         private readonly Rectangle  _rect;
         private readonly int        _loopDelay;
@@ -26,7 +26,7 @@ namespace WindowsFormsAppCamera
             _bmp = new Bitmap(_x, _y);
             _background = new SolidBrush(Color.Black);
             _pen = new Pen(col);
-            _whitePen = new Pen(Color.LightGray);
+            _5secPen = new Pen(Color.LightGray);
             _penCalibration = new Pen(Color.LightGray) {DashStyle = System.Drawing.Drawing2D.DashStyle.Dot};
             _rect = new Rectangle(0, 0, _x, _y);
 
@@ -52,7 +52,7 @@ namespace WindowsFormsAppCamera
 
                     // place the 5sec marker
                     if (i % _5secsMarker == 0)
-                        g.DrawLine(_whitePen, _x - i, _y, _x - i, _y-5);
+                        g.DrawLine(_5secPen, _x - i, _y, _x - i, _y-5);
                 }
 
                 if (calibration != null)

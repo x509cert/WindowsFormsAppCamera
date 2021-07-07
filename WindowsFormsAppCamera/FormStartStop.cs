@@ -129,6 +129,12 @@ namespace WindowsFormsAppCamera
                 cmbComPorts.Enabled = true;         
             }
 
+            radLBLongPress.Checked = _bLBLongPress;
+            radLBShortPress.Checked = !_bLBLongPress;
+
+            radRBLongPress.Checked = _bRBLongPress;
+            radRBShortPress.Checked = !_bRBLongPress;
+
             // used for the sliding RGB charts
             _arrR = new byte[pictR.Width];
             _chartR = new Chart(pictR.Width, pictR.Height, Color.Red, _loopDelay);

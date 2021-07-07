@@ -92,6 +92,9 @@ namespace WindowsFormsAppCamera
         SerialPort              _sComPort;
         const int               ComPortSpeed = 9600;
 
+        bool                    _bLBLongPress=false, 
+                                _bRBLongPress=true;
+
         bool                    _fKillThreads;
         System.Timers.Timer     _skillTimer;
         System.Timers.Timer     _heartbeatTimer;
@@ -138,17 +141,26 @@ namespace WindowsFormsAppCamera
 
                 switch (ch)
                 {
-                    case 'E': s += "EMP"; break;
-                    case 'T': s += "Turret"; break;
-                    case 'U': s += "LB/RB up"; break;
-                    case 'V': s += "Verify comms"; break;
-                    case 'R': s += "Inc RB sweep (+1)"; break;
-                    case 'r': s += "Dec RB sweep (-1)"; break;
-                    case 'L': s += "Inc LB sweep (+1)"; break;
-                    case 'l': s += "Dec LB sweep (-1)"; break;
-                    case 'H': s += "Heartbeat"; break;
-                    case 'X': s += "Reset LB/RB offsets"; break;
-                    default:  s += "!!Unknown command!!"; break;
+                    case 'H': s += "Heartbeat";             break;
+                    case 'V': s += "Verify comms";          break;
+                    case '+': s += "Ger version";           break;
+
+                    case 'E': s += "EMP";                   break;
+                    case 'T': s += "Turret";                break;
+                    case 'U': s += "LB/RB up";              break;
+
+                    case 'R': s += "Inc RB sweep (+1)";     break;
+                    case 'r': s += "Dec RB sweep (-1)";     break;
+                    case 'L': s += "Inc LB sweep (+1)";     break;
+                    case 'l': s += "Dec LB sweep (-1)";     break;
+                    case 'X': s += "Reset LB/RB offsets";   break;
+
+                    case '0': s += "Set LB long press";     break;
+                    case '1': s += "Set LB short press";    break;
+                    case '2': s += "Set RB long press";     break;
+                    case '3': s += "Set RB short press";    break;
+
+                    default : s += "!!Unknown command!!";   break;
                 }    
             }
 
@@ -246,6 +258,10 @@ namespace WindowsFormsAppCamera
         // V - verify comms
         // H - heartbeat - notifies the Arduino that this code is alive
         // + - get Arduino code version
+        // 0 - Set LB to short press (default)
+        // 1 - set LB to long press
+        // 2 - set RB to short press
+        // 3 - set RB to long press (default)
         void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
@@ -566,6 +582,31 @@ namespace WindowsFormsAppCamera
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
         private void btnResetOffsets_Click(object sender, EventArgs e)  { TriggerArduino("X"); } // Resets the LB/RB offset adjustments
         private void lblVersionInfo_Click(object sender, EventArgs e)   { SetStatusBar(); }
+
+        // set LB/RB long/short press
+        private void radLBLongPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bLBLongPress = true;
+            TriggerArduino("0");
+        }
+
+        private void radLBShortPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bLBLongPress = false;
+            TriggerArduino("1");
+        }
+
+        private void radRBLongPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bRBLongPress = true;
+            TriggerArduino("2");
+        }
+
+        private void rabRBShortPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bRBLongPress = false;
+            TriggerArduino("3");
+        }
 
         // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
         private void txtName_TextChanged(object sender, EventArgs e)
