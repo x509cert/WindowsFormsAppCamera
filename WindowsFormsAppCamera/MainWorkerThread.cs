@@ -16,6 +16,8 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();
 
+            Thread.Sleep(_threadStartDelay);
+
             var dtDronesStart = DateTime.Now;
             var dtLastDroneSpotted = DateTime.Now;
 

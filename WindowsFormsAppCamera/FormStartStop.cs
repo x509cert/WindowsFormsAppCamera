@@ -20,8 +20,6 @@ namespace WindowsFormsAppCamera
         // writes version info to the status bar
         private void SetStatusBar()
         {
-            // Status bar info
-
             // get the date this binary was last modified
             var strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var fi = new FileInfo(strpath);
@@ -119,11 +117,10 @@ namespace WindowsFormsAppCamera
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            if (args.Length == 2 && args[1].ToLower().StartsWith("-run"))
+            bool autoStart = (args.Length == 2 && args[1].ToLower().StartsWith("-run")) ? true : false;
+            if (autoStart == true)
             {
                 Trace.TraceInformation("Autostart");
-
-                StartAllThreads();
 
                 btnStart.Enabled = false;
                 cmbCamera.Enabled = false;
@@ -151,11 +148,16 @@ namespace WindowsFormsAppCamera
             _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue, _loopDelay);
 
             SetStatusBar();
+            SetRbLbTooltip();
 
             // send a message to the Arduino
             // to indicate the DivGrind is alive
             // this stays enabled until the tool is killed.
             SetHeartbeat();
+
+            // finally start all the main worker threads
+            if (autoStart==true)
+                StartAllThreads();
         }
 
         // this gives the code a chance to kill the worker threads gracefully
@@ -167,7 +169,7 @@ namespace WindowsFormsAppCamera
             StopHeartbeat();
             _fKillThreads = true;
 
-            Thread.Sleep(400);
+            Thread.Sleep(300);
             e.Cancel = false;
 
             _sComPort?.Close();
@@ -184,7 +186,7 @@ namespace WindowsFormsAppCamera
                 if (_fKillThreads)
                     break;
 
-                Thread.Sleep(1000);
+                Thread.Sleep(999);
             }
         }
     }

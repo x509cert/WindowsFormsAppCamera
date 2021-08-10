@@ -29,6 +29,7 @@ namespace WindowsFormsAppCamera
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.pictCamera = new System.Windows.Forms.PictureBox();
             this.btnCalibrate = new System.Windows.Forms.Button();
@@ -53,9 +54,11 @@ namespace WindowsFormsAppCamera
             this.numTrigger = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radLBNoPress = new System.Windows.Forms.RadioButton();
             this.radLBShortPress = new System.Windows.Forms.RadioButton();
             this.radLBLongPress = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.radRBNoPress = new System.Windows.Forms.RadioButton();
             this.radRBShortPress = new System.Windows.Forms.RadioButton();
             this.radRBLongPress = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
@@ -71,8 +74,7 @@ namespace WindowsFormsAppCamera
             this.lblVersionInfo = new System.Windows.Forms.Label();
             this.btnResetOffsets = new System.Windows.Forms.Button();
             this.chkSmsAlerts = new System.Windows.Forms.CheckBox();
-            this.radLBNoPress = new System.Windows.Forms.RadioButton();
-            this.radRBNoPress = new System.Windows.Forms.RadioButton();
+            this.tpTooltip = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -182,6 +184,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalRightMore.Size = new System.Drawing.Size(67, 41);
             this.btnRecalRightMore.TabIndex = 21;
             this.btnRecalRightMore.Text = "More";
+            this.tpTooltip.SetToolTip(this.btnRecalRightMore, "Hello!");
             this.btnRecalRightMore.UseVisualStyleBackColor = true;
             this.btnRecalRightMore.Click += new System.EventHandler(this.btnRecalRightMore_Click);
             // 
@@ -329,6 +332,18 @@ namespace WindowsFormsAppCamera
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "LB";
             // 
+            // radLBNoPress
+            // 
+            this.radLBNoPress.AutoSize = true;
+            this.radLBNoPress.Location = new System.Drawing.Point(178, 87);
+            this.radLBNoPress.Name = "radLBNoPress";
+            this.radLBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radLBNoPress.TabIndex = 59;
+            this.radLBNoPress.TabStop = true;
+            this.radLBNoPress.Text = "None";
+            this.radLBNoPress.UseVisualStyleBackColor = true;
+            this.radLBNoPress.CheckedChanged += new System.EventHandler(this.radLBNoPress_CheckedChanged);
+            // 
             // radLBShortPress
             // 
             this.radLBShortPress.AutoSize = true;
@@ -367,6 +382,18 @@ namespace WindowsFormsAppCamera
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
+            // 
+            // radRBNoPress
+            // 
+            this.radRBNoPress.AutoSize = true;
+            this.radRBNoPress.Location = new System.Drawing.Point(175, 87);
+            this.radRBNoPress.Name = "radRBNoPress";
+            this.radRBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radRBNoPress.TabIndex = 61;
+            this.radRBNoPress.TabStop = true;
+            this.radRBNoPress.Text = "None";
+            this.radRBNoPress.UseVisualStyleBackColor = true;
+            this.radRBNoPress.CheckedChanged += new System.EventHandler(this.radRBNoPress_CheckedChanged);
             // 
             // radRBShortPress
             // 
@@ -529,29 +556,9 @@ namespace WindowsFormsAppCamera
             this.chkSmsAlerts.Text = "SMS alerts";
             this.chkSmsAlerts.UseVisualStyleBackColor = true;
             // 
-            // radLBNoPress
+            // tpTooltip
             // 
-            this.radLBNoPress.AutoSize = true;
-            this.radLBNoPress.Location = new System.Drawing.Point(178, 87);
-            this.radLBNoPress.Name = "radLBNoPress";
-            this.radLBNoPress.Size = new System.Drawing.Size(72, 24);
-            this.radLBNoPress.TabIndex = 59;
-            this.radLBNoPress.TabStop = true;
-            this.radLBNoPress.Text = "None";
-            this.radLBNoPress.UseVisualStyleBackColor = true;
-            this.radLBNoPress.CheckedChanged += new System.EventHandler(this.radLBNoPress_CheckedChanged);
-            // 
-            // radRBNoPress
-            // 
-            this.radRBNoPress.AutoSize = true;
-            this.radRBNoPress.Location = new System.Drawing.Point(175, 87);
-            this.radRBNoPress.Name = "radRBNoPress";
-            this.radRBNoPress.Size = new System.Drawing.Size(72, 24);
-            this.radRBNoPress.TabIndex = 61;
-            this.radRBNoPress.TabStop = true;
-            this.radRBNoPress.Text = "None";
-            this.radRBNoPress.UseVisualStyleBackColor = true;
-            this.radRBNoPress.CheckedChanged += new System.EventHandler(this.radRBNoPress_CheckedChanged);
+            this.tpTooltip.ShowAlways = true;
             // 
             // Form1
             // 
@@ -655,6 +662,7 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.CheckBox chkSmsAlerts;
         private System.Windows.Forms.RadioButton radLBNoPress;
         private System.Windows.Forms.RadioButton radRBNoPress;
+        private System.Windows.Forms.ToolTip tpTooltip;
     }
 }
 

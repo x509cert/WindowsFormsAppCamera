@@ -99,6 +99,7 @@ namespace WindowsFormsAppCamera
         System.Timers.Timer     _skillTimer;
         System.Timers.Timer     _heartbeatTimer;
         const int               _loopDelay = 200; // 200msec
+        const int               _threadStartDelay = 250;
 
         bool                    _fUsingLiveScreen = true;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
@@ -189,7 +190,7 @@ namespace WindowsFormsAppCamera
             catch (Exception ex)
             {
                 Trace.TraceWarning($"EXCEPTION: {ex.Message}");
-                // keep on chugging, yes, i know it's bad form to swallow exceptions
+                // keep on chugging, yes, I know it's bad form to swallow exceptions
             }
         }
 
@@ -270,8 +271,8 @@ namespace WindowsFormsAppCamera
         // 3 - set RB to long press (default)
         // 4 - set LB to no press
         // 5 - set RB to no press
-        // 8 - turns off NO Press LB
-        // 9 - turns off NO Press RB
+        // 8 - turns off LB no press
+        // 9 - turns off RB no press
         void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
@@ -389,13 +390,13 @@ namespace WindowsFormsAppCamera
             }
         }
 
-
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThreadFunc()
         {
             bool fPingProcessFailed = false;
 
             Trace.TraceInformation("PingerThreadFunc start");
+            Thread.Sleep(_threadStartDelay);
 
             while (_fKillThreads == false)
             {
@@ -482,6 +483,7 @@ namespace WindowsFormsAppCamera
         private void UploadLogThreadFunc()
         {
             Trace.TraceInformation("UploadThreadFunc");
+            Thread.Sleep(_threadStartDelay);
 
             while (!_fKillThreads)
             {
@@ -582,11 +584,22 @@ namespace WindowsFormsAppCamera
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 
+        // this sets the RB and LB offset tooltip text
+        private void SetRbLbTooltip()
+        {
+            var ttt = $"LB Offset: {_cfg.LBOffset}\nRB Offset: {_cfg.RBOffset}";
+            tpTooltip.SetToolTip(btnRecalLeftLess, ttt);
+            tpTooltip.SetToolTip(btnRecalLeftMore, ttt);
+            tpTooltip.SetToolTip(btnRecalRightLess, ttt);
+            tpTooltip.SetToolTip(btnRecalRightMore, ttt);
+        }
+
         // these are used to send discrete commands to the Arduino
-        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); } // Reduce offset on RB
-        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); } // Add more offset to LB
-        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); } // Reduce offset on RB
-        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); } // Add more offset to RB
+        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); _cfg.LBOffset--; SetRbLbTooltip(); } // Reduce offset on RB
+        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); _cfg.LBOffset++; SetRbLbTooltip(); } // Add more offset to LB
+        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); _cfg.RBOffset--; SetRbLbTooltip(); } // Reduce offset on RB
+        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); _cfg.RBOffset++; SetRbLbTooltip(); } // Add more offset to RB
+
         private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); } // raise all servos
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret

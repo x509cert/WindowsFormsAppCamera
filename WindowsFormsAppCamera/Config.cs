@@ -22,6 +22,10 @@ namespace WindowsFormsAppCamera
         public string AzureConnection { get; set; }
         public string FromNumber { get; set; }
         public string ToNumber { get; set; }
+
+        // RB and LB can be adjusted, this is the values, they start at zero and can be +ve and -ve
+        public int RBOffset { get; set; }
+        public int LBOffset { get; set; }
     }
 
     public partial class Form1
