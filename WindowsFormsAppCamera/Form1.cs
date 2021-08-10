@@ -165,7 +165,7 @@ namespace WindowsFormsAppCamera
                     case '5': s += "Set RB to no press";    break;
 
                     case '8': s += "Turn off LB no press";  break;
-                    case '9': s += "Turn off RB press";     break;
+                    case '9': s += "Turn off RB no press";  break;
 
                     default: s += "!!Unknown command!!";    break;
                 }    
@@ -585,20 +585,24 @@ namespace WindowsFormsAppCamera
         }
 
         // this sets the RB and LB offset tooltip text
-        private void SetRbLbTooltip()
+        private void UpdateToolTipLbRbData()
         {
             var ttt = $"LB Offset: {_cfg.LBOffset}\nRB Offset: {_cfg.RBOffset}";
             tpTooltip.SetToolTip(btnRecalLeftLess, ttt);
             tpTooltip.SetToolTip(btnRecalLeftMore, ttt);
             tpTooltip.SetToolTip(btnRecalRightLess, ttt);
             tpTooltip.SetToolTip(btnRecalRightMore, ttt);
+
+            WriteLog("Updating RB/LB offsets");
+            
+            WriteConfig(_cfg);
         }
 
         // these are used to send discrete commands to the Arduino
-        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); _cfg.LBOffset--; SetRbLbTooltip(); } // Reduce offset on RB
-        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); _cfg.LBOffset++; SetRbLbTooltip(); } // Add more offset to LB
-        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); _cfg.RBOffset--; SetRbLbTooltip(); } // Reduce offset on RB
-        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); _cfg.RBOffset++; SetRbLbTooltip(); } // Add more offset to RB
+        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); _cfg.LBOffset--; UpdateToolTipLbRbData(); } // Reduce offset on RB
+        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); _cfg.LBOffset++; UpdateToolTipLbRbData(); } // Add more offset to LB
+        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); _cfg.RBOffset--; UpdateToolTipLbRbData(); } // Reduce offset on RB
+        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); _cfg.RBOffset++; UpdateToolTipLbRbData(); } // Add more offset to RB
 
         private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); } // raise all servos
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP

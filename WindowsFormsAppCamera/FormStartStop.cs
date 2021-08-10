@@ -148,7 +148,8 @@ namespace WindowsFormsAppCamera
             _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue, _loopDelay);
 
             SetStatusBar();
-            SetRbLbTooltip();
+            UpdateToolTipLbRbData();
+            WriteOffsetsToArduino();
 
             // send a message to the Arduino
             // to indicate the DivGrind is alive

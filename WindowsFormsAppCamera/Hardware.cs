@@ -109,6 +109,29 @@ namespace WindowsFormsAppCamera
             return String.IsNullOrEmpty(ret) ? "" : ret;
         }
 
+        // when the Arduino starts up, it has default RB/LB offsets to 0/0
+        // this code resets the offsets and then writes the offsets stored in the config file
+        private void WriteOffsetsToArduino()
+        {
+            WriteLog("Resetting LB/RB offsets to zero.");
+            TriggerArduino("X");    // resets LB/RB to zero
+            Thread.Sleep(50);
+
+            WriteLog("Writing new offsets to LB");
+            for (int i = 0; i < Math.Abs(_cfg.LBOffset); i++)
+            {
+                TriggerArduino(_cfg.LBOffset < 0 ? "l" : "L");
+                Thread.Sleep(50);
+            }
+
+            WriteLog("Writing new offsets to RB");
+            for (int i = 0; i < Math.Abs(_cfg.RBOffset); i++)
+            {
+                TriggerArduino(_cfg.RBOffset < 0 ? "r" : "R");
+                Thread.Sleep(50);
+            }
+        }
+
         // COM port selected
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
