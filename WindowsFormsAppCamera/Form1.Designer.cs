@@ -60,8 +60,6 @@ namespace WindowsFormsAppCamera
             this.radRBLongPress = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.txtSmsEnabled = new System.Windows.Forms.Label();
             this.btnTestComPort = new System.Windows.Forms.Button();
             this.btnTestSms = new System.Windows.Forms.Button();
             this.btnTrace = new System.Windows.Forms.Button();
@@ -72,6 +70,9 @@ namespace WindowsFormsAppCamera
             this.pictB = new System.Windows.Forms.PictureBox();
             this.lblVersionInfo = new System.Windows.Forms.Label();
             this.btnResetOffsets = new System.Windows.Forms.Button();
+            this.chkSmsAlerts = new System.Windows.Forms.CheckBox();
+            this.radLBNoPress = new System.Windows.Forms.RadioButton();
+            this.radRBNoPress = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -315,6 +316,7 @@ namespace WindowsFormsAppCamera
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.radLBNoPress);
             this.groupBox1.Controls.Add(this.radLBShortPress);
             this.groupBox1.Controls.Add(this.radLBLongPress);
             this.groupBox1.Controls.Add(this.btnPressLB);
@@ -330,12 +332,12 @@ namespace WindowsFormsAppCamera
             // radLBShortPress
             // 
             this.radLBShortPress.AutoSize = true;
-            this.radLBShortPress.Location = new System.Drawing.Point(134, 87);
+            this.radLBShortPress.Location = new System.Drawing.Point(97, 87);
             this.radLBShortPress.Name = "radLBShortPress";
-            this.radLBShortPress.Size = new System.Drawing.Size(117, 24);
+            this.radLBShortPress.Size = new System.Drawing.Size(73, 24);
             this.radLBShortPress.TabIndex = 58;
             this.radLBShortPress.TabStop = true;
-            this.radLBShortPress.Text = "Short Press";
+            this.radLBShortPress.Text = "Short";
             this.radLBShortPress.UseVisualStyleBackColor = true;
             this.radLBShortPress.CheckedChanged += new System.EventHandler(this.radLBShortPress_CheckedChanged);
             // 
@@ -344,15 +346,16 @@ namespace WindowsFormsAppCamera
             this.radLBLongPress.AutoSize = true;
             this.radLBLongPress.Location = new System.Drawing.Point(20, 87);
             this.radLBLongPress.Name = "radLBLongPress";
-            this.radLBLongPress.Size = new System.Drawing.Size(114, 24);
+            this.radLBLongPress.Size = new System.Drawing.Size(70, 24);
             this.radLBLongPress.TabIndex = 57;
             this.radLBLongPress.TabStop = true;
-            this.radLBLongPress.Text = "Long Press";
+            this.radLBLongPress.Text = "Long";
             this.radLBLongPress.UseVisualStyleBackColor = true;
             this.radLBLongPress.CheckedChanged += new System.EventHandler(this.radLBLongPress_CheckedChanged);
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.radRBNoPress);
             this.groupBox2.Controls.Add(this.radRBShortPress);
             this.groupBox2.Controls.Add(this.radRBLongPress);
             this.groupBox2.Controls.Add(this.btnPressRB);
@@ -368,24 +371,24 @@ namespace WindowsFormsAppCamera
             // radRBShortPress
             // 
             this.radRBShortPress.AutoSize = true;
-            this.radRBShortPress.Location = new System.Drawing.Point(134, 84);
+            this.radRBShortPress.Location = new System.Drawing.Point(96, 87);
             this.radRBShortPress.Name = "radRBShortPress";
-            this.radRBShortPress.Size = new System.Drawing.Size(117, 24);
+            this.radRBShortPress.Size = new System.Drawing.Size(73, 24);
             this.radRBShortPress.TabIndex = 60;
             this.radRBShortPress.TabStop = true;
-            this.radRBShortPress.Text = "Short Press";
+            this.radRBShortPress.Text = "Short";
             this.radRBShortPress.UseVisualStyleBackColor = true;
             this.radRBShortPress.CheckedChanged += new System.EventHandler(this.rabRBShortPress_CheckedChanged);
             // 
             // radRBLongPress
             // 
             this.radRBLongPress.AutoSize = true;
-            this.radRBLongPress.Location = new System.Drawing.Point(20, 84);
+            this.radRBLongPress.Location = new System.Drawing.Point(20, 87);
             this.radRBLongPress.Name = "radRBLongPress";
-            this.radRBLongPress.Size = new System.Drawing.Size(114, 24);
+            this.radRBLongPress.Size = new System.Drawing.Size(70, 24);
             this.radRBLongPress.TabIndex = 59;
             this.radRBLongPress.TabStop = true;
-            this.radRBLongPress.Text = "Long Press";
+            this.radRBLongPress.Text = "Long";
             this.radRBLongPress.UseVisualStyleBackColor = true;
             this.radRBLongPress.CheckedChanged += new System.EventHandler(this.radRBLongPress_CheckedChanged);
             // 
@@ -405,24 +408,6 @@ namespace WindowsFormsAppCamera
             this.txtName.Size = new System.Drawing.Size(170, 26);
             this.txtName.TabIndex = 44;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(443, 92);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(91, 20);
-            this.label5.TabIndex = 45;
-            this.label5.Text = "SMS alerts:";
-            // 
-            // txtSmsEnabled
-            // 
-            this.txtSmsEnabled.AutoSize = true;
-            this.txtSmsEnabled.Location = new System.Drawing.Point(541, 92);
-            this.txtSmsEnabled.Name = "txtSmsEnabled";
-            this.txtSmsEnabled.Size = new System.Drawing.Size(29, 20);
-            this.txtSmsEnabled.TabIndex = 46;
-            this.txtSmsEnabled.Text = "No";
             // 
             // btnTestComPort
             // 
@@ -535,11 +520,45 @@ namespace WindowsFormsAppCamera
             this.btnResetOffsets.UseVisualStyleBackColor = true;
             this.btnResetOffsets.Click += new System.EventHandler(this.btnResetOffsets_Click);
             // 
+            // chkSmsAlerts
+            // 
+            this.chkSmsAlerts.Location = new System.Drawing.Point(459, 89);
+            this.chkSmsAlerts.Name = "chkSmsAlerts";
+            this.chkSmsAlerts.Size = new System.Drawing.Size(122, 30);
+            this.chkSmsAlerts.TabIndex = 57;
+            this.chkSmsAlerts.Text = "SMS alerts";
+            this.chkSmsAlerts.UseVisualStyleBackColor = true;
+            // 
+            // radLBNoPress
+            // 
+            this.radLBNoPress.AutoSize = true;
+            this.radLBNoPress.Location = new System.Drawing.Point(178, 87);
+            this.radLBNoPress.Name = "radLBNoPress";
+            this.radLBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radLBNoPress.TabIndex = 59;
+            this.radLBNoPress.TabStop = true;
+            this.radLBNoPress.Text = "None";
+            this.radLBNoPress.UseVisualStyleBackColor = true;
+            this.radLBNoPress.CheckedChanged += new System.EventHandler(this.radLBNoPress_CheckedChanged);
+            // 
+            // radRBNoPress
+            // 
+            this.radRBNoPress.AutoSize = true;
+            this.radRBNoPress.Location = new System.Drawing.Point(175, 87);
+            this.radRBNoPress.Name = "radRBNoPress";
+            this.radRBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radRBNoPress.TabIndex = 61;
+            this.radRBNoPress.TabStop = true;
+            this.radRBNoPress.Text = "None";
+            this.radRBNoPress.UseVisualStyleBackColor = true;
+            this.radRBNoPress.CheckedChanged += new System.EventHandler(this.radRBNoPress_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 1006);
+            this.Controls.Add(this.chkSmsAlerts);
             this.Controls.Add(this.btnResetOffsets);
             this.Controls.Add(this.lblVersionInfo);
             this.Controls.Add(this.pictB);
@@ -549,8 +568,6 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.numDroneDelay);
             this.Controls.Add(this.btnTrace);
             this.Controls.Add(this.btnTestSms);
-            this.Controls.Add(this.txtSmsEnabled);
-            this.Controls.Add(this.label5);
             this.Controls.Add(this.txtName);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.groupBox2);
@@ -621,8 +638,6 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtName;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label txtSmsEnabled;
         private System.Windows.Forms.Button btnTestComPort;
         private System.Windows.Forms.Button btnTestSms;
         private System.Windows.Forms.Button btnTrace;
@@ -637,6 +652,9 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.RadioButton radLBLongPress;
         private System.Windows.Forms.RadioButton radRBShortPress;
         private System.Windows.Forms.RadioButton radRBLongPress;
+        private System.Windows.Forms.CheckBox chkSmsAlerts;
+        private System.Windows.Forms.RadioButton radLBNoPress;
+        private System.Windows.Forms.RadioButton radRBNoPress;
     }
 }
 

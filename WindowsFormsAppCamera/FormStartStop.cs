@@ -63,7 +63,7 @@ namespace WindowsFormsAppCamera
             if (devices.Length == 0)
             {
                 MessageBox.Show("FATAL: No Camera.");
-                return; // no camera.
+                Application.Exit(); // no camera. We need to bail!
             }
 
             foreach (string d in devices)
@@ -108,8 +108,13 @@ namespace WindowsFormsAppCamera
                     BlockLateNightSms = true
                 };
 
-                txtSmsEnabled.Text = "Yes";
+                chkSmsAlerts.Enabled = true;
                 btnTestSms.Enabled = true;
+            }
+            else
+            {
+                chkSmsAlerts.Enabled = false;
+                btnTestSms.Enabled = false; 
             }
 
             // if there's a -run argument then start the DivGrind running
@@ -165,11 +170,8 @@ namespace WindowsFormsAppCamera
             Thread.Sleep(400);
             e.Cancel = false;
 
-            if (_sComPort != null)
-            {
-                _sComPort.Close();
-                _sComPort = null;
-            }
+            _sComPort?.Close();
+            _sComPort = null;
         }
 
         // this is a pause function that accommodates for thread abandonment

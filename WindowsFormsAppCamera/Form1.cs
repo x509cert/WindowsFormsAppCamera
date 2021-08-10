@@ -160,7 +160,13 @@ namespace WindowsFormsAppCamera
                     case '2': s += "Set RB long press";     break;
                     case '3': s += "Set RB short press";    break;
 
-                    default : s += "!!Unknown command!!";   break;
+                    case '4': s += "Set LB to no press";    break;
+                    case '5': s += "Set RB to no press";    break;
+
+                    case '8': s += "Turn off LB no press";  break;
+                    case '9': s += "Turn off RB press";     break;
+
+                    default: s += "!!Unknown command!!";    break;
                 }    
             }
 
@@ -262,6 +268,10 @@ namespace WindowsFormsAppCamera
         // 1 - set LB to long press
         // 2 - set RB to short press
         // 3 - set RB to long press (default)
+        // 4 - set LB to no press
+        // 5 - set RB to no press
+        // 8 - turns off NO Press LB
+        // 9 - turns off NO Press RB
         void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
@@ -588,26 +598,45 @@ namespace WindowsFormsAppCamera
         {
             _bLBLongPress = true;
             TriggerArduino("0");
+            TriggerArduino("8"); // turns off NO Press LB
         }
 
         private void radLBShortPress_CheckedChanged(object sender, EventArgs e)
         {
             _bLBLongPress = false;
             TriggerArduino("1");
+            TriggerArduino("8"); // turns off NO Press LB
         }
 
         private void radRBLongPress_CheckedChanged(object sender, EventArgs e)
         {
             _bRBLongPress = true;
             TriggerArduino("2");
+            TriggerArduino("9"); // turns off NO Press RB
         }
 
         private void rabRBShortPress_CheckedChanged(object sender, EventArgs e)
         {
             _bRBLongPress = false;
             TriggerArduino("3");
+            TriggerArduino("9"); // turns off NO Press RB
         }
 
+        private void radLBNoPress_CheckedChanged(object sender, EventArgs e)
+        {
+            TriggerArduino("4");
+        }
+
+        private void radRBNoPress_CheckedChanged(object sender, EventArgs e)
+        {
+            TriggerArduino("5");
+        }
+
+        private void txtSmsEnabled_Click(object sender, EventArgs e)
+        {
+
+        }
+        
         // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
         private void txtName_TextChanged(object sender, EventArgs e)
         {
