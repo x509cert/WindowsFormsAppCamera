@@ -214,21 +214,21 @@ namespace WindowsFormsAppCamera
             var sb = new StringBuilder(512);
             const string delim = "|";
 
-            _ = sb.Append(title);
-            _ = sb.Append(delim);
+            sb.Append(title);
+            sb.Append(delim);
 
             var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
 
-            _ = sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
-            _ = sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
-            _ = sb.Append(delim);
+            sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
+            sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
+            sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
             Trace.TraceInformation("Writing each entry");
             while (_logQueue.Count > 0)
             {
-                _ = sb.Append(_logQueue.Dequeue());
-                _ = sb.Append(delim);
+                sb.Append(_logQueue.Dequeue());
+                sb.Append(delim);
             }
 
             // push up to an Azure Function
