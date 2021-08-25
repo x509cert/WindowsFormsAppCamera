@@ -31,7 +31,8 @@ namespace WindowsFormsAppCamera
             _rect = new Rectangle(0, 0, _x, _y);
 
             _loopDelay = loopDelay;
-            _5secsMarker = 5 * (1000 / _loopDelay);
+            _5secsMarker = 5 // seconds  
+                           * (1000 / _loopDelay);
         }
 
         public void Draw(byte[] arr, byte b, byte? calibration)

@@ -107,11 +107,13 @@ namespace WindowsFormsAppCamera
                 };
 
                 chkSmsAlerts.Enabled = true;
+                chkSmsAlerts.Checked = true;
                 btnTestSms.Enabled = true;
             }
             else
             {
                 chkSmsAlerts.Enabled = false;
+                chkSmsAlerts.Checked = false;
                 btnTestSms.Enabled = false; 
             }
 

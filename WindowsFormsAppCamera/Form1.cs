@@ -259,6 +259,7 @@ namespace WindowsFormsAppCamera
         // r - decrease RB sweep (+/- 5)
         // L - increase LB sweep (+/- 5)
         // l - decrease LB sweep (+/- 5)
+        // X - all trigger sweeps reset to 0
         // E - deploy EMP
         // T - deploy Turret
         // U - all triggers up
