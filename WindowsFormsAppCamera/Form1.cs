@@ -652,13 +652,20 @@ namespace WindowsFormsAppCamera
 
         private void txtSmsEnabled_Click(object sender, EventArgs e)
         {
-
+            // does nothing, sets no state - other code reads this UI element directly
         }
-        
+
+        private void numLongDelayOffset_ValueChanged(object sender, EventArgs e)
+        {
+            TriggerArduino("~");
+            string offset = numLongDelayOffset.Value.ToString(); // between 0-4
+            TriggerArduino(offset);
+        }
+
         // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
         private void txtName_TextChanged(object sender, EventArgs e)
         {
-            if (_mmio != null) _mmio.Write(txtName.Text);
+            _mmio?.Write(txtName.Text);
         }
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')

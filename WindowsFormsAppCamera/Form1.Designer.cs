@@ -75,6 +75,8 @@ namespace WindowsFormsAppCamera
             this.btnResetOffsets = new System.Windows.Forms.Button();
             this.chkSmsAlerts = new System.Windows.Forms.CheckBox();
             this.tpTooltip = new System.Windows.Forms.ToolTip(this.components);
+            this.numLongDelayOffset = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -83,6 +85,7 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.pictR)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictG)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictB)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numLongDelayOffset)).BeginInit();
             this.SuspendLayout();
             // 
             // pictCamera
@@ -202,9 +205,9 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(311, 851);
+            this.btnAllUp.Location = new System.Drawing.Point(282, 833);
             this.btnAllUp.Name = "btnAllUp";
-            this.btnAllUp.Size = new System.Drawing.Size(67, 30);
+            this.btnAllUp.Size = new System.Drawing.Size(60, 30);
             this.btnAllUp.TabIndex = 24;
             this.btnAllUp.Text = "All Up";
             this.btnAllUp.UseVisualStyleBackColor = true;
@@ -539,9 +542,9 @@ namespace WindowsFormsAppCamera
             // btnResetOffsets
             // 
             this.btnResetOffsets.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetOffsets.Location = new System.Drawing.Point(311, 896);
+            this.btnResetOffsets.Location = new System.Drawing.Point(343, 833);
             this.btnResetOffsets.Name = "btnResetOffsets";
-            this.btnResetOffsets.Size = new System.Drawing.Size(67, 30);
+            this.btnResetOffsets.Size = new System.Drawing.Size(60, 30);
             this.btnResetOffsets.TabIndex = 56;
             this.btnResetOffsets.Text = "Reset";
             this.btnResetOffsets.UseVisualStyleBackColor = true;
@@ -560,11 +563,35 @@ namespace WindowsFormsAppCamera
             // 
             this.tpTooltip.ShowAlways = true;
             // 
+            // numLongDelayOffset
+            // 
+            this.numLongDelayOffset.Location = new System.Drawing.Point(325, 912);
+            this.numLongDelayOffset.Maximum = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.numLongDelayOffset.Name = "numLongDelayOffset";
+            this.numLongDelayOffset.Size = new System.Drawing.Size(67, 26);
+            this.numLongDelayOffset.TabIndex = 58;
+            this.numLongDelayOffset.ValueChanged += new System.EventHandler(this.numLongDelayOffset_ValueChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(285, 885);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(90, 20);
+            this.label2.TabIndex = 59;
+            this.label2.Text = "Long offset";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 1006);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.numLongDelayOffset);
             this.Controls.Add(this.chkSmsAlerts);
             this.Controls.Add(this.btnResetOffsets);
             this.Controls.Add(this.lblVersionInfo);
@@ -612,6 +639,7 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.pictR)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictG)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictB)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numLongDelayOffset)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -663,6 +691,8 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.RadioButton radLBNoPress;
         private System.Windows.Forms.RadioButton radRBNoPress;
         private System.Windows.Forms.ToolTip tpTooltip;
+        private System.Windows.Forms.NumericUpDown numLongDelayOffset;
+        private System.Windows.Forms.Label label2;
     }
 }
 

@@ -119,7 +119,7 @@ namespace WindowsFormsAppCamera
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            bool autoStart = (args.Length == 2 && args[1].ToLower().StartsWith("-run")) ? true : false;
+            bool autoStart = (args.Length == 2 && args[1].ToLower().StartsWith("-run"));
             if (autoStart == true)
             {
                 Trace.TraceInformation("Autostart");
