@@ -59,7 +59,11 @@ namespace WindowsFormsAppCamera
                 if (calibration != null)
                 {
                     var top = (int)(255 - calibration) / _scaling;
-                    g.DrawLine(_penCalibration, 0, top, _x, top);
+                    g.DrawLine(_penCalibration,
+                               0,
+                               top,
+                               _x,
+                               top);
                 }
             }
         }

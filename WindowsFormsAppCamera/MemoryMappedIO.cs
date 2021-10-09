@@ -2,7 +2,7 @@
 
 namespace WindowsFormsAppCamera
 {
-    class MMIo
+    internal class MMIo
     {
         private readonly MemoryMappedFile _mmf;
         private readonly MemoryMappedViewAccessor _accessor;

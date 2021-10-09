@@ -9,7 +9,7 @@ namespace WindowsFormsAppCamera
     {
         private void PopulateVideoFormatCombo(int cameraIndex)
         {
-            UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
+            var formats = UsbCamera.GetVideoFormat(cameraIndex);
 
             cmbCameraFormat.Items.Clear();
             foreach (var t in formats)
@@ -48,10 +48,10 @@ namespace WindowsFormsAppCamera
                 MessageBox.Show("Warning! Selected format streams no data, choose another format", "Warning");
 
             _camera = new UsbCamera(camera, selectFormat);
-            _camera.Start();
+            _camera?.Start();
 
             cmbComPorts.Items.Clear();
-            foreach (string p in SerialPort.GetPortNames())
+            foreach (var p in SerialPort.GetPortNames())
                 cmbComPorts.Items.Add(p);
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
@@ -142,9 +142,6 @@ namespace WindowsFormsAppCamera
         }
 
         // test the COM port
-        private void btnTestComPort_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("V");
-        }
+        private void btnTestComPort_Click(object sender, EventArgs e) => TriggerArduino("V");
     }
 }

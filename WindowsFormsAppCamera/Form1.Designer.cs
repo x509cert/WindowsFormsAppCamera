@@ -565,14 +565,14 @@ namespace WindowsFormsAppCamera
             // 
             // numLongDelayOffset
             // 
-            this.numLongDelayOffset.Location = new System.Drawing.Point(325, 912);
+            this.numLongDelayOffset.Location = new System.Drawing.Point(289, 912);
             this.numLongDelayOffset.Maximum = new decimal(new int[] {
-            4,
+            8,
             0,
             0,
             0});
             this.numLongDelayOffset.Name = "numLongDelayOffset";
-            this.numLongDelayOffset.Size = new System.Drawing.Size(67, 26);
+            this.numLongDelayOffset.Size = new System.Drawing.Size(103, 26);
             this.numLongDelayOffset.TabIndex = 58;
             this.numLongDelayOffset.ValueChanged += new System.EventHandler(this.numLongDelayOffset_ValueChanged);
             // 

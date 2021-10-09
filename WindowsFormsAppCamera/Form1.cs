@@ -167,6 +167,16 @@ namespace WindowsFormsAppCamera
                     case '8': s += "Turn off LB no press";  break;
                     case '9': s += "Turn off RB no press";  break;
 
+                    case '~': s += "0x timer offset"; break;
+                    case '!': s += "1x timer offset"; break;
+                    case '@': s += "2x timer offset"; break;
+                    case '#': s += "3x timer offset"; break;
+                    case '$': s += "4x timer offset"; break;
+                    case '%': s += "5x timer offset"; break;
+                    case '^': s += "6x timer offset"; break;
+                    case '&': s += "7x timer offset"; break;
+                    case '*': s += "8x timer offset"; break;
+
                     default: s += "!!Unknown command!!";    break;
                 }    
             }
@@ -640,26 +650,26 @@ namespace WindowsFormsAppCamera
             TriggerArduino("9"); // turns off NO Press RB
         }
 
-        private void radLBNoPress_CheckedChanged(object sender, EventArgs e)
-        {
-            TriggerArduino("4");
-        }
+        private void radLBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("4");
+        private void radRBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("5");
 
-        private void radRBNoPress_CheckedChanged(object sender, EventArgs e)
-        {
-            TriggerArduino("5");
-        }
-
-        private void txtSmsEnabled_Click(object sender, EventArgs e)
-        {
-            // does nothing, sets no state - other code reads this UI element directly
-        }
+        // does nothing, sets no state - other code reads this UI element directly
+        private void txtSmsEnabled_Click(object sender, EventArgs e) {}
 
         private void numLongDelayOffset_ValueChanged(object sender, EventArgs e)
         {
-            TriggerArduino("~");
-            string offset = numLongDelayOffset.Value.ToString(); // between 0-4
-            TriggerArduino(offset);
+            switch (numLongDelayOffset.Value)
+            {
+                case 0: TriggerArduino("~"); break;
+                case 1: TriggerArduino("!"); break;
+                case 2: TriggerArduino("@"); break;
+                case 3: TriggerArduino("#"); break;
+                case 4: TriggerArduino("$"); break;
+                case 5: TriggerArduino("%"); break;
+                case 6: TriggerArduino("^"); break;
+                case 7: TriggerArduino("&"); break;
+                case 8: TriggerArduino("*"); break;
+            }
         }
 
         // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
@@ -695,32 +705,18 @@ namespace WindowsFormsAppCamera
             pictCamera.Image = bmp;
         }
 
-#endregion
+        #endregion
 
         #region Bitmap and drone detection code
 
         // determines the increase in red required to determine if the drones are incoming
-        private float GetRedSpottedPercent()
-        {
-            return _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void numDroneDelay_ValueChanged(object sender, EventArgs e)
-        {
-            _elapseBetweenDrones = new TimeSpan(0,0, (int)numDroneDelay.Value);
-        }
+        private float GetRedSpottedPercent() => _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
+        private void label8_Click(object sender, EventArgs e) {}
+        private void numDroneDelay_ValueChanged(object sender, EventArgs e) => _elapseBetweenDrones = new TimeSpan(0, 0, (int)numDroneDelay.Value);
 
         // logic to determine if drones are coming
-        bool DronesSpotted(ref RgbTotal rbgTotal)
-        {
-            // if there is no increase in red, then no drones
-            return rbgTotal.R > GetRedSpottedPercent();
-        }
+        // if there is no increase in red, then no drones
+        bool DronesSpotted(ref RgbTotal rbgTotal) => rbgTotal.R > GetRedSpottedPercent();
 
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red
