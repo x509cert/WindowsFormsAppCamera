@@ -20,16 +20,15 @@ namespace WindowsFormsAppCamera
         // writes version info to the status bar
         private void SetStatusBar()
         {
-            // Status bar info
-
             // get the date this binary was last modified
             var strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var fi = new FileInfo(strpath);
             var buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
 
-            var isDebug = "";
 #if DEBUG
-            isDebug = "[DBG] ";
+            const string isDebug = "[DBG] ";
+#else 
+            const string isDebug = "";
 #endif
 
             // add info to title of the tool
@@ -37,7 +36,7 @@ namespace WindowsFormsAppCamera
             var codeVersion = $"{isDebug}[{buildDate}] [{machine}] ";
             var arduinoVerion = "?";
 
-            if (_sComPort != null && _sComPort.IsOpen)
+            if (_sComPort?.IsOpen == true)
                 arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
 
             lblVersionInfo.Text = $"{codeVersion} {arduinoVerion}";
@@ -63,7 +62,7 @@ namespace WindowsFormsAppCamera
             if (devices.Length == 0)
             {
                 MessageBox.Show("FATAL: No Camera.");
-                return; // no camera.
+                Application.Exit(); // no camera. We need to bail!
             }
 
             foreach (string d in devices)
@@ -81,7 +80,7 @@ namespace WindowsFormsAppCamera
 
             var threshold = (decimal)_cfg.ThreshHold;
             if (threshold < numTrigger.Minimum || threshold > numTrigger.Maximum)
-                numTrigger.Value = 0;
+                numTrigger.Value = numTrigger.Minimum;
             else
                 numTrigger.Value = threshold;
 
@@ -100,50 +99,69 @@ namespace WindowsFormsAppCamera
             cmbCameraFormat.SelectedIndex = _cfg.VideoMode;
 
             // if the three args are available for SMS, then create an SmsAlert object
-            if (string.IsNullOrEmpty(_cfg.AzureConnection) == false &&
-                string.IsNullOrEmpty(_cfg.FromNumber) == false &&
-                string.IsNullOrEmpty(_cfg.ToNumber) == false)
+            if (!string.IsNullOrEmpty(_cfg.AzureConnection) &&
+                !string.IsNullOrEmpty(_cfg.FromNumber) &&
+                !string.IsNullOrEmpty(_cfg.ToNumber))
             {
                 _smsAlert = new SmsAlert(_cfg.MachineName, _cfg.AzureConnection, _cfg.FromNumber, _cfg.ToNumber) {
                     BlockLateNightSms = true
                 };
 
-                txtSmsEnabled.Text = "Yes";
+                chkSmsAlerts.Enabled = true;
+                chkSmsAlerts.Checked = true;
                 btnTestSms.Enabled = true;
+            }
+            else
+            {
+                chkSmsAlerts.Enabled = false;
+                chkSmsAlerts.Checked = false;
+                btnTestSms.Enabled = false; 
             }
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            if (args.Length == 2 && args[1].ToLower().StartsWith("-run"))
+            bool autoStart = (args.Length == 2 && args[1].StartsWith("-run", StringComparison.OrdinalIgnoreCase));
+            if (autoStart)
             {
                 Trace.TraceInformation("Autostart");
-
-                StartAllThreads();
 
                 btnStart.Enabled = false;
                 cmbCamera.Enabled = false;
                 cmbCameraFormat.Enabled = false;
                 txtName.Enabled = false;
 
-                cmbComPorts.Enabled = true;         // keep this as true so if the wrong COM is selected it can be changed
+                // keep this set to true so if the wrong COM port is selected it can be changed
+                cmbComPorts.Enabled = true;         
             }
+
+            radLBLongPress.Checked = _bLBLongPress;
+            radLBShortPress.Checked = !_bLBLongPress;
+
+            radRBLongPress.Checked = _bRBLongPress;
+            radRBShortPress.Checked = !_bRBLongPress;
 
             // used for the sliding RGB charts
             _arrR = new byte[pictR.Width];
-            _chartR = new Chart(pictR.Width, pictR.Height, Color.Red);
+            _chartR = new Chart(pictR.Width, pictR.Height, Color.Red, _loopDelay);
 
             _arrG = new byte[pictG.Width];
-            _chartG = new Chart(pictG.Width, pictG.Height, Color.Green);
+            _chartG = new Chart(pictG.Width, pictG.Height, Color.Green, _loopDelay);
 
             _arrB = new byte[pictB.Width];
-            _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue);
+            _chartB = new Chart(pictB.Width, pictB.Height, Color.Blue, _loopDelay);
 
             SetStatusBar();
+            UpdateToolTipLbRbData();
+            WriteOffsetsToArduino();
 
             // send a message to the Arduino
             // to indicate the DivGrind is alive
             // this stays enabled until the tool is killed.
             SetHeartbeat();
+
+            // finally start all the main worker threads
+            if (autoStart)
+                StartAllThreads();
         }
 
         // this gives the code a chance to kill the worker threads gracefully
@@ -155,14 +173,11 @@ namespace WindowsFormsAppCamera
             StopHeartbeat();
             _fKillThreads = true;
 
-            Thread.Sleep(400);
+            Thread.Sleep(300);
             e.Cancel = false;
 
-            if (_sComPort != null)
-            {
-                _sComPort.Close();
-                _sComPort = null;
-            }
+            _sComPort?.Close();
+            _sComPort = null;
         }
 
         // this is a pause function that accommodates for thread abandonment
@@ -175,7 +190,7 @@ namespace WindowsFormsAppCamera
                 if (_fKillThreads)
                     break;
 
-                Thread.Sleep(1000);
+                Thread.Sleep(999);
             }
         }
     }

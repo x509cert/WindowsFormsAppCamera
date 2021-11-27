@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles")]
+[assembly: SuppressMessage("Redundancy", "RCS1037:Remove trailing white-space.", Justification = "<Pending>", Scope = "type", Target = "~T:WindowsFormsAppCamera.Form1")]

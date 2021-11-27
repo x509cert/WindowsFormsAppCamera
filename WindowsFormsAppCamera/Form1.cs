@@ -18,25 +18,21 @@ namespace WindowsFormsAppCamera
     {
         #region Helper classes
         // used to track RGB pixel colors
-        struct RgbTotal
+        private struct RgbTotal
         {
-            private long _b;
-            private long _g;
-            private long _r;
-
-            public long R { get => _r; set => _r = value; }
-            public long G { get => _g; set => _g = value; }
-            public long B { get => _b; set => _b = value; }
+            public long R { get; set; }
+            public long G { get; set; }
+            public long B { get; set; }
 
             public void Init()
             {
                 Trace.TraceInformation("RGBTotal::Init()");
-                _r = _g = _b = 0L;
+                R = G = B = 0L;
             }
         }
 
         // keeps track of log entries for uploading to Azure
-        class LogQueue : Queue<string>
+        private class LogQueue : Queue<string>
         {
             private const int Max = 20;
             private readonly int _max;
@@ -92,9 +88,14 @@ namespace WindowsFormsAppCamera
         SerialPort              _sComPort;
         const int               ComPortSpeed = 9600;
 
+        bool                    _bLBLongPress=false, 
+                                _bRBLongPress=true;
+
         bool                    _fKillThreads;
         System.Timers.Timer     _skillTimer;
-        System.Timers.Timer      _heartbeatTimer;
+        System.Timers.Timer     _heartbeatTimer;
+        const int               _loopDelay = 200; // 200msec
+        const int               _threadStartDelay = 250;
 
         bool                    _fUsingLiveScreen = true;
         TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
@@ -108,13 +109,14 @@ namespace WindowsFormsAppCamera
         readonly Pen            _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
         // this is for dumping a trace of the screenshots for 20secs - approx 100 images
-        DateTime _startTraceTimer;                       
+        DateTime                _startTraceTimer;                       
         readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); 
 
         // RBG sliding chart and data
         Chart                   _chartR, _chartG, _chartB;
         byte[]                  _arrR, _arrG, _arrB;
 
+        // shared memory for comms to the camera app
         private MMIo            _mmio;
 
         #endregion
@@ -128,7 +130,7 @@ namespace WindowsFormsAppCamera
             DateTime dt = DateTime.Now;
             var dts = dt.ToString(DateTemplateShort);
 
-            // Arduino messages are only one char long, so add a little more context
+            // Arduino messages are only one 8-bit char long, so add a little more context
             if (s.Length == 1)
             {
                 var ch = s[0];
@@ -136,17 +138,42 @@ namespace WindowsFormsAppCamera
 
                 switch (ch)
                 {
-                    case 'E': s += "EMP"; break;
-                    case 'T': s += "Turret"; break;
-                    case 'U': s += "LB/RB up"; break;
-                    case 'V': s += "Verify comms"; break;
-                    case 'R': s += "Inc RB sweep (+1)"; break;
-                    case 'r': s += "Dec RB sweep (-1)"; break;
-                    case 'L': s += "Inc LB sweep (+1)"; break;
-                    case 'l': s += "Dec LB sweep (-1)"; break;
-                    case 'H': s += "Heartbeat"; break;
-                    case 'X': s += "Reset LB/RB offsets"; break;
-                    default:  s += "!!Unknown command!!"; break;
+                    case 'H': s += "Heartbeat";             break;
+                    case 'V': s += "Verify comms";          break;
+                    case '+': s += "Ger version";           break;
+
+                    case 'E': s += "EMP";                   break;
+                    case 'T': s += "Turret";                break;
+                    case 'U': s += "LB/RB up";              break;
+
+                    case 'R': s += "Inc RB sweep (+1)";     break;
+                    case 'r': s += "Dec RB sweep (-1)";     break;
+                    case 'L': s += "Inc LB sweep (+1)";     break;
+                    case 'l': s += "Dec LB sweep (-1)";     break;
+                    case 'X': s += "Reset LB/RB offsets";   break;
+
+                    case '0': s += "Set LB long press";     break;
+                    case '1': s += "Set LB short press";    break;
+                    case '2': s += "Set RB long press";     break;
+                    case '3': s += "Set RB short press";    break;
+
+                    case '4': s += "Set LB to no press";    break;
+                    case '5': s += "Set RB to no press";    break;
+
+                    case '8': s += "Turn off LB no press";  break;
+                    case '9': s += "Turn off RB no press";  break;
+
+                    case '~': s += "0x timer offset";       break;
+                    case '!': s += "1x timer offset";       break;
+                    case '@': s += "2x timer offset";       break;
+                    case '#': s += "3x timer offset";       break;
+                    case '$': s += "4x timer offset";       break;
+                    case '%': s += "5x timer offset";       break;
+                    case '^': s += "6x timer offset";       break;
+                    case '&': s += "7x timer offset";       break;
+                    case '*': s += "8x timer offset";       break;
+
+                    default: s += "!!Unknown command!!";    break;
                 }    
             }
 
@@ -169,7 +196,7 @@ namespace WindowsFormsAppCamera
             catch (Exception ex)
             {
                 Trace.TraceWarning($"EXCEPTION: {ex.Message}");
-                // keep on chugging, yes, i know it's bad form to swallow exceptions
+                // keep on chugging, yes, I know it's bad form to swallow exceptions
             }
         }
 
@@ -193,21 +220,21 @@ namespace WindowsFormsAppCamera
             var sb = new StringBuilder(512);
             const string delim = "|";
 
-            _ = sb.Append(title);
-            _ = sb.Append(delim);
+            sb.Append(title);
+            sb.Append(delim);
 
             var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
 
-            _ = sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
-            _ = sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
-            _ = sb.Append(delim);
+            sb.Append("Last update ").Append(DateTime.Now.ToString(DateTemplate)).Append(" (UTC").Append(curTimeZone).Append("), using ");
+            sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
+            sb.Append(delim);
 
             // loop through each log entry, add to the structure to send to Azure and remove from the queue
             Trace.TraceInformation("Writing each entry");
             while (_logQueue.Count > 0)
             {
-                _ = sb.Append(_logQueue.Dequeue());
-                _ = sb.Append(delim);
+                sb.Append(_logQueue.Dequeue());
+                sb.Append(delim);
             }
 
             // push up to an Azure Function
@@ -218,7 +245,6 @@ namespace WindowsFormsAppCamera
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 wc.UploadString(_cfg.LogUri, sb.ToString());
-
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -238,12 +264,21 @@ namespace WindowsFormsAppCamera
         // r - decrease RB sweep (+/- 5)
         // L - increase LB sweep (+/- 5)
         // l - decrease LB sweep (+/- 5)
+        // X - all trigger sweeps reset to 0
         // E - deploy EMP
         // T - deploy Turret
         // U - all triggers up
         // V - verify comms
         // H - heartbeat - notifies the Arduino that this code is alive
         // + - get Arduino code version
+        // 0 - Set LB to short press (default)
+        // 1 - set LB to long press
+        // 2 - set RB to short press
+        // 3 - set RB to long press (default)
+        // 4 - set LB to no press
+        // 5 - set RB to no press
+        // 8 - turns off LB no press
+        // 9 - turns off RB no press
         void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
@@ -256,7 +291,7 @@ namespace WindowsFormsAppCamera
                 return;
             }       
 
-            if (_sComPort.IsOpen == false)
+            if (!_sComPort.IsOpen)
             { 
                 WriteLog("FATAL: COM Port is not open.");
                 return;
@@ -273,7 +308,7 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        void DeploySkill(Object source, ElapsedEventArgs e)
+        private void DeploySkill(Object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("DeploySkill");
 
@@ -361,21 +396,21 @@ namespace WindowsFormsAppCamera
             }
         }
 
-
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThreadFunc()
         {
             bool fPingProcessFailed = false;
 
             Trace.TraceInformation("PingerThreadFunc start");
+            Thread.Sleep(_threadStartDelay);
 
-            while (_fKillThreads == false)
+            while (!_fKillThreads)
             {
                 Trace.TraceInformation("PingerThreadFunc main loop");
 
                 // if there's no gateway IP address, then use tracert to get it
                 // unless we have been here before and it failed - so don't keep trying!
-                if (fPingProcessFailed == false && String.IsNullOrEmpty(_gatewayIp))
+                if (!fPingProcessFailed && String.IsNullOrEmpty(_gatewayIp))
                 {
                     Trace.TraceInformation("PingerThreadFunc -> getting trace route etc and setting up");
 
@@ -454,6 +489,7 @@ namespace WindowsFormsAppCamera
         private void UploadLogThreadFunc()
         {
             Trace.TraceInformation("UploadThreadFunc");
+            Thread.Sleep(_threadStartDelay);
 
             while (!_fKillThreads)
             {
@@ -554,21 +590,87 @@ namespace WindowsFormsAppCamera
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 
+        // this sets the RB and LB offset tooltip text
+        private void UpdateToolTipLbRbData()
+        {
+            var ttt = $"LB Offset: {_cfg.LBOffset}\nRB Offset: {_cfg.RBOffset}";
+            tpTooltip.SetToolTip(btnRecalLeftLess, ttt);
+            tpTooltip.SetToolTip(btnRecalLeftMore, ttt);
+            tpTooltip.SetToolTip(btnRecalRightLess, ttt);
+            tpTooltip.SetToolTip(btnRecalRightMore, ttt);
+
+            WriteLog("Updating RB/LB offsets");
+            
+            WriteConfig(_cfg);
+        }
+
         // these are used to send discrete commands to the Arduino
-        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); } // Reduce offset on RB
-        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); } // Add more offset to LB
-        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); } // Reduce offset on RB
-        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); } // Add more offset to RB
+        private void btnRecalLeftLess_Click(object sender, EventArgs e) { TriggerArduino("l"); _cfg.LBOffset--; UpdateToolTipLbRbData(); } // Reduce offset on RB
+        private void btnRecalLeftMore_Click(object sender, EventArgs e) { TriggerArduino("L"); _cfg.LBOffset++; UpdateToolTipLbRbData(); } // Add more offset to LB
+        private void btnRecalRightLess_Click(object sender, EventArgs e){ TriggerArduino("r"); _cfg.RBOffset--; UpdateToolTipLbRbData(); } // Reduce offset on RB
+        private void btnRecalRightMore_Click(object sender, EventArgs e){ TriggerArduino("R"); _cfg.RBOffset++; UpdateToolTipLbRbData(); } // Add more offset to RB
+
         private void btnAllUp_Click(object sender, EventArgs e)         { TriggerArduino("U"); } // raise all servos
         private void button3_Click_1(object sender, EventArgs e)        { TriggerArduino("E"); } // EMP
         private void button2_Click_1(object sender, EventArgs e)        { TriggerArduino("T"); } // Turret
         private void btnResetOffsets_Click(object sender, EventArgs e)  { TriggerArduino("X"); } // Resets the LB/RB offset adjustments
         private void lblVersionInfo_Click(object sender, EventArgs e)   { SetStatusBar(); }
 
+        // set LB/RB long/short press
+        private void radLBLongPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bLBLongPress = true;
+            TriggerArduino("0");
+            TriggerArduino("8"); // turns off NO Press LB
+        }
+
+        private void radLBShortPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bLBLongPress = false;
+            TriggerArduino("1");
+            TriggerArduino("8"); // turns off NO Press LB
+        }
+
+        private void radRBLongPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bRBLongPress = true;
+            TriggerArduino("2");
+            TriggerArduino("9"); // turns off NO Press RB
+        }
+
+        private void rabRBShortPress_CheckedChanged(object sender, EventArgs e)
+        {
+            _bRBLongPress = false;
+            TriggerArduino("3");
+            TriggerArduino("9"); // turns off NO Press RB
+        }
+
+        private void radLBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("4");
+        private void radRBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("5");
+
+        // does nothing, sets no state - other code reads this UI element directly
+        private void txtSmsEnabled_Click(object sender, EventArgs e) {}
+
+        private void numLongDelayOffset_ValueChanged(object sender, EventArgs e)
+        {
+            switch (numLongDelayOffset.Value)
+            {
+                case 0: TriggerArduino("~"); break;
+                case 1: TriggerArduino("!"); break;
+                case 2: TriggerArduino("@"); break;
+                case 3: TriggerArduino("#"); break;
+                case 4: TriggerArduino("$"); break;
+                case 5: TriggerArduino("%"); break;
+                case 6: TriggerArduino("^"); break;
+                case 7: TriggerArduino("&"); break;
+                case 8: TriggerArduino("*"); break;
+            }
+        }
+
         // when the name of the agent changes, update the memory-mapped data so it can be read by the camera app
         private void txtName_TextChanged(object sender, EventArgs e)
         {
-            if (_mmio != null) _mmio.Write(txtName.Text);
+            _mmio?.Write(txtName.Text);
         }
 
         // this lets you fine-tune the % red increase to trigger the EMP (ie; 'Drones Incoming')
@@ -598,32 +700,18 @@ namespace WindowsFormsAppCamera
             pictCamera.Image = bmp;
         }
 
-#endregion
+        #endregion
 
         #region Bitmap and drone detection code
 
         // determines the increase in red required to determine if the drones are incoming
-        private float GetRedSpottedPercent()
-        {
-            return _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void numDroneDelay_ValueChanged(object sender, EventArgs e)
-        {
-            _elapseBetweenDrones = new TimeSpan(0,0, (int)numDroneDelay.Value);
-        }
+        private float GetRedSpottedPercent() => _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
+        private void label8_Click(object sender, EventArgs e) {}
+        private void numDroneDelay_ValueChanged(object sender, EventArgs e) => _elapseBetweenDrones = new TimeSpan(0, 0, (int)numDroneDelay.Value);
 
         // logic to determine if drones are coming
-        bool DronesSpotted(ref RgbTotal rbgTotal)
-        {
-            // if there is no increase in red, then no drones
-            return rbgTotal.R > GetRedSpottedPercent();
-        }
+        // if there is no increase in red, then no drones
+        bool DronesSpotted(ref RgbTotal rbgTotal) => rbgTotal.R > GetRedSpottedPercent();
 
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red
@@ -693,7 +781,7 @@ namespace WindowsFormsAppCamera
                     Color col = RgbToClosest.GetClosestColorFromRgb(px.R, px.G, px.B);
                     if (dictColor.ContainsKey(col))
                     {
-                        if (dictColor.TryGetValue(col, out int count) == true)
+                        if (dictColor.TryGetValue(col, out int count))
                             dictColor[col] = ++count;
                     }
                     else
@@ -709,10 +797,14 @@ namespace WindowsFormsAppCamera
 
             // get the highest color count
             Color highestColor = Color.Transparent;
-            int highestCount = -1;
+            const int highestCount = -1;
             foreach (var d in dictColor)
+            {
                 if (d.Value > highestCount)
+                {
                     highestColor = d.Key;
+                }
+            }
 
             mainColor = highestColor;
         }

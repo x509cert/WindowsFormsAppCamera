@@ -9,7 +9,7 @@ namespace WindowsFormsAppCamera
     {
         private void PopulateVideoFormatCombo(int cameraIndex)
         {
-            UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
+            var formats = UsbCamera.GetVideoFormat(cameraIndex);
 
             cmbCameraFormat.Items.Clear();
             foreach (var t in formats)
@@ -48,10 +48,10 @@ namespace WindowsFormsAppCamera
                 MessageBox.Show("Warning! Selected format streams no data, choose another format", "Warning");
 
             _camera = new UsbCamera(camera, selectFormat);
-            _camera.Start();
+            _camera?.Start();
 
             cmbComPorts.Items.Clear();
-            foreach (string p in SerialPort.GetPortNames())
+            foreach (var p in SerialPort.GetPortNames())
                 cmbComPorts.Items.Add(p);
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
@@ -109,6 +109,29 @@ namespace WindowsFormsAppCamera
             return String.IsNullOrEmpty(ret) ? "" : ret;
         }
 
+        // when the Arduino starts up, it has default RB/LB offsets to 0/0
+        // this code resets the offsets and then writes the offsets stored in the config file
+        private void WriteOffsetsToArduino()
+        {
+            WriteLog("Resetting LB/RB offsets to zero.");
+            TriggerArduino("X");    // resets LB/RB to zero
+            Thread.Sleep(50);
+
+            WriteLog("Writing new offsets to LB");
+            for (int i = 0; i < Math.Abs(_cfg.LBOffset); i++)
+            {
+                TriggerArduino(_cfg.LBOffset < 0 ? "l" : "L");
+                Thread.Sleep(50);
+            }
+
+            WriteLog("Writing new offsets to RB");
+            for (int i = 0; i < Math.Abs(_cfg.RBOffset); i++)
+            {
+                TriggerArduino(_cfg.RBOffset < 0 ? "r" : "R");
+                Thread.Sleep(50);
+            }
+        }
+
         // COM port selected
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -119,9 +142,6 @@ namespace WindowsFormsAppCamera
         }
 
         // test the COM port
-        private void btnTestComPort_Click(object sender, EventArgs e)
-        {
-            TriggerArduino("V");
-        }
+        private void btnTestComPort_Click(object sender, EventArgs e) => TriggerArduino("V");
     }
 }

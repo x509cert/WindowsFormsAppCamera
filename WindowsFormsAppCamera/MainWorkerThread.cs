@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -17,20 +16,21 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();
 
+            Thread.Sleep(_threadStartDelay);
+
             var dtDronesStart = DateTime.Now;
             var dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
-            bool fAllowEmpDetection = false;
 
             // text that goes into the image and the rectangles in which they reside
             Font imageFont = new Font("Tahoma", 14);
 
             // sets the darkening red for "Drones Incoming"
             SolidBrush[] colDronesIncomingFade = new SolidBrush[MaxIncomingFrames];
-            float ratio = 255 / MaxIncomingFrames;
+            const float ratio = 255 / MaxIncomingFrames;
             for (int i=0; i < MaxIncomingFrames; i++)
                 colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
@@ -47,7 +47,7 @@ namespace WindowsFormsAppCamera
 
             // memory-mapped IO for sending details to the camera app
             _mmio = new MMIo();
-            if (_mmio != null) _mmio.Write(txtName.Text);
+            _mmio?.Write(txtName.Text);
 
             while (!_fKillThreads)
             {
@@ -90,13 +90,14 @@ namespace WindowsFormsAppCamera
                         TriggerArduino("T");
                         WriteLog("Emergency EMP and Turret deployed");
 
-                        dtLastDroneSpotted = DateTime.Now; // HACK! This is to stop an infite set of msgs
+                        // This is to stop an infite set of msgs
+                        dtLastDroneSpotted = DateTime.Now; 
 
                         showNoDronesSeenText = 30;
 
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
-                        if (_smsAlert != null)
+                        if (_smsAlert != null && chkSmsAlerts.Checked)
                             if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
                                 WriteLog("SMS alert failed");
                     }
@@ -118,14 +119,14 @@ namespace WindowsFormsAppCamera
                     }
 
                     // get the image from the camera
-                    Trace.TraceInformation("Getting graphics");
+                    Trace.TraceInformation("Getting camera image");
                     Trace.Indent();
 
                     var bmp = _camera.GetBitmap();
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
-                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 120, 640 / 3, 480 - 2);
+                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 94, 640 / 3, 480 - 2);
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
                     // Get amount of red/green/blue in the drone hitbox
@@ -139,40 +140,10 @@ namespace WindowsFormsAppCamera
                         ref rbgDroneHitboxTotal,
                         ref mainColor);
 
-                    // small optimization because integer RGB is used a lot
-                    int ir = (int)rbgDroneHitboxTotal.R;
-                    int ig = (int)rbgDroneHitboxTotal.G;
-                    int ib = (int)rbgDroneHitboxTotal.B;
-
-                    // convert RGB to HSB on the average
-                    Trace.TraceInformation("Convert RGB -> HSB");
-                    float h=0, s=0, l=0;
-                    RgbToHsb.ConvertRgBtoHsb(ir, ig, ib, ref h, ref s, ref l);
-                    RgbToHsb.Color hitboxColorHsb = 
-                        RgbToHsb.GetColorFromRgbHsb(ir, ig, ib, h, s, l);
-
-                    // convert RGB to L*a*b*
-                    Trace.TraceInformation("Convert RGB -> L*a*b*");
-                    float l2 = 0, a = 0, b2 = 0;
-                    RgbToLab.ConvertRgbToLab(ir, ig, ib, ref l2, ref a, ref b2);
-                    RgbToLab.Color hitboxColorLab = 
-                        RgbToLab.GetColorFromRgbLab(ir, ig, ib, l2, a, b2);
-
-                    // get the closest color from most common color
-                    string hitboxClosestColor = mainColor.ToString()
-                                                         .Replace("Color", "")
-                                                         .Replace("[", "")
-                                                         .Replace("]", "")
-                                                         .Replace(" ", ""); 
-
                     Trace.TraceInformation("Write info to bitmap");
 
                     // text offset in the main drawing rectangle
                     const int xOffset = 4;
-
-                    // write predominant color from HSB and L*a*b* color spaces
-                    string c = $"Color: {hitboxColorHsb} {hitboxColorLab} {hitboxClosestColor}";
-                    gd.DrawString(c, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // calculate current RGB as discrete values and percentages and write into the bmp
                     int percentChange = (int)(rbgDroneHitboxTotal.R / (float)_cfg.LastCalibratedR * 100);
@@ -188,7 +159,7 @@ namespace WindowsFormsAppCamera
                     gd.DrawString(b, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 118, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // draw the RGB charts
                     _chartR.Draw(_arrR, (byte)rbgDroneHitboxTotal.R, (byte)_cfg.LastCalibratedR); pictR.Image = _chartR.Bmp;
@@ -210,27 +181,9 @@ namespace WindowsFormsAppCamera
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
                         showDroneText = MaxIncomingFrames; // display the drone text for a small number of frames
-                        fAllowEmpDetection = true;       // get ready to detect the EMP
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
-                    }
-
-                    // if this is max frames less N of the 'drones detected' screen capture (only one frame so the log info is entered once)
-                    // and the hit region is now blue - this means we have seen the EMP pulse
-                    if (fAllowEmpDetection &&
-                        (hitboxColorHsb == RgbToHsb.Color.Blue || hitboxColorHsb == RgbToHsb.Color.Purple))
-                    {
-                        fAllowEmpDetection = false;
-                        WriteLog("EMP Pulse detected");
-                    }
-
-                    // this is experimental - to see if we see a flash from a blown-up turret
-                    // if we're on the drone spotted timer, then the increase in white could be the EMP
-                    if (showDroneText > 0 && hitboxColorLab == RgbToLab.Color.White && hitboxColorHsb == RgbToHsb.Color.White)
-                    {
-                        WriteLog("Possible flash from expired turret.");
-                        Trace.TraceInformation("Possible flash from expired turret.");
                     }
                     
                     // Display a '!' which shows there's been no drones spotted
@@ -291,14 +244,14 @@ namespace WindowsFormsAppCamera
                 Trace.Unindent();
                 Trace.TraceInformation("Main thread loop end");
 
-                Thread.Sleep(210);
+                Thread.Sleep(_loopDelay);
             }
 
             Trace.Unindent();
 
             KillSkillTimer();
 
-            if (_mmio != null) _mmio.Close();
+            _mmio?.Close();
         }
     }
 }

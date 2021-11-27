@@ -29,6 +29,7 @@ namespace WindowsFormsAppCamera
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.pictCamera = new System.Windows.Forms.PictureBox();
             this.btnCalibrate = new System.Windows.Forms.Button();
@@ -48,16 +49,20 @@ namespace WindowsFormsAppCamera
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnPressLB = new System.Windows.Forms.Button();
             this.btnPressRB = new System.Windows.Forms.Button();
             this.numTrigger = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radLBNoPress = new System.Windows.Forms.RadioButton();
+            this.radLBShortPress = new System.Windows.Forms.RadioButton();
+            this.radLBLongPress = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.radRBNoPress = new System.Windows.Forms.RadioButton();
+            this.radRBShortPress = new System.Windows.Forms.RadioButton();
+            this.radRBLongPress = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.txtSmsEnabled = new System.Windows.Forms.Label();
             this.btnTestComPort = new System.Windows.Forms.Button();
             this.btnTestSms = new System.Windows.Forms.Button();
             this.btnTrace = new System.Windows.Forms.Button();
@@ -68,6 +73,10 @@ namespace WindowsFormsAppCamera
             this.pictB = new System.Windows.Forms.PictureBox();
             this.lblVersionInfo = new System.Windows.Forms.Label();
             this.btnResetOffsets = new System.Windows.Forms.Button();
+            this.chkSmsAlerts = new System.Windows.Forms.CheckBox();
+            this.tpTooltip = new System.Windows.Forms.ToolTip(this.components);
+            this.numLongDelayOffset = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -76,6 +85,7 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.pictR)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictG)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictB)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numLongDelayOffset)).BeginInit();
             this.SuspendLayout();
             // 
             // pictCamera
@@ -177,6 +187,7 @@ namespace WindowsFormsAppCamera
             this.btnRecalRightMore.Size = new System.Drawing.Size(67, 41);
             this.btnRecalRightMore.TabIndex = 21;
             this.btnRecalRightMore.Text = "More";
+            this.tpTooltip.SetToolTip(this.btnRecalRightMore, "Hello!");
             this.btnRecalRightMore.UseVisualStyleBackColor = true;
             this.btnRecalRightMore.Click += new System.EventHandler(this.btnRecalRightMore_Click);
             // 
@@ -194,9 +205,9 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(311, 829);
+            this.btnAllUp.Location = new System.Drawing.Point(282, 833);
             this.btnAllUp.Name = "btnAllUp";
-            this.btnAllUp.Size = new System.Drawing.Size(67, 30);
+            this.btnAllUp.Size = new System.Drawing.Size(60, 30);
             this.btnAllUp.TabIndex = 24;
             this.btnAllUp.Text = "All Up";
             this.btnAllUp.UseVisualStyleBackColor = true;
@@ -259,16 +270,16 @@ namespace WindowsFormsAppCamera
             this.label6.TabIndex = 30;
             this.label6.Text = "COM Port:";
             // 
-            // button2
+            // btnPressLB
             // 
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.button2.Location = new System.Drawing.Point(23, 25);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(67, 41);
-            this.button2.TabIndex = 32;
-            this.button2.Text = "Press";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            this.btnPressLB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
+            this.btnPressLB.Location = new System.Drawing.Point(23, 25);
+            this.btnPressLB.Name = "btnPressLB";
+            this.btnPressLB.Size = new System.Drawing.Size(67, 41);
+            this.btnPressLB.TabIndex = 32;
+            this.btnPressLB.Text = "Press";
+            this.btnPressLB.UseVisualStyleBackColor = true;
+            this.btnPressLB.Click += new System.EventHandler(this.button2_Click_1);
             // 
             // btnPressRB
             // 
@@ -311,27 +322,105 @@ namespace WindowsFormsAppCamera
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.button2);
+            this.groupBox1.Controls.Add(this.radLBNoPress);
+            this.groupBox1.Controls.Add(this.radLBShortPress);
+            this.groupBox1.Controls.Add(this.radLBLongPress);
+            this.groupBox1.Controls.Add(this.btnPressLB);
             this.groupBox1.Controls.Add(this.btnRecalLeftLess);
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
             this.groupBox1.Location = new System.Drawing.Point(19, 815);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(260, 91);
+            this.groupBox1.Size = new System.Drawing.Size(260, 129);
             this.groupBox1.TabIndex = 41;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "LB";
             // 
+            // radLBNoPress
+            // 
+            this.radLBNoPress.AutoSize = true;
+            this.radLBNoPress.Location = new System.Drawing.Point(178, 87);
+            this.radLBNoPress.Name = "radLBNoPress";
+            this.radLBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radLBNoPress.TabIndex = 59;
+            this.radLBNoPress.TabStop = true;
+            this.radLBNoPress.Text = "None";
+            this.radLBNoPress.UseVisualStyleBackColor = true;
+            this.radLBNoPress.CheckedChanged += new System.EventHandler(this.radLBNoPress_CheckedChanged);
+            // 
+            // radLBShortPress
+            // 
+            this.radLBShortPress.AutoSize = true;
+            this.radLBShortPress.Location = new System.Drawing.Point(97, 87);
+            this.radLBShortPress.Name = "radLBShortPress";
+            this.radLBShortPress.Size = new System.Drawing.Size(73, 24);
+            this.radLBShortPress.TabIndex = 58;
+            this.radLBShortPress.TabStop = true;
+            this.radLBShortPress.Text = "Short";
+            this.radLBShortPress.UseVisualStyleBackColor = true;
+            this.radLBShortPress.CheckedChanged += new System.EventHandler(this.radLBShortPress_CheckedChanged);
+            // 
+            // radLBLongPress
+            // 
+            this.radLBLongPress.AutoSize = true;
+            this.radLBLongPress.Location = new System.Drawing.Point(20, 87);
+            this.radLBLongPress.Name = "radLBLongPress";
+            this.radLBLongPress.Size = new System.Drawing.Size(70, 24);
+            this.radLBLongPress.TabIndex = 57;
+            this.radLBLongPress.TabStop = true;
+            this.radLBLongPress.Text = "Long";
+            this.radLBLongPress.UseVisualStyleBackColor = true;
+            this.radLBLongPress.CheckedChanged += new System.EventHandler(this.radLBLongPress_CheckedChanged);
+            // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.radRBNoPress);
+            this.groupBox2.Controls.Add(this.radRBShortPress);
+            this.groupBox2.Controls.Add(this.radRBLongPress);
             this.groupBox2.Controls.Add(this.btnPressRB);
             this.groupBox2.Controls.Add(this.btnRecalRightLess);
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
             this.groupBox2.Location = new System.Drawing.Point(405, 815);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(260, 91);
+            this.groupBox2.Size = new System.Drawing.Size(260, 129);
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
+            // 
+            // radRBNoPress
+            // 
+            this.radRBNoPress.AutoSize = true;
+            this.radRBNoPress.Location = new System.Drawing.Point(175, 87);
+            this.radRBNoPress.Name = "radRBNoPress";
+            this.radRBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radRBNoPress.TabIndex = 61;
+            this.radRBNoPress.TabStop = true;
+            this.radRBNoPress.Text = "None";
+            this.radRBNoPress.UseVisualStyleBackColor = true;
+            this.radRBNoPress.CheckedChanged += new System.EventHandler(this.radRBNoPress_CheckedChanged);
+            // 
+            // radRBShortPress
+            // 
+            this.radRBShortPress.AutoSize = true;
+            this.radRBShortPress.Location = new System.Drawing.Point(96, 87);
+            this.radRBShortPress.Name = "radRBShortPress";
+            this.radRBShortPress.Size = new System.Drawing.Size(73, 24);
+            this.radRBShortPress.TabIndex = 60;
+            this.radRBShortPress.TabStop = true;
+            this.radRBShortPress.Text = "Short";
+            this.radRBShortPress.UseVisualStyleBackColor = true;
+            this.radRBShortPress.CheckedChanged += new System.EventHandler(this.rabRBShortPress_CheckedChanged);
+            // 
+            // radRBLongPress
+            // 
+            this.radRBLongPress.AutoSize = true;
+            this.radRBLongPress.Location = new System.Drawing.Point(20, 87);
+            this.radRBLongPress.Name = "radRBLongPress";
+            this.radRBLongPress.Size = new System.Drawing.Size(70, 24);
+            this.radRBLongPress.TabIndex = 59;
+            this.radRBLongPress.TabStop = true;
+            this.radRBLongPress.Text = "Long";
+            this.radRBLongPress.UseVisualStyleBackColor = true;
+            this.radRBLongPress.CheckedChanged += new System.EventHandler(this.radRBLongPress_CheckedChanged);
             // 
             // label4
             // 
@@ -349,24 +438,6 @@ namespace WindowsFormsAppCamera
             this.txtName.Size = new System.Drawing.Size(170, 26);
             this.txtName.TabIndex = 44;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(443, 92);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(91, 20);
-            this.label5.TabIndex = 45;
-            this.label5.Text = "SMS alerts:";
-            // 
-            // txtSmsEnabled
-            // 
-            this.txtSmsEnabled.AutoSize = true;
-            this.txtSmsEnabled.Location = new System.Drawing.Point(541, 92);
-            this.txtSmsEnabled.Name = "txtSmsEnabled";
-            this.txtSmsEnabled.Size = new System.Drawing.Size(29, 20);
-            this.txtSmsEnabled.TabIndex = 46;
-            this.txtSmsEnabled.Text = "No";
             // 
             // btnTestComPort
             // 
@@ -461,7 +532,7 @@ namespace WindowsFormsAppCamera
             // lblVersionInfo
             // 
             this.lblVersionInfo.AutoSize = true;
-            this.lblVersionInfo.Location = new System.Drawing.Point(17, 921);
+            this.lblVersionInfo.Location = new System.Drawing.Point(15, 970);
             this.lblVersionInfo.Name = "lblVersionInfo";
             this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
             this.lblVersionInfo.TabIndex = 55;
@@ -471,19 +542,57 @@ namespace WindowsFormsAppCamera
             // btnResetOffsets
             // 
             this.btnResetOffsets.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetOffsets.Location = new System.Drawing.Point(311, 874);
+            this.btnResetOffsets.Location = new System.Drawing.Point(343, 833);
             this.btnResetOffsets.Name = "btnResetOffsets";
-            this.btnResetOffsets.Size = new System.Drawing.Size(67, 30);
+            this.btnResetOffsets.Size = new System.Drawing.Size(60, 30);
             this.btnResetOffsets.TabIndex = 56;
             this.btnResetOffsets.Text = "Reset";
             this.btnResetOffsets.UseVisualStyleBackColor = true;
             this.btnResetOffsets.Click += new System.EventHandler(this.btnResetOffsets_Click);
             // 
+            // chkSmsAlerts
+            // 
+            this.chkSmsAlerts.Location = new System.Drawing.Point(459, 89);
+            this.chkSmsAlerts.Name = "chkSmsAlerts";
+            this.chkSmsAlerts.Size = new System.Drawing.Size(122, 30);
+            this.chkSmsAlerts.TabIndex = 57;
+            this.chkSmsAlerts.Text = "SMS alerts";
+            this.chkSmsAlerts.UseVisualStyleBackColor = true;
+            // 
+            // tpTooltip
+            // 
+            this.tpTooltip.ShowAlways = true;
+            // 
+            // numLongDelayOffset
+            // 
+            this.numLongDelayOffset.Location = new System.Drawing.Point(289, 912);
+            this.numLongDelayOffset.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.numLongDelayOffset.Name = "numLongDelayOffset";
+            this.numLongDelayOffset.Size = new System.Drawing.Size(103, 26);
+            this.numLongDelayOffset.TabIndex = 58;
+            this.numLongDelayOffset.ValueChanged += new System.EventHandler(this.numLongDelayOffset_ValueChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(285, 885);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(90, 20);
+            this.label2.TabIndex = 59;
+            this.label2.Text = "Long offset";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(677, 950);
+            this.ClientSize = new System.Drawing.Size(677, 1006);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.numLongDelayOffset);
+            this.Controls.Add(this.chkSmsAlerts);
             this.Controls.Add(this.btnResetOffsets);
             this.Controls.Add(this.lblVersionInfo);
             this.Controls.Add(this.pictB);
@@ -493,8 +602,6 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.numDroneDelay);
             this.Controls.Add(this.btnTrace);
             this.Controls.Add(this.btnTestSms);
-            this.Controls.Add(this.txtSmsEnabled);
-            this.Controls.Add(this.label5);
             this.Controls.Add(this.txtName);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.groupBox2);
@@ -525,11 +632,14 @@ namespace WindowsFormsAppCamera
             ((System.ComponentModel.ISupportInitialize)(this.pictCamera)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTrigger)).EndInit();
             this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numDroneDelay)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictR)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictG)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictB)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numLongDelayOffset)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -555,7 +665,7 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnPressLB;
         private System.Windows.Forms.Button btnPressRB;
         private System.Windows.Forms.NumericUpDown numTrigger;
         private System.Windows.Forms.Label label8;
@@ -563,8 +673,6 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtName;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label txtSmsEnabled;
         private System.Windows.Forms.Button btnTestComPort;
         private System.Windows.Forms.Button btnTestSms;
         private System.Windows.Forms.Button btnTrace;
@@ -575,6 +683,16 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.PictureBox pictB;
         private System.Windows.Forms.Label lblVersionInfo;
         private System.Windows.Forms.Button btnResetOffsets;
+        private System.Windows.Forms.RadioButton radLBShortPress;
+        private System.Windows.Forms.RadioButton radLBLongPress;
+        private System.Windows.Forms.RadioButton radRBShortPress;
+        private System.Windows.Forms.RadioButton radRBLongPress;
+        private System.Windows.Forms.CheckBox chkSmsAlerts;
+        private System.Windows.Forms.RadioButton radLBNoPress;
+        private System.Windows.Forms.RadioButton radRBNoPress;
+        private System.Windows.Forms.ToolTip tpTooltip;
+        private System.Windows.Forms.NumericUpDown numLongDelayOffset;
+        private System.Windows.Forms.Label label2;
     }
 }
 
