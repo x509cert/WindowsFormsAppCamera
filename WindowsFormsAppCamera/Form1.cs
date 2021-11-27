@@ -18,25 +18,21 @@ namespace WindowsFormsAppCamera
     {
         #region Helper classes
         // used to track RGB pixel colors
-        struct RgbTotal
+        private struct RgbTotal
         {
-            private long _b;
-            private long _g;
-            private long _r;
-
-            public long R { get => _r; set => _r = value; }
-            public long G { get => _g; set => _g = value; }
-            public long B { get => _b; set => _b = value; }
+            public long R { get; set; }
+            public long G { get; set; }
+            public long B { get; set; }
 
             public void Init()
             {
                 Trace.TraceInformation("RGBTotal::Init()");
-                _r = _g = _b = 0L;
+                R = G = B = 0L;
             }
         }
 
         // keeps track of log entries for uploading to Azure
-        class LogQueue : Queue<string>
+        private class LogQueue : Queue<string>
         {
             private const int Max = 20;
             private readonly int _max;
@@ -134,7 +130,7 @@ namespace WindowsFormsAppCamera
             DateTime dt = DateTime.Now;
             var dts = dt.ToString(DateTemplateShort);
 
-            // Arduino messages are only one char long, so add a little more context
+            // Arduino messages are only one 8-bit char long, so add a little more context
             if (s.Length == 1)
             {
                 var ch = s[0];
@@ -167,15 +163,15 @@ namespace WindowsFormsAppCamera
                     case '8': s += "Turn off LB no press";  break;
                     case '9': s += "Turn off RB no press";  break;
 
-                    case '~': s += "0x timer offset"; break;
-                    case '!': s += "1x timer offset"; break;
-                    case '@': s += "2x timer offset"; break;
-                    case '#': s += "3x timer offset"; break;
-                    case '$': s += "4x timer offset"; break;
-                    case '%': s += "5x timer offset"; break;
-                    case '^': s += "6x timer offset"; break;
-                    case '&': s += "7x timer offset"; break;
-                    case '*': s += "8x timer offset"; break;
+                    case '~': s += "0x timer offset";       break;
+                    case '!': s += "1x timer offset";       break;
+                    case '@': s += "2x timer offset";       break;
+                    case '#': s += "3x timer offset";       break;
+                    case '$': s += "4x timer offset";       break;
+                    case '%': s += "5x timer offset";       break;
+                    case '^': s += "6x timer offset";       break;
+                    case '&': s += "7x timer offset";       break;
+                    case '*': s += "8x timer offset";       break;
 
                     default: s += "!!Unknown command!!";    break;
                 }    
@@ -229,7 +225,7 @@ namespace WindowsFormsAppCamera
 
             var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
 
-            sb.Append("Last update " + DateTime.Now.ToString(DateTemplate)  + $" (UTC{curTimeZone}), using ");
+            sb.Append("Last update ").Append(DateTime.Now.ToString(DateTemplate)).Append(" (UTC").Append(curTimeZone).Append("), using ");
             sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
             sb.Append(delim);
 
@@ -249,7 +245,6 @@ namespace WindowsFormsAppCamera
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 wc.UploadString(_cfg.LogUri, sb.ToString());
-
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -296,7 +291,7 @@ namespace WindowsFormsAppCamera
                 return;
             }       
 
-            if (_sComPort.IsOpen == false)
+            if (!_sComPort.IsOpen)
             { 
                 WriteLog("FATAL: COM Port is not open.");
                 return;
@@ -313,7 +308,7 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        void DeploySkill(Object source, ElapsedEventArgs e)
+        private void DeploySkill(Object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("DeploySkill");
 
@@ -409,13 +404,13 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("PingerThreadFunc start");
             Thread.Sleep(_threadStartDelay);
 
-            while (_fKillThreads == false)
+            while (!_fKillThreads)
             {
                 Trace.TraceInformation("PingerThreadFunc main loop");
 
                 // if there's no gateway IP address, then use tracert to get it
                 // unless we have been here before and it failed - so don't keep trying!
-                if (fPingProcessFailed == false && String.IsNullOrEmpty(_gatewayIp))
+                if (!fPingProcessFailed && String.IsNullOrEmpty(_gatewayIp))
                 {
                     Trace.TraceInformation("PingerThreadFunc -> getting trace route etc and setting up");
 
@@ -786,7 +781,7 @@ namespace WindowsFormsAppCamera
                     Color col = RgbToClosest.GetClosestColorFromRgb(px.R, px.G, px.B);
                     if (dictColor.ContainsKey(col))
                     {
-                        if (dictColor.TryGetValue(col, out int count) == true)
+                        if (dictColor.TryGetValue(col, out int count))
                             dictColor[col] = ++count;
                     }
                     else
@@ -802,10 +797,14 @@ namespace WindowsFormsAppCamera
 
             // get the highest color count
             Color highestColor = Color.Transparent;
-            int highestCount = -1;
+            const int highestCount = -1;
             foreach (var d in dictColor)
+            {
                 if (d.Value > highestCount)
+                {
                     highestColor = d.Key;
+                }
+            }
 
             mainColor = highestColor;
         }

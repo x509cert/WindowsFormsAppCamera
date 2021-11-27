@@ -3,10 +3,11 @@ using System.Drawing;
 
 namespace WindowsFormsAppCamera
 {
-    class Chart
+    internal class Chart
     {
-        private readonly Bitmap _bmp; 
-        public Bitmap Bmp => _bmp;
+        public Bitmap               Bmp { get; }
+
+        private const int           _minDimension = 10;
 
         private readonly int        _x, _y, _scaling;
         private readonly SolidBrush _background;
@@ -19,11 +20,14 @@ namespace WindowsFormsAppCamera
 
         public Chart(int x, int y, Color col, int loopDelay)
         {
+            if (x < _minDimension || y < _minDimension)
+                throw new ArgumentException("x or y dimension is too small");
+
             _x = x;
             _y = y;
             _scaling = 255 / _y; // calculate line scaling
 
-            _bmp = new Bitmap(_x, _y);
+            Bmp = new Bitmap(_x, _y);
             _background = new SolidBrush(Color.Black);
             _pen = new Pen(col);
             _5secPen = new Pen(Color.LightGray);
@@ -37,7 +41,7 @@ namespace WindowsFormsAppCamera
 
         public void Draw(byte[] arr, byte b, byte? calibration)
         {
-            using (var g = Graphics.FromImage(_bmp))
+            using (var g = Graphics.FromImage(Bmp))
             {
                 g.FillRectangle(_background, _rect);
 

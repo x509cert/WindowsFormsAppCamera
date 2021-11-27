@@ -80,7 +80,7 @@ namespace WindowsFormsAppCamera
                     _cooldownLastMessageSent = now;
                     ok = true;
                 }
-            } 
+            }
             catch(Exception ex)
             {
                 Trace.TraceWarning($"EXCEPTION in SmsAlert - {ex.Message}");

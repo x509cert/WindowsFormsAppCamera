@@ -25,9 +25,10 @@ namespace WindowsFormsAppCamera
             var fi = new FileInfo(strpath);
             var buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
 
-            var isDebug = "";
 #if DEBUG
-            isDebug = "[DBG] ";
+            const string isDebug = "[DBG] ";
+#else 
+            const string isDebug = "";
 #endif
 
             // add info to title of the tool
@@ -35,7 +36,7 @@ namespace WindowsFormsAppCamera
             var codeVersion = $"{isDebug}[{buildDate}] [{machine}] ";
             var arduinoVerion = "?";
 
-            if (_sComPort != null && _sComPort.IsOpen)
+            if (_sComPort?.IsOpen == true)
                 arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
 
             lblVersionInfo.Text = $"{codeVersion} {arduinoVerion}";
@@ -79,7 +80,7 @@ namespace WindowsFormsAppCamera
 
             var threshold = (decimal)_cfg.ThreshHold;
             if (threshold < numTrigger.Minimum || threshold > numTrigger.Maximum)
-                numTrigger.Value = 0;
+                numTrigger.Value = numTrigger.Minimum;
             else
                 numTrigger.Value = threshold;
 
@@ -98,9 +99,9 @@ namespace WindowsFormsAppCamera
             cmbCameraFormat.SelectedIndex = _cfg.VideoMode;
 
             // if the three args are available for SMS, then create an SmsAlert object
-            if (string.IsNullOrEmpty(_cfg.AzureConnection) == false &&
-                string.IsNullOrEmpty(_cfg.FromNumber) == false &&
-                string.IsNullOrEmpty(_cfg.ToNumber) == false)
+            if (!string.IsNullOrEmpty(_cfg.AzureConnection) &&
+                !string.IsNullOrEmpty(_cfg.FromNumber) &&
+                !string.IsNullOrEmpty(_cfg.ToNumber))
             {
                 _smsAlert = new SmsAlert(_cfg.MachineName, _cfg.AzureConnection, _cfg.FromNumber, _cfg.ToNumber) {
                     BlockLateNightSms = true
@@ -119,8 +120,8 @@ namespace WindowsFormsAppCamera
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            bool autoStart = (args.Length == 2 && args[1].ToLower().StartsWith("-run"));
-            if (autoStart == true)
+            bool autoStart = (args.Length == 2 && args[1].StartsWith("-run", StringComparison.OrdinalIgnoreCase));
+            if (autoStart)
             {
                 Trace.TraceInformation("Autostart");
 
@@ -159,7 +160,7 @@ namespace WindowsFormsAppCamera
             SetHeartbeat();
 
             // finally start all the main worker threads
-            if (autoStart==true)
+            if (autoStart)
                 StartAllThreads();
         }
 

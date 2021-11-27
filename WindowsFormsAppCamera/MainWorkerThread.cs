@@ -30,7 +30,7 @@ namespace WindowsFormsAppCamera
 
             // sets the darkening red for "Drones Incoming"
             SolidBrush[] colDronesIncomingFade = new SolidBrush[MaxIncomingFrames];
-            float ratio = 255 / MaxIncomingFrames;
+            const float ratio = 255 / MaxIncomingFrames;
             for (int i=0; i < MaxIncomingFrames; i++)
                 colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
@@ -97,7 +97,7 @@ namespace WindowsFormsAppCamera
 
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
-                        if (_smsAlert != null && chkSmsAlerts.Checked == true)
+                        if (_smsAlert != null && chkSmsAlerts.Checked)
                             if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
                                 WriteLog("SMS alert failed");
                     }
@@ -126,7 +126,7 @@ namespace WindowsFormsAppCamera
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
-                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 120, 640 / 3, 480 - 2);
+                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 94, 640 / 3, 480 - 2);
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
                     // Get amount of red/green/blue in the drone hitbox
@@ -159,7 +159,7 @@ namespace WindowsFormsAppCamera
                     gd.DrawString(b, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 24, bmp.Width, 24));
 
                     // Write elapsed time to next drone check
-                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 118, bmp.Width, 24));
+                    gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
                     // draw the RGB charts
                     _chartR.Draw(_arrR, (byte)rbgDroneHitboxTotal.R, (byte)_cfg.LastCalibratedR); pictR.Image = _chartR.Bmp;

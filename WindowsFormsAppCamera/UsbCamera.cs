@@ -100,7 +100,7 @@ namespace WindowsFormsAppCamera
         public UsbCamera(int cameraIndex, VideoFormat format)
         {
             var camera_list = FindDevices();
-            if (cameraIndex >= camera_list.Length) throw new ArgumentException("USB camera is not available.", "cameraIndex");
+            if (cameraIndex >= camera_list.Length) throw new ArgumentException("USB camera is not available.", nameof(cameraIndex));
             Init(cameraIndex, format);
         }
 
@@ -383,7 +383,7 @@ namespace WindowsFormsAppCamera
 
                 // https://msdn.microsoft.com/ja-jp/library/cc370616.aspx
                 if (item.MajorType != DirectShow.DsGuid.GetNickname(DirectShow.DsGuid.MEDIATYPE_Video)) continue;
-                if (string.IsNullOrEmpty(format.SubType) == false && format.SubType != item.SubType) continue;
+                if (!string.IsNullOrEmpty(format.SubType) && format.SubType != item.SubType) continue;
                 if (item.Caps.Guid != DirectShow.DsGuid.FORMAT_VideoInfo) continue;
 
                 if (item.Size.Width == format.Size.Width && item.Size.Height == format.Size.Height)
@@ -398,7 +398,7 @@ namespace WindowsFormsAppCamera
                 var item = formats[i];
 
                 if (item.MajorType != DirectShow.DsGuid.GetNickname(DirectShow.DsGuid.MEDIATYPE_Video)) continue;
-                if (string.IsNullOrEmpty(format.SubType) == false && format.SubType != item.SubType) continue;
+                if (!string.IsNullOrEmpty(format.SubType) && format.SubType != item.SubType) continue;
                 if (item.Caps.Guid != DirectShow.DsGuid.FORMAT_VideoInfo) continue;
 
                 if (item.Caps.OutputGranularityX == 0) continue;
@@ -545,7 +545,7 @@ namespace WindowsFormsAppCamera
         }
     }
 
-    static class DirectShow
+    internal static class DirectShow
     {
         #region Function
 
@@ -650,7 +650,7 @@ namespace WindowsFormsAppCamera
                     try
                     {
                         var rc = func(moniker, prop);
-                        if (rc == true) break;
+                        if (rc) break;
                     }
                     finally
                     {
@@ -1171,6 +1171,7 @@ namespace WindowsFormsAppCamera
         [ComVisible(false), Flags()]
         public enum CameraControlFlags
         {
+            None = 0,
             Auto = 0x0001,
             Manual = 0x0002,
         }
