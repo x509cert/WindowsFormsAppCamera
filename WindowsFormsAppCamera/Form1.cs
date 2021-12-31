@@ -32,7 +32,7 @@ namespace WindowsFormsAppCamera
         }
 
         // keeps track of log entries for uploading to Azure
-        private class LogQueue : Queue<string>
+        private sealed class LogQueue : Queue<string>
         {
             private const int Max = 20;
             private readonly int _max;
@@ -62,59 +62,69 @@ namespace WindowsFormsAppCamera
 #endregion
 
         #region Class member variables
-        UsbCamera               _camera;
+        private UsbCamera       _camera;
 
-        Config                  _cfg;
+        private Config          _cfg;
 
-        LogQueue                _logQueue;
-        string                  _sLogFilePath;
-        const string            DateTemplate = "MMM dd, HH:mm:ss";
-        const string            DateTemplateShort = "HH:mm:ss";
-        string                  _gatewayIp;
+        private LogQueue        _logQueue;
+        private string          _sLogFilePath;
+        private const string    DateTemplate = "MMM dd, HH:mm:ss";
+        private const string    DateTemplateShort = "HH:mm:ss";
+        private string          _gatewayIp;
 
         // Drone hitbox 
+        private
         const int               XDroneHitBoxStart = 200,     
                                 YDroneHitBoxStart = 200,
                                 XDroneHitBoxEnd = 460,
                                 YDroneHitBoxEnd = 270,
                                 WidthDroneHitBox = XDroneHitBoxEnd - XDroneHitBoxStart,
                                 HeightDroneHitBox = YDroneHitBoxEnd - YDroneHitBoxStart;
+        private 
         readonly Rectangle      _rectDroneHitBox = new Rectangle(XDroneHitBoxStart, YDroneHitBoxStart, WidthDroneHitBox, HeightDroneHitBox);
 
-        Thread                  _threadWorker;
-        Thread                  _threadLog;
-        Thread                  _threadPinger;
+        private Thread          _threadWorker;
+        private Thread          _threadLog;
+        private Thread          _threadPinger;
 
-        SerialPort              _sComPort;
-        const int               ComPortSpeed = 9600;
+        private SerialPort      _sComPort;
+        private const int       ComPortSpeed = 9600;
 
+        private
         bool                    _bLBLongPress=false, 
                                 _bRBLongPress=true;
 
-        bool                    _fKillThreads;
-        System.Timers.Timer     _skillTimer;
-        System.Timers.Timer     _heartbeatTimer;
-        const int               _loopDelay = 200; // 200msec
-        const int               _threadStartDelay = 250;
+        private bool            _fKillThreads;
 
-        bool                    _fUsingLiveScreen = true;
-        TimeSpan                _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
-        readonly TimeSpan       _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
-        int                     _heartBeatSent;
-        const int               MaxIncomingFrames = 10;
+        private System.Timers.Timer     
+                                _skillTimer, _heartbeatTimer;
 
-        SmsAlert                _smsAlert;
+        private const int       _loopDelay = 200; // 200msec
+        private const int       _threadStartDelay = 250;
 
-        readonly Brush          _colorInfo = Brushes.AliceBlue;
-        readonly Pen            _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
+        private bool            _fUsingLiveScreen = true;
+        private TimeSpan        _elapseBetweenDrones = new TimeSpan(0, 0, 9);       // cooldown before we look for drones after detected
+
+        private readonly TimeSpan       
+                                _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
+
+        private int             _heartBeatSent;
+        private const int       MaxIncomingFrames = 10;
+
+        private SmsAlert        _smsAlert;
+
+        private readonly Brush  _colorInfo = Brushes.AliceBlue;
+        private readonly Pen    _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
         // this is for dumping a trace of the screenshots for 20secs - approx 100 images
-        DateTime                _startTraceTimer;                       
-        readonly TimeSpan       _maxTraceTime = new TimeSpan(0, 0, 20); 
+        private DateTime        _startTraceTimer;
+
+        private readonly TimeSpan       
+                                _maxTraceTime = new TimeSpan(0, 0, 20);
 
         // RBG sliding chart and data
-        Chart                   _chartR, _chartG, _chartB;
-        byte[]                  _arrR, _arrG, _arrB;
+        private Chart           _chartR, _chartG, _chartB;
+        private byte[]          _arrR, _arrG, _arrB;
 
         // shared memory for comms to the camera app
         private MMIo            _mmio;
@@ -245,6 +255,7 @@ namespace WindowsFormsAppCamera
                 wc.Headers.Add("user-agent", "DivGrind C# Client");
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 wc.UploadString(_cfg.LogUri, sb.ToString());
+                wc.Dispose();
             } catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Error uploading to Azure {ex.Message}.");
@@ -279,7 +290,7 @@ namespace WindowsFormsAppCamera
         // 5 - set RB to no press
         // 8 - turns off LB no press
         // 9 - turns off RB no press
-        void TriggerArduino(string msg)
+        private void TriggerArduino(string msg)
         {
             Trace.TraceInformation($"TriggerArduino() -> {msg}");
 
@@ -323,7 +334,7 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        void SendHeartbeat(Object source, ElapsedEventArgs e)
+        private void SendHeartbeat(Object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("Heartbeat sent");
 
@@ -711,7 +722,7 @@ namespace WindowsFormsAppCamera
 
         // logic to determine if drones are coming
         // if there is no increase in red, then no drones
-        bool DronesSpotted(ref RgbTotal rbgTotal) => rbgTotal.R > GetRedSpottedPercent();
+        private bool DronesSpotted(ref RgbTotal rbgTotal) => rbgTotal.R > GetRedSpottedPercent();
 
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red

@@ -138,7 +138,8 @@ namespace WindowsFormsAppCamera
             btnTestComPort.Enabled = true;
 
             string sPort = cmbComPorts.SelectedItem.ToString();
-            OpenComPort(sPort);
+            if (!OpenComPort(sPort))
+                MessageBox.Show($"Unable to open {sPort}");
         }
 
         // test the COM port
