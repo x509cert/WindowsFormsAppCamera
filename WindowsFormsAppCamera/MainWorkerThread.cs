@@ -30,7 +30,7 @@ namespace WindowsFormsAppCamera
 
             // sets the darkening red for "Drones Incoming"
             SolidBrush[] colDronesIncomingFade = new SolidBrush[MaxIncomingFrames];
-            const float ratio = 255 / MaxIncomingFrames;
+            const float ratio = 255 / (float)MaxIncomingFrames;
             for (int i=0; i < MaxIncomingFrames; i++)
                 colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
@@ -57,6 +57,7 @@ namespace WindowsFormsAppCamera
                 // using camera
                 if (_fUsingLiveScreen)
                 {
+                    // TODO remove tracing - it's not used anymore
                     bool tracing = false;
 
                     // See if we need to dump traces
@@ -97,9 +98,10 @@ namespace WindowsFormsAppCamera
 
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
-                        if (_smsAlert != null && chkSmsAlerts.Checked)
-                            if (!_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
-                                WriteLog("SMS alert failed");
+                        if (_smsAlert != null    && 
+                            chkSmsAlerts.Checked && 
+                            !_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
+                            WriteLog("SMS alert failed");
                     }
 
                     string droneCooldown = "Drone check: Ready";

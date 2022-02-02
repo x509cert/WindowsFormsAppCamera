@@ -15,7 +15,6 @@ namespace WindowsFormsAppCamera
         private readonly Pen        _5secPen;
         private readonly Pen        _penCalibration;
         private readonly Rectangle  _rect;
-        private readonly int        _loopDelay;
         private readonly int        _5secsMarker;
 
         public Chart(int x, int y, Color col, int loopDelay)
@@ -34,9 +33,8 @@ namespace WindowsFormsAppCamera
             _penCalibration = new Pen(Color.LightGray) {DashStyle = System.Drawing.Drawing2D.DashStyle.Dot};
             _rect = new Rectangle(0, 0, _x, _y);
 
-            _loopDelay = loopDelay;
             _5secsMarker = 5 // seconds  
-                           * (1000 / _loopDelay);
+                           * (1000 / loopDelay);
         }
 
         public void Draw(byte[] arr, byte b, byte? calibration)

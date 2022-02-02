@@ -59,12 +59,11 @@ namespace WindowsFormsAppCamera
 
         // open the COM port
         // returns false on failure, true on success
-        private bool OpenComPort(string comport)
+        private void OpenComPort(string comport)
         {
+            // don't try opening an already open COM port
             if (_sComPort != null)
-                return false;
-
-            var fOk = true;
+                return;
 
             WriteLog($"Attempting to open COM port {comport}");
             try
@@ -80,10 +79,7 @@ namespace WindowsFormsAppCamera
             catch (Exception ex)
             {
                 WriteLog($"EXCEPTION: Unable to open COM port, error is {ex.Message}");
-                fOk = false;
             }
-
-            return fOk;
         }
 
         private string GetArduinoCodeVersion()
@@ -93,7 +89,7 @@ namespace WindowsFormsAppCamera
             try
             {
                 // now check there's an Arduino at the end of the COM port
-                // '+' gets the version info from the DivGrind software
+                // '+' gets the version info froCm the DivGrind software
                 _sComPort.Write("+");
                 Thread.Sleep(100);
 

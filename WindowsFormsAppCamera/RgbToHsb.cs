@@ -6,7 +6,7 @@ using System.Linq;
 namespace WindowsFormsAppCamera
 {
     // Converts RGB to HSB color space
-    public class RgbToHsb
+    public static class RgbToHsb
     {
         public enum Color { Unknown, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple};
 
@@ -17,7 +17,7 @@ namespace WindowsFormsAppCamera
             if (br > 85 && s < 10) return Color.White;
 
             // if R,G and B are all close to each other, then this is gray(ish)
-            float range = 0.17F;
+            const float range = 0.17F;
             float rr1 = r - (r * range), rr2 = r + (r * range);
             float gr1 = g - (g * range), gr2 = g + (g * range);
             float br1 = b - (b * range), br2 = b + (b * range);
@@ -75,7 +75,7 @@ namespace WindowsFormsAppCamera
 
     // Converts RGB to L*a*b* color space
     // Uses Vector4 to take advantage of SIMD instructions https://docs.microsoft.com/en-us/dotnet/standard/simd
-    public class RgbToLab
+    public static class RgbToLab
     {
         public enum Color { Unk, Black, Gray, White, Red, Yellow, Green, Cyan, Blue, Purple };
 
@@ -88,7 +88,7 @@ namespace WindowsFormsAppCamera
             if (l < 16) return Color.Black;
 
             // if R,G and B are all close to each other, then this is gray(ish)
-            float range = 0.17F;
+            const float range = 0.17F;
             float rr1 = r - (r * range), rr2 = r + (r * range);
             float gr1 = g - (g * range), gr2 = g + (g * range);
             float br1 = bl - (bl * range), br2 = bl + (bl * range);
@@ -131,7 +131,7 @@ namespace WindowsFormsAppCamera
             }
             else
             {
-                rgb[0] = rgb[0] / 12.92f;
+                rgb[0] /= 12.92f;
             }
 
             if (rgb[1] > .04045f)
@@ -140,7 +140,7 @@ namespace WindowsFormsAppCamera
             }
             else
             {
-                rgb[1] = rgb[1] / 12.92f;
+                rgb[1] /= 12.92f;
             }
 
             if (rgb[2] > .04045f)
@@ -149,25 +149,24 @@ namespace WindowsFormsAppCamera
             }
             else
             {
-                rgb[2] = rgb[2] / 12.92f;
+                rgb[2] /= 12.92f;
             }
-            rgb[0] = rgb[0] * 100.0f;
-            rgb[1] = rgb[1] * 100.0f;
-            rgb[2] = rgb[2] * 100.0f;
 
+            rgb[0] *= 100.0f;
+            rgb[1] *= 100.0f;
+            rgb[2] *= 100.0f;
 
             xyz[0] = ((rgb[0] * .412453f) + (rgb[1] * .357580f) + (rgb[2] * .180423f));
             xyz[1] = ((rgb[0] * .212671f) + (rgb[1] * .715160f) + (rgb[2] * .072169f));
             xyz[2] = ((rgb[0] * .019334f) + (rgb[1] * .119193f) + (rgb[2] * .950227f));
 
-
-            xyz[0] = xyz[0] / 95.047f;
-            xyz[1] = xyz[1] / 100.0f;
-            xyz[2] = xyz[2] / 108.883f;
+            xyz[0] /= 95.047f;
+            xyz[1] /= 100.0f;
+            xyz[2] /= 108.883f;
 
             if (xyz[0] > .008856f)
             {
-                xyz[0] = (float)Math.Pow(xyz[0], (1.0 / 3.0));
+                xyz[0] = (float)Math.Pow(xyz[0], 1.0 / 3.0);
             }
             else
             {
@@ -202,7 +201,7 @@ namespace WindowsFormsAppCamera
 
     // Converts RGB to closet known color
     // Uses the algorithm here https://en.wikipedia.org/wiki/Color_difference
-    public class RgbToClosest
+    public static class RgbToClosest
     {
         private static readonly Color[] ColorArray = {
                 Color.White,    Color.Gray,     Color.DarkGray, Color.Black,

@@ -6,45 +6,8 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Drawing;
 
-
 namespace WindowsFormsAppCamera
 {
-    // [How to use]
-    // string[] devices = UsbCamera.FindDevices();
-    // if (devices.Length == 0) return; // no camera.
-    //
-    // check format.
-    // int cameraIndex = 0;
-    // UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
-    // for(int i=0; i<formats.Length; i++) Console.WriteLine("{0}:{1}", i, formats[i]);
-    //
-    // create usb camera and start.
-    // var camera = new UsbCamera(cameraIndex, formats[0]);
-    // camera.Start();
-    //
-    // get image.
-    // Immediately after starting the USB camera,
-    // GetBitmap() fails because image buffer is not prepared yet.
-    // var bmp = camera.GetBitmap();
-    //
-    // adjust properties.
-    // UsbCamera.PropertyItems.Property prop;
-    // prop = camera.Properties[DirectShow.CameraControlProperty.Exposure];
-    // if (prop.Available)
-    // {
-    //     prop.SetValue(DirectShow.CameraControlFlags.Manual, prop.Default);
-    // }
-    // 
-    // prop = camera.Properties[DirectShow.VideoProcAmpProperty.WhiteBalance];
-    // if (prop.Available && prop.CanAuto)
-    // {
-    //     prop.SetValue(DirectShow.CameraControlFlags.Auto, 0);
-    // }
-
-    // [Note]
-    // By default, GetBitmap() returns image of System.Drawing.Bitmap.
-    // If WPF, define 'USBCAMERA_WPF' symbol that makes GetBitmap() returns image of BitmapSource.
-
     class UsbCamera
     {
         /// <summary>Usb camera image size.</summary>
@@ -106,14 +69,6 @@ namespace WindowsFormsAppCamera
 
         private void Init(int index, VideoFormat format)
         {
-            //----------------------------------
-            // Create Filter Graph
-            //----------------------------------
-            // +--------------------+  +----------------+  +---------------+
-            // |Video Capture Source|→| Sample Grabber |→| Null Renderer |
-            // +--------------------+  +----------------+  +---------------+
-            //                                 ↓GetBitmap()
-
             var graph = DirectShow.CreateGraph();
 
             //----------------------------------
@@ -128,7 +83,7 @@ namespace WindowsFormsAppCamera
             var grabber = CreateSampleGrabber();
             graph.AddFilter(grabber, "SampleGrabber");
             var i_grabber = (DirectShow.ISampleGrabber)grabber;
-            i_grabber.SetBufferSamples(true); 
+            i_grabber.SetBufferSamples(true);
 
             //---------------------------------------------------
             // Null Renderer
@@ -159,7 +114,6 @@ namespace WindowsFormsAppCamera
 
                 // fix screen tearing problem(issue #2)
                 // you can use previous method if you swap the comment line below.
-                // GetBitmap = () => GetBitmapFromSampleGrabberBuffer(i_grabber, width, height, stride);
                 GetBitmap = GetBitmapFromSampleGrabberCallback(i_grabber, width, height, stride);
             }
 
@@ -491,7 +445,6 @@ namespace WindowsFormsAppCamera
 
             DirectShow.AM_MEDIA_TYPE mt = null;
             config.GetStreamCaps(index, ref mt, cap_data);
-            //var cap = PtrToStructure<DirectShow.VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
             if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo)
             {
@@ -592,7 +545,7 @@ namespace WindowsFormsAppCamera
 
                 result.Add(name);
 
-                return false; 
+                return false;
             });
 
             return result;
@@ -680,7 +633,7 @@ namespace WindowsFormsAppCamera
             {
                 if (info.dir != direction) return false;
 
-                return (index == curr_index++);
+                return index == curr_index++;
             });
 
             if (result == null) throw new ArgumentException("can't fild pin.");
@@ -742,7 +695,6 @@ namespace WindowsFormsAppCamera
         }
 
         #endregion
-
 
         #region Interface
 
@@ -812,7 +764,6 @@ namespace WindowsFormsAppCamera
             int Progress(int iProgress);
         }
 
-
         [ComVisible(true), ComImport(), Guid("C6E13370-30AC-11d0-A18C-00A0C9118956"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IAMCameraControl
         {
@@ -821,7 +772,6 @@ namespace WindowsFormsAppCamera
             int Get([In] CameraControlProperty Property, [In, Out] ref int lValue, [In, Out] ref int flags);
         }
 
-
         [ComVisible(true), ComImport(), Guid("C6E13360-30AC-11d0-A18C-00A0C9118956"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IAMVideoProcAmp
         {
@@ -829,7 +779,6 @@ namespace WindowsFormsAppCamera
             int Set([In] VideoProcAmpProperty Property, [In] int lValue, [In] int flags);
             int Get([In] VideoProcAmpProperty Property, [In, Out] ref int lValue, [In, Out] ref int flags);
         }
-
 
         [ComVisible(true), ComImport(), Guid("6A2E0670-28E4-11D0-A18C-00A0C9118956"), System.Security.SuppressUnmanagedCodeSecurity, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IAMVideoControl
@@ -863,7 +812,6 @@ namespace WindowsFormsAppCamera
             int JoinFilterGraph([In] IFilterGraph pGraph, [In, MarshalAs(UnmanagedType.LPWStr)] string pName);
             int QueryVendorInfo([In, Out, MarshalAs(UnmanagedType.LPWStr)] ref string pVendorInfo);
         }
-
 
         /// <summary>
         /// フィルタ グラフ内のフィルタを列挙するインタフェース.
@@ -989,7 +937,6 @@ namespace WindowsFormsAppCamera
         }
 
         #endregion
-
 
         #region Structure
 
@@ -1138,7 +1085,6 @@ namespace WindowsFormsAppCamera
         }
         #endregion
 
-
         #region Enum
 
         [ComVisible(false)]
@@ -1192,7 +1138,6 @@ namespace WindowsFormsAppCamera
         }
 
         #endregion
-
 
         #region Guid
 
