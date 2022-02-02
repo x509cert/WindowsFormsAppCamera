@@ -58,7 +58,6 @@ namespace WindowsFormsAppCamera
         }
 
         // open the COM port
-        // returns false on failure, true on success
         private void OpenComPort(string comport)
         {
             // don't try opening an already open COM port
