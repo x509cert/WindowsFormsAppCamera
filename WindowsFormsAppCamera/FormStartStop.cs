@@ -92,11 +92,7 @@ namespace WindowsFormsAppCamera
                 cmbComPorts.Items.Add(p);
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
-            if (!OpenComPort(_cfg.ComPort))
-            {
-                MessageBox.Show($"Unable to open {_cfg.ComPort}");
-                return;
-            }
+            OpenComPort(_cfg.ComPort);
 
             // camera details
             cmbCamera.SelectedIndex = _cfg.Camera;
