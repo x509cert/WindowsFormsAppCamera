@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Diagnostics;
-using System.Drawing.Imaging;
 
 namespace WindowsFormsAppCamera
 {
@@ -152,10 +151,10 @@ namespace WindowsFormsAppCamera
                         Trace.TraceInformation("Drone Spotted");
 
                         // used to slow the pulse down if there is more than one pulse
-                        if (chkLaunchDelay.Checked == true)
+                        if (_fDelayEMP == true)
                         {
                             Trace.TraceInformation("EMP Delayed");
-                            Thread.Sleep(200);
+                            Thread.Sleep(333);
                         }
 
                         dtLastDroneSpotted = DateTime.Now;

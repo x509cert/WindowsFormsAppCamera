@@ -630,6 +630,7 @@ namespace WindowsFormsAppCamera
             this.chkLaunchDelay.TabIndex = 60;
             this.chkLaunchDelay.Text = "Launch Delay";
             this.chkLaunchDelay.UseVisualStyleBackColor = true;
+            this.chkLaunchDelay.CheckedChanged += new System.EventHandler(this.chkLaunchDelay_CheckedChanged);
             // 
             // Form1
             // 

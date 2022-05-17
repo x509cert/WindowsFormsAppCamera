@@ -116,15 +116,14 @@ namespace WindowsFormsAppCamera
         private readonly Brush  _colorInfo = Brushes.AliceBlue;
         private readonly Pen    _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
-        private readonly TimeSpan       
-                                _maxTraceTime = new TimeSpan(0, 0, 20);
-
         // RBG sliding chart and data
         private Chart           _chartR, _chartG, _chartB;
         private byte[]          _arrR, _arrG, _arrB;
 
         // shared memory for comms to the camera app
         private MMIo            _mmio;
+
+        private bool            _fDelayEMP = false;
 
         #endregion
 
@@ -147,7 +146,7 @@ namespace WindowsFormsAppCamera
                 {
                     case 'H': s += "Heartbeat";             break;
                     case 'V': s += "Verify comms";          break;
-                    case '+': s += "Ger version";           break;
+                    case '+': s += "Get version";           break;
 
                     case 'E': s += "EMP";                   break;
                     case 'T': s += "Turret";                break;
@@ -651,6 +650,9 @@ namespace WindowsFormsAppCamera
 
         // does nothing, sets no state - other code reads this UI element directly
         private void txtSmsEnabled_Click(object sender, EventArgs e) {}
+
+        private void chkLaunchDelay_CheckedChanged(object sender, EventArgs e) 
+            => _fDelayEMP = chkLaunchDelay.Checked;
 
         private void numLongDelayOffset_ValueChanged(object sender, EventArgs e)
         {
