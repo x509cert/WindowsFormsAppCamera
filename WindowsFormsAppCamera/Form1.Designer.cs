@@ -65,7 +65,6 @@ namespace WindowsFormsAppCamera
             this.txtName = new System.Windows.Forms.TextBox();
             this.btnTestComPort = new System.Windows.Forms.Button();
             this.btnTestSms = new System.Windows.Forms.Button();
-            this.btnTrace = new System.Windows.Forms.Button();
             this.numDroneDelay = new System.Windows.Forms.NumericUpDown();
             this.lblDroneDelay = new System.Windows.Forms.Label();
             this.pictR = new System.Windows.Forms.PictureBox();
@@ -91,18 +90,20 @@ namespace WindowsFormsAppCamera
             // pictCamera
             // 
             this.pictCamera.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictCamera.Location = new System.Drawing.Point(19, 179);
+            this.pictCamera.Location = new System.Drawing.Point(13, 116);
+            this.pictCamera.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictCamera.Name = "pictCamera";
-            this.pictCamera.Size = new System.Drawing.Size(640, 480);
+            this.pictCamera.Size = new System.Drawing.Size(427, 313);
             this.pictCamera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictCamera.TabIndex = 0;
             this.pictCamera.TabStop = false;
             // 
             // btnCalibrate
             // 
-            this.btnCalibrate.Location = new System.Drawing.Point(19, 752);
+            this.btnCalibrate.Location = new System.Drawing.Point(13, 489);
+            this.btnCalibrate.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnCalibrate.Name = "btnCalibrate";
-            this.btnCalibrate.Size = new System.Drawing.Size(106, 40);
+            this.btnCalibrate.Size = new System.Drawing.Size(71, 26);
             this.btnCalibrate.TabIndex = 1;
             this.btnCalibrate.Text = "Calibrate";
             this.btnCalibrate.UseVisualStyleBackColor = true;
@@ -110,9 +111,10 @@ namespace WindowsFormsAppCamera
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(129, 752);
+            this.btnStart.Location = new System.Drawing.Point(86, 489);
+            this.btnStart.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(106, 40);
+            this.btnStart.Size = new System.Drawing.Size(71, 26);
             this.btnStart.TabIndex = 13;
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -120,9 +122,10 @@ namespace WindowsFormsAppCamera
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(240, 752);
+            this.btnStop.Location = new System.Drawing.Point(160, 489);
+            this.btnStop.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(106, 40);
+            this.btnStop.Size = new System.Drawing.Size(71, 26);
             this.btnStop.TabIndex = 14;
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
@@ -131,16 +134,18 @@ namespace WindowsFormsAppCamera
             // lblDrones
             // 
             this.lblDrones.AutoSize = true;
-            this.lblDrones.Location = new System.Drawing.Point(838, 223);
+            this.lblDrones.Location = new System.Drawing.Point(559, 145);
+            this.lblDrones.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblDrones.Name = "lblDrones";
-            this.lblDrones.Size = new System.Drawing.Size(0, 20);
+            this.lblDrones.Size = new System.Drawing.Size(0, 13);
             this.lblDrones.TabIndex = 15;
             // 
             // btnSaveBmp
             // 
-            this.btnSaveBmp.Location = new System.Drawing.Point(464, 755);
+            this.btnSaveBmp.Location = new System.Drawing.Point(309, 491);
+            this.btnSaveBmp.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnSaveBmp.Name = "btnSaveBmp";
-            this.btnSaveBmp.Size = new System.Drawing.Size(95, 40);
+            this.btnSaveBmp.Size = new System.Drawing.Size(63, 26);
             this.btnSaveBmp.TabIndex = 16;
             this.btnSaveBmp.Text = "Save BMP";
             this.btnSaveBmp.UseVisualStyleBackColor = true;
@@ -148,9 +153,10 @@ namespace WindowsFormsAppCamera
             // 
             // btnToggleBlankOrLiveScreen
             // 
-            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(352, 754);
+            this.btnToggleBlankOrLiveScreen.Location = new System.Drawing.Point(235, 490);
+            this.btnToggleBlankOrLiveScreen.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnToggleBlankOrLiveScreen.Name = "btnToggleBlankOrLiveScreen";
-            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(106, 40);
+            this.btnToggleBlankOrLiveScreen.Size = new System.Drawing.Size(71, 26);
             this.btnToggleBlankOrLiveScreen.TabIndex = 17;
             this.btnToggleBlankOrLiveScreen.Text = "To Blank";
             this.btnToggleBlankOrLiveScreen.UseVisualStyleBackColor = true;
@@ -159,9 +165,10 @@ namespace WindowsFormsAppCamera
             // btnRecalLeftLess
             // 
             this.btnRecalLeftLess.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnRecalLeftLess.Location = new System.Drawing.Point(97, 25);
+            this.btnRecalLeftLess.Location = new System.Drawing.Point(65, 16);
+            this.btnRecalLeftLess.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnRecalLeftLess.Name = "btnRecalLeftLess";
-            this.btnRecalLeftLess.Size = new System.Drawing.Size(67, 41);
+            this.btnRecalLeftLess.Size = new System.Drawing.Size(45, 27);
             this.btnRecalLeftLess.TabIndex = 18;
             this.btnRecalLeftLess.Text = "Less";
             this.btnRecalLeftLess.UseVisualStyleBackColor = true;
@@ -170,9 +177,10 @@ namespace WindowsFormsAppCamera
             // btnRecalLeftMore
             // 
             this.btnRecalLeftMore.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnRecalLeftMore.Location = new System.Drawing.Point(174, 25);
+            this.btnRecalLeftMore.Location = new System.Drawing.Point(116, 16);
+            this.btnRecalLeftMore.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnRecalLeftMore.Name = "btnRecalLeftMore";
-            this.btnRecalLeftMore.Size = new System.Drawing.Size(67, 41);
+            this.btnRecalLeftMore.Size = new System.Drawing.Size(45, 27);
             this.btnRecalLeftMore.TabIndex = 19;
             this.btnRecalLeftMore.Text = "More";
             this.btnRecalLeftMore.UseMnemonic = false;
@@ -182,9 +190,10 @@ namespace WindowsFormsAppCamera
             // btnRecalRightMore
             // 
             this.btnRecalRightMore.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnRecalRightMore.Location = new System.Drawing.Point(169, 25);
+            this.btnRecalRightMore.Location = new System.Drawing.Point(113, 16);
+            this.btnRecalRightMore.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnRecalRightMore.Name = "btnRecalRightMore";
-            this.btnRecalRightMore.Size = new System.Drawing.Size(67, 41);
+            this.btnRecalRightMore.Size = new System.Drawing.Size(45, 27);
             this.btnRecalRightMore.TabIndex = 21;
             this.btnRecalRightMore.Text = "More";
             this.tpTooltip.SetToolTip(this.btnRecalRightMore, "Hello!");
@@ -194,9 +203,10 @@ namespace WindowsFormsAppCamera
             // btnRecalRightLess
             // 
             this.btnRecalRightLess.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnRecalRightLess.Location = new System.Drawing.Point(96, 25);
+            this.btnRecalRightLess.Location = new System.Drawing.Point(64, 16);
+            this.btnRecalRightLess.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnRecalRightLess.Name = "btnRecalRightLess";
-            this.btnRecalRightLess.Size = new System.Drawing.Size(67, 41);
+            this.btnRecalRightLess.Size = new System.Drawing.Size(45, 27);
             this.btnRecalRightLess.TabIndex = 20;
             this.btnRecalRightLess.Text = "Less";
             this.btnRecalRightLess.UseVisualStyleBackColor = true;
@@ -205,9 +215,10 @@ namespace WindowsFormsAppCamera
             // btnAllUp
             // 
             this.btnAllUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAllUp.Location = new System.Drawing.Point(282, 833);
+            this.btnAllUp.Location = new System.Drawing.Point(188, 541);
+            this.btnAllUp.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnAllUp.Name = "btnAllUp";
-            this.btnAllUp.Size = new System.Drawing.Size(60, 30);
+            this.btnAllUp.Size = new System.Drawing.Size(40, 20);
             this.btnAllUp.TabIndex = 24;
             this.btnAllUp.Text = "All Up";
             this.btnAllUp.UseVisualStyleBackColor = true;
@@ -217,9 +228,10 @@ namespace WindowsFormsAppCamera
             // 
             this.cmbCamera.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbCamera.FormattingEnabled = true;
-            this.cmbCamera.Location = new System.Drawing.Point(138, 12);
+            this.cmbCamera.Location = new System.Drawing.Point(92, 8);
+            this.cmbCamera.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cmbCamera.Name = "cmbCamera";
-            this.cmbCamera.Size = new System.Drawing.Size(521, 28);
+            this.cmbCamera.Size = new System.Drawing.Size(349, 21);
             this.cmbCamera.TabIndex = 25;
             this.cmbCamera.SelectedIndexChanged += new System.EventHandler(this.cmbCamera_SelectedIndexChanged);
             // 
@@ -227,9 +239,10 @@ namespace WindowsFormsAppCamera
             // 
             this.cmbCameraFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbCameraFormat.FormattingEnabled = true;
-            this.cmbCameraFormat.Location = new System.Drawing.Point(138, 51);
+            this.cmbCameraFormat.Location = new System.Drawing.Point(92, 33);
+            this.cmbCameraFormat.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cmbCameraFormat.Name = "cmbCameraFormat";
-            this.cmbCameraFormat.Size = new System.Drawing.Size(521, 28);
+            this.cmbCameraFormat.Size = new System.Drawing.Size(349, 21);
             this.cmbCameraFormat.TabIndex = 26;
             this.cmbCameraFormat.SelectedIndexChanged += new System.EventHandler(this.cmbCameraFormat_SelectedIndexChanged);
             // 
@@ -237,45 +250,50 @@ namespace WindowsFormsAppCamera
             // 
             this.cmbComPorts.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbComPorts.FormattingEnabled = true;
-            this.cmbComPorts.Location = new System.Drawing.Point(138, 89);
+            this.cmbComPorts.Location = new System.Drawing.Point(92, 58);
+            this.cmbComPorts.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cmbComPorts.Name = "cmbComPorts";
-            this.cmbComPorts.Size = new System.Drawing.Size(151, 28);
+            this.cmbComPorts.Size = new System.Drawing.Size(102, 21);
             this.cmbComPorts.TabIndex = 27;
             this.cmbComPorts.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(21, 15);
+            this.label1.Location = new System.Drawing.Point(14, 10);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(69, 20);
+            this.label1.Size = new System.Drawing.Size(46, 13);
             this.label1.TabIndex = 28;
             this.label1.Text = "Camera:";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(21, 59);
+            this.label3.Location = new System.Drawing.Point(14, 38);
+            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(109, 20);
+            this.label3.Size = new System.Drawing.Size(72, 13);
             this.label3.TabIndex = 29;
             this.label3.Text = "Video Format:";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(21, 99);
+            this.label6.Location = new System.Drawing.Point(14, 64);
+            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(82, 20);
+            this.label6.Size = new System.Drawing.Size(56, 13);
             this.label6.TabIndex = 30;
             this.label6.Text = "COM Port:";
             // 
             // btnPressLB
             // 
             this.btnPressLB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnPressLB.Location = new System.Drawing.Point(23, 25);
+            this.btnPressLB.Location = new System.Drawing.Point(15, 16);
+            this.btnPressLB.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnPressLB.Name = "btnPressLB";
-            this.btnPressLB.Size = new System.Drawing.Size(67, 41);
+            this.btnPressLB.Size = new System.Drawing.Size(45, 27);
             this.btnPressLB.TabIndex = 32;
             this.btnPressLB.Text = "Press";
             this.btnPressLB.UseVisualStyleBackColor = true;
@@ -284,9 +302,10 @@ namespace WindowsFormsAppCamera
             // btnPressRB
             // 
             this.btnPressRB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.btnPressRB.Location = new System.Drawing.Point(23, 25);
+            this.btnPressRB.Location = new System.Drawing.Point(15, 16);
+            this.btnPressRB.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnPressRB.Name = "btnPressRB";
-            this.btnPressRB.Size = new System.Drawing.Size(67, 41);
+            this.btnPressRB.Size = new System.Drawing.Size(45, 27);
             this.btnPressRB.TabIndex = 33;
             this.btnPressRB.Text = "Press";
             this.btnPressRB.UseVisualStyleBackColor = true;
@@ -294,14 +313,15 @@ namespace WindowsFormsAppCamera
             // 
             // numTrigger
             // 
-            this.numTrigger.Location = new System.Drawing.Point(398, 135);
+            this.numTrigger.Location = new System.Drawing.Point(265, 88);
+            this.numTrigger.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.numTrigger.Minimum = new decimal(new int[] {
             10,
             0,
             0,
             0});
             this.numTrigger.Name = "numTrigger";
-            this.numTrigger.Size = new System.Drawing.Size(72, 26);
+            this.numTrigger.Size = new System.Drawing.Size(48, 20);
             this.numTrigger.TabIndex = 39;
             this.numTrigger.Value = new decimal(new int[] {
             10,
@@ -313,9 +333,10 @@ namespace WindowsFormsAppCamera
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(313, 139);
+            this.label8.Location = new System.Drawing.Point(209, 90);
+            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(80, 20);
+            this.label8.Size = new System.Drawing.Size(54, 13);
             this.label8.TabIndex = 40;
             this.label8.Text = "Trigger %:";
             this.label8.Click += new System.EventHandler(this.label8_Click);
@@ -328,9 +349,11 @@ namespace WindowsFormsAppCamera
             this.groupBox1.Controls.Add(this.btnPressLB);
             this.groupBox1.Controls.Add(this.btnRecalLeftLess);
             this.groupBox1.Controls.Add(this.btnRecalLeftMore);
-            this.groupBox1.Location = new System.Drawing.Point(19, 815);
+            this.groupBox1.Location = new System.Drawing.Point(13, 530);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(260, 129);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox1.Size = new System.Drawing.Size(173, 84);
             this.groupBox1.TabIndex = 41;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "LB";
@@ -338,9 +361,10 @@ namespace WindowsFormsAppCamera
             // radLBNoPress
             // 
             this.radLBNoPress.AutoSize = true;
-            this.radLBNoPress.Location = new System.Drawing.Point(178, 87);
+            this.radLBNoPress.Location = new System.Drawing.Point(119, 57);
+            this.radLBNoPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radLBNoPress.Name = "radLBNoPress";
-            this.radLBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radLBNoPress.Size = new System.Drawing.Size(51, 17);
             this.radLBNoPress.TabIndex = 59;
             this.radLBNoPress.TabStop = true;
             this.radLBNoPress.Text = "None";
@@ -350,9 +374,10 @@ namespace WindowsFormsAppCamera
             // radLBShortPress
             // 
             this.radLBShortPress.AutoSize = true;
-            this.radLBShortPress.Location = new System.Drawing.Point(97, 87);
+            this.radLBShortPress.Location = new System.Drawing.Point(65, 57);
+            this.radLBShortPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radLBShortPress.Name = "radLBShortPress";
-            this.radLBShortPress.Size = new System.Drawing.Size(73, 24);
+            this.radLBShortPress.Size = new System.Drawing.Size(50, 17);
             this.radLBShortPress.TabIndex = 58;
             this.radLBShortPress.TabStop = true;
             this.radLBShortPress.Text = "Short";
@@ -362,9 +387,10 @@ namespace WindowsFormsAppCamera
             // radLBLongPress
             // 
             this.radLBLongPress.AutoSize = true;
-            this.radLBLongPress.Location = new System.Drawing.Point(20, 87);
+            this.radLBLongPress.Location = new System.Drawing.Point(13, 57);
+            this.radLBLongPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radLBLongPress.Name = "radLBLongPress";
-            this.radLBLongPress.Size = new System.Drawing.Size(70, 24);
+            this.radLBLongPress.Size = new System.Drawing.Size(49, 17);
             this.radLBLongPress.TabIndex = 57;
             this.radLBLongPress.TabStop = true;
             this.radLBLongPress.Text = "Long";
@@ -379,9 +405,11 @@ namespace WindowsFormsAppCamera
             this.groupBox2.Controls.Add(this.btnPressRB);
             this.groupBox2.Controls.Add(this.btnRecalRightLess);
             this.groupBox2.Controls.Add(this.btnRecalRightMore);
-            this.groupBox2.Location = new System.Drawing.Point(405, 815);
+            this.groupBox2.Location = new System.Drawing.Point(270, 530);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(260, 129);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox2.Size = new System.Drawing.Size(173, 84);
             this.groupBox2.TabIndex = 42;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "RB";
@@ -389,9 +417,10 @@ namespace WindowsFormsAppCamera
             // radRBNoPress
             // 
             this.radRBNoPress.AutoSize = true;
-            this.radRBNoPress.Location = new System.Drawing.Point(175, 87);
+            this.radRBNoPress.Location = new System.Drawing.Point(117, 57);
+            this.radRBNoPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radRBNoPress.Name = "radRBNoPress";
-            this.radRBNoPress.Size = new System.Drawing.Size(72, 24);
+            this.radRBNoPress.Size = new System.Drawing.Size(51, 17);
             this.radRBNoPress.TabIndex = 61;
             this.radRBNoPress.TabStop = true;
             this.radRBNoPress.Text = "None";
@@ -401,9 +430,10 @@ namespace WindowsFormsAppCamera
             // radRBShortPress
             // 
             this.radRBShortPress.AutoSize = true;
-            this.radRBShortPress.Location = new System.Drawing.Point(96, 87);
+            this.radRBShortPress.Location = new System.Drawing.Point(64, 57);
+            this.radRBShortPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radRBShortPress.Name = "radRBShortPress";
-            this.radRBShortPress.Size = new System.Drawing.Size(73, 24);
+            this.radRBShortPress.Size = new System.Drawing.Size(50, 17);
             this.radRBShortPress.TabIndex = 60;
             this.radRBShortPress.TabStop = true;
             this.radRBShortPress.Text = "Short";
@@ -413,9 +443,10 @@ namespace WindowsFormsAppCamera
             // radRBLongPress
             // 
             this.radRBLongPress.AutoSize = true;
-            this.radRBLongPress.Location = new System.Drawing.Point(20, 87);
+            this.radRBLongPress.Location = new System.Drawing.Point(13, 57);
+            this.radRBLongPress.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radRBLongPress.Name = "radRBLongPress";
-            this.radRBLongPress.Size = new System.Drawing.Size(70, 24);
+            this.radRBLongPress.Size = new System.Drawing.Size(49, 17);
             this.radRBLongPress.TabIndex = 59;
             this.radRBLongPress.TabStop = true;
             this.radRBLongPress.Text = "Long";
@@ -425,17 +456,19 @@ namespace WindowsFormsAppCamera
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(24, 141);
+            this.label4.Location = new System.Drawing.Point(16, 92);
+            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(55, 20);
+            this.label4.Size = new System.Drawing.Size(38, 13);
             this.label4.TabIndex = 43;
             this.label4.Text = "Name:";
             // 
             // txtName
             // 
-            this.txtName.Location = new System.Drawing.Point(138, 136);
+            this.txtName.Location = new System.Drawing.Point(92, 88);
+            this.txtName.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(170, 26);
+            this.txtName.Size = new System.Drawing.Size(115, 20);
             this.txtName.TabIndex = 44;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
             // 
@@ -443,9 +476,10 @@ namespace WindowsFormsAppCamera
             // 
             this.btnTestComPort.Enabled = false;
             this.btnTestComPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnTestComPort.Location = new System.Drawing.Point(299, 87);
+            this.btnTestComPort.Location = new System.Drawing.Point(199, 57);
+            this.btnTestComPort.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnTestComPort.Name = "btnTestComPort";
-            this.btnTestComPort.Size = new System.Drawing.Size(68, 31);
+            this.btnTestComPort.Size = new System.Drawing.Size(45, 20);
             this.btnTestComPort.TabIndex = 31;
             this.btnTestComPort.Text = "Test";
             this.btnTestComPort.UseVisualStyleBackColor = true;
@@ -455,27 +489,19 @@ namespace WindowsFormsAppCamera
             // 
             this.btnTestSms.Enabled = false;
             this.btnTestSms.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnTestSms.Location = new System.Drawing.Point(591, 87);
+            this.btnTestSms.Location = new System.Drawing.Point(394, 57);
+            this.btnTestSms.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnTestSms.Name = "btnTestSms";
-            this.btnTestSms.Size = new System.Drawing.Size(68, 31);
+            this.btnTestSms.Size = new System.Drawing.Size(45, 20);
             this.btnTestSms.TabIndex = 47;
             this.btnTestSms.Text = "Test";
             this.btnTestSms.UseVisualStyleBackColor = true;
             this.btnTestSms.Click += new System.EventHandler(this.btnTestSms_Click);
             // 
-            // btnTrace
-            // 
-            this.btnTrace.Location = new System.Drawing.Point(564, 755);
-            this.btnTrace.Name = "btnTrace";
-            this.btnTrace.Size = new System.Drawing.Size(95, 40);
-            this.btnTrace.TabIndex = 48;
-            this.btnTrace.Text = "20s Trace";
-            this.btnTrace.UseVisualStyleBackColor = true;
-            this.btnTrace.Click += new System.EventHandler(this.btnTrace_Click);
-            // 
             // numDroneDelay
             // 
-            this.numDroneDelay.Location = new System.Drawing.Point(585, 137);
+            this.numDroneDelay.Location = new System.Drawing.Point(390, 89);
+            this.numDroneDelay.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.numDroneDelay.Maximum = new decimal(new int[] {
             15,
             0,
@@ -487,7 +513,7 @@ namespace WindowsFormsAppCamera
             0,
             0});
             this.numDroneDelay.Name = "numDroneDelay";
-            this.numDroneDelay.Size = new System.Drawing.Size(72, 26);
+            this.numDroneDelay.Size = new System.Drawing.Size(48, 20);
             this.numDroneDelay.TabIndex = 49;
             this.numDroneDelay.Value = new decimal(new int[] {
             10,
@@ -499,42 +525,47 @@ namespace WindowsFormsAppCamera
             // lblDroneDelay
             // 
             this.lblDroneDelay.AutoSize = true;
-            this.lblDroneDelay.Location = new System.Drawing.Point(480, 139);
+            this.lblDroneDelay.Location = new System.Drawing.Point(320, 90);
+            this.lblDroneDelay.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblDroneDelay.Name = "lblDroneDelay";
-            this.lblDroneDelay.Size = new System.Drawing.Size(101, 20);
+            this.lblDroneDelay.Size = new System.Drawing.Size(69, 13);
             this.lblDroneDelay.TabIndex = 50;
             this.lblDroneDelay.Text = "Drone Delay:";
             // 
             // pictR
             // 
-            this.pictR.Location = new System.Drawing.Point(19, 665);
+            this.pictR.Location = new System.Drawing.Point(13, 432);
+            this.pictR.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictR.Name = "pictR";
-            this.pictR.Size = new System.Drawing.Size(210, 65);
+            this.pictR.Size = new System.Drawing.Size(140, 42);
             this.pictR.TabIndex = 52;
             this.pictR.TabStop = false;
             // 
             // pictG
             // 
-            this.pictG.Location = new System.Drawing.Point(234, 665);
+            this.pictG.Location = new System.Drawing.Point(156, 432);
+            this.pictG.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictG.Name = "pictG";
-            this.pictG.Size = new System.Drawing.Size(210, 65);
+            this.pictG.Size = new System.Drawing.Size(140, 42);
             this.pictG.TabIndex = 53;
             this.pictG.TabStop = false;
             // 
             // pictB
             // 
-            this.pictB.Location = new System.Drawing.Point(448, 665);
+            this.pictB.Location = new System.Drawing.Point(299, 432);
+            this.pictB.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictB.Name = "pictB";
-            this.pictB.Size = new System.Drawing.Size(210, 65);
+            this.pictB.Size = new System.Drawing.Size(140, 42);
             this.pictB.TabIndex = 54;
             this.pictB.TabStop = false;
             // 
             // lblVersionInfo
             // 
             this.lblVersionInfo.AutoSize = true;
-            this.lblVersionInfo.Location = new System.Drawing.Point(15, 970);
+            this.lblVersionInfo.Location = new System.Drawing.Point(10, 630);
+            this.lblVersionInfo.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblVersionInfo.Name = "lblVersionInfo";
-            this.lblVersionInfo.Size = new System.Drawing.Size(85, 20);
+            this.lblVersionInfo.Size = new System.Drawing.Size(58, 13);
             this.lblVersionInfo.TabIndex = 55;
             this.lblVersionInfo.Text = "versioninfo";
             this.lblVersionInfo.Click += new System.EventHandler(this.lblVersionInfo_Click);
@@ -542,9 +573,10 @@ namespace WindowsFormsAppCamera
             // btnResetOffsets
             // 
             this.btnResetOffsets.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetOffsets.Location = new System.Drawing.Point(343, 833);
+            this.btnResetOffsets.Location = new System.Drawing.Point(229, 541);
+            this.btnResetOffsets.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnResetOffsets.Name = "btnResetOffsets";
-            this.btnResetOffsets.Size = new System.Drawing.Size(60, 30);
+            this.btnResetOffsets.Size = new System.Drawing.Size(40, 20);
             this.btnResetOffsets.TabIndex = 56;
             this.btnResetOffsets.Text = "Reset";
             this.btnResetOffsets.UseVisualStyleBackColor = true;
@@ -552,9 +584,10 @@ namespace WindowsFormsAppCamera
             // 
             // chkSmsAlerts
             // 
-            this.chkSmsAlerts.Location = new System.Drawing.Point(459, 89);
+            this.chkSmsAlerts.Location = new System.Drawing.Point(306, 58);
+            this.chkSmsAlerts.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.chkSmsAlerts.Name = "chkSmsAlerts";
-            this.chkSmsAlerts.Size = new System.Drawing.Size(122, 30);
+            this.chkSmsAlerts.Size = new System.Drawing.Size(81, 20);
             this.chkSmsAlerts.TabIndex = 57;
             this.chkSmsAlerts.Text = "SMS alerts";
             this.chkSmsAlerts.UseVisualStyleBackColor = true;
@@ -565,31 +598,33 @@ namespace WindowsFormsAppCamera
             // 
             // numLongDelayOffset
             // 
-            this.numLongDelayOffset.Location = new System.Drawing.Point(289, 912);
+            this.numLongDelayOffset.Location = new System.Drawing.Point(193, 593);
+            this.numLongDelayOffset.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.numLongDelayOffset.Maximum = new decimal(new int[] {
             8,
             0,
             0,
             0});
             this.numLongDelayOffset.Name = "numLongDelayOffset";
-            this.numLongDelayOffset.Size = new System.Drawing.Size(103, 26);
+            this.numLongDelayOffset.Size = new System.Drawing.Size(69, 20);
             this.numLongDelayOffset.TabIndex = 58;
             this.numLongDelayOffset.ValueChanged += new System.EventHandler(this.numLongDelayOffset_ValueChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(285, 885);
+            this.label2.Location = new System.Drawing.Point(190, 575);
+            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(90, 20);
+            this.label2.Size = new System.Drawing.Size(60, 13);
             this.label2.TabIndex = 59;
             this.label2.Text = "Long offset";
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(677, 1006);
+            this.ClientSize = new System.Drawing.Size(451, 654);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.numLongDelayOffset);
             this.Controls.Add(this.chkSmsAlerts);
@@ -600,7 +635,6 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.pictR);
             this.Controls.Add(this.lblDroneDelay);
             this.Controls.Add(this.numDroneDelay);
-            this.Controls.Add(this.btnTrace);
             this.Controls.Add(this.btnTestSms);
             this.Controls.Add(this.txtName);
             this.Controls.Add(this.label4);
@@ -625,6 +659,7 @@ namespace WindowsFormsAppCamera
             this.Controls.Add(this.pictCamera);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "Form1";
             this.Text = "DivGrind Gen 2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_Closing);
@@ -675,7 +710,6 @@ namespace WindowsFormsAppCamera
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.Button btnTestComPort;
         private System.Windows.Forms.Button btnTestSms;
-        private System.Windows.Forms.Button btnTrace;
         private System.Windows.Forms.NumericUpDown numDroneDelay;
         private System.Windows.Forms.Label lblDroneDelay;
         private System.Windows.Forms.PictureBox pictR;

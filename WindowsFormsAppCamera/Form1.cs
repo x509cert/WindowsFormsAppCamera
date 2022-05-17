@@ -539,13 +539,6 @@ namespace WindowsFormsAppCamera
                     WriteLog("SMS test alert failed");
         }
 
-        // start a timer that creates screen shots
-        private void btnTrace_Click(object sender, EventArgs e)
-        {
-            _startTraceTimer = DateTime.Now;
-            btnTrace.Enabled = false;
-        }
-
         // start drone monitoring
         private void btnStart_Click(object sender, EventArgs e)
         {

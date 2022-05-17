@@ -41,9 +41,6 @@ namespace WindowsFormsAppCamera
             WriteLog("Worker thread start");
 
             SetSkillTimer();
-            
-            // give each screen shot image a unique number
-            uint traceCounter = 0;
 
             // memory-mapped IO for sending details to the camera app
             _mmio = new MMIo();
@@ -57,26 +54,6 @@ namespace WindowsFormsAppCamera
                 // using camera
                 if (_fUsingLiveScreen)
                 {
-                    // TODO remove tracing - it's not used anymore
-                    bool tracing = false;
-
-                    // See if we need to dump traces
-                    if (DateTime.Now - _startTraceTimer <= _maxTraceTime)
-                    {
-                        Trace.TraceInformation("Dump image");
-
-                        tracing = true;
-                        var img = pictCamera.Image;
-                        var date = DateTime.Now;
-                        var dtFormat = date.ToString("MMdd-HH-mm-ss");
-                        img.Save(_sLogFilePath + @"\Trace\Div" + dtFormat + "-" + traceCounter.ToString("D6") + ".jpg",ImageFormat.Jpeg);
-                        traceCounter++;
-                    }
-                    else
-                    {
-                        btnTrace.Enabled = true;
-                    }
-
                     // need to check that if drones have not been spotted for a while then
                     // throw out the EMP and deploy the turret
                     // this is an emergency measure
@@ -206,14 +183,6 @@ namespace WindowsFormsAppCamera
                         gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), col, rect);
 
                         showDroneText--;
-                    }
-
-                    // display 'T' if tracing
-                    if (tracing)
-                    {
-                        const int boxsize = 30;
-                        Rectangle rect = new Rectangle(640 - boxsize, bmp.Height - boxsize, boxsize, boxsize);
-                        gd.DrawString("T", new Font("Tahoma", 14), Brushes.WhiteSmoke, rect);
                     }
 
                     // displays a small heart at the bottom right of the screen when the heartbeat is sent
