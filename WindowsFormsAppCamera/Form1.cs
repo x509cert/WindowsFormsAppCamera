@@ -116,9 +116,6 @@ namespace WindowsFormsAppCamera
         private readonly Brush  _colorInfo = Brushes.AliceBlue;
         private readonly Pen    _penHitBox = new Pen(Color.FromKnownColor(KnownColor.White));
 
-        // this is for dumping a trace of the screenshots for 20secs - approx 100 images
-        private DateTime        _startTraceTimer;
-
         private readonly TimeSpan       
                                 _maxTraceTime = new TimeSpan(0, 0, 20);
 

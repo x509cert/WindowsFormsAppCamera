@@ -151,6 +151,13 @@ namespace WindowsFormsAppCamera
                     {
                         Trace.TraceInformation("Drone Spotted");
 
+                        // used to slow the pulse down if there is more than one pulse
+                        if (chkLaunchDelay.Checked == true)
+                        {
+                            Trace.TraceInformation("EMP Delayed");
+                            Thread.Sleep(200);
+                        }
+
                         dtLastDroneSpotted = DateTime.Now;
 
                         // send out the EMP
