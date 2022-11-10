@@ -28,10 +28,10 @@ namespace WindowsFormsAppCamera
             Font imageFont = new Font("Tahoma", 14);
 
             // sets the darkening red for "Drones Incoming"
-            SolidBrush[] colDronesIncomingFade = new SolidBrush[MaxIncomingFrames];
-            const float ratio = 255 / (float)MaxIncomingFrames;
-            for (int i=0; i < MaxIncomingFrames; i++)
-                colDronesIncomingFade[MaxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
+            SolidBrush[] colDronesIncomingFade = new SolidBrush[_maxIncomingFrames];
+            const float ratio = 255 / (float)_maxIncomingFrames;
+            for (int i=0; i < _maxIncomingFrames; i++)
+                colDronesIncomingFade[_maxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
             // settings on the pen used to draw the hitbox
             _penHitBox.Width = 1;
@@ -60,24 +60,45 @@ namespace WindowsFormsAppCamera
                     TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                     if (tSpan > _longestTimeBetweenDrones)
                     {
-                        Trace.TraceInformation($"Drone last seen {tSpan.TotalSeconds}s");
+                        _dronesNotSeenCount++;
 
-                        WriteLog("Last drone seen: " + tSpan.TotalSeconds.ToString("N2") + "s ago");
-                        TriggerArduino("E");
-                        TriggerArduino("T");
-                        WriteLog("Emergency EMP and Turret deployed");
+                        Trace.TraceInformation($"Drone last seen over {tSpan.TotalSeconds}s ago, not seen count is {_dronesNotSeenCount}");
+                        WriteLog($"Last drone seen over {tSpan.TotalSeconds:N2}s ago, not seen count is {_dronesNotSeenCount}");
+ 
+                        if (_dronesNotSeenCount <= _dronesNotSeenCountThreshold)
+                        {
+                            TriggerArduino("E");
+                            TriggerArduino("T");
+                            WriteLog("Emergency EMP and Turret deployed");
+                        }
+
+                        // shutdown threashold is hit, but Arduino not stopped yet
+                        if (_dronesNotSeenCount > _dronesNotSeenCountThreshold && _fStopArduino == false)
+                        {
+                            Trace.TraceInformation("Drones not seen for a while, stopping Arduino");
+                            WriteLog("Drones not seen for a while, stopping Arduino");
+                            _fStopArduino = true;
+
+                            if (chkSmsAlerts.Checked &&                            
+                                _smsAlert != null && 
+                                !_smsAlert.RaiseAlert($"Shutting down Arduino, {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
+                                    WriteLog("SMS alert failed");
+
+                            // send an instruction to the Arduino so it does not go into fail safe mode
+                            TriggerArduino("H");
+                        }
 
                         // This is to stop an infite set of msgs
                         dtLastDroneSpotted = DateTime.Now; 
-
                         showNoDronesSeenText = 30;
 
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
-                        if (_smsAlert != null    && 
-                            chkSmsAlerts.Checked && 
-                            !_smsAlert.RaiseAlert($"Drones not detected on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
-                            WriteLog("SMS alert failed");
+                        if (_fStopArduino == false &&
+                            _smsAlert != null     && 
+                            chkSmsAlerts.Checked  && 
+                            !_smsAlert.RaiseAlert($"Drones not detected {_dronesNotSeenCount} on {_smsAlert.MachineName} {DateTime.Now}"))
+                                WriteLog("SMS alert failed");
                     }
 
                     string droneCooldown = "Drone check: Ready";
@@ -150,6 +171,18 @@ namespace WindowsFormsAppCamera
                     {
                         Trace.TraceInformation("Drone Spotted");
 
+                        if (_fStopArduino == true)
+                        {
+                            Trace.TraceInformation("Restarting the Arduino");
+                            if (_smsAlert != null &&
+                                chkSmsAlerts.Checked &&
+                                !_smsAlert.RaiseAlert($"Restarting on {_smsAlert.MachineName} [Time:{DateTime.Now}]"))
+                                WriteLog("SMS alert failed");
+                        }
+
+                        _dronesNotSeenCount = 0;
+                        _fStopArduino = false;
+
                         // used to slow the pulse down if there is more than one pulse
                         if (_fDelayEMP == true)
                         {
@@ -165,7 +198,7 @@ namespace WindowsFormsAppCamera
 
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
-                        showDroneText = MaxIncomingFrames; // display the drone text for a small number of frames
+                        showDroneText = _maxIncomingFrames; // display the drone text for a small number of frames
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();

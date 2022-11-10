@@ -109,7 +109,13 @@ namespace WindowsFormsAppCamera
                                 _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
 
         private int             _heartBeatSent;
-        private const int       MaxIncomingFrames = 10;
+        private const int       _maxIncomingFrames = 10;
+
+        // use this to keep track of how many times we have not seen a drone,
+        // if the count exceeds a threshold, stop the arduino messages until we see the drones again
+        private int             _dronesNotSeenCount = 0;
+        private const int       _dronesNotSeenCountThreshold = 20;
+        private bool            _fStopArduino = false;
 
         private SmsAlert        _smsAlert;
 
@@ -318,6 +324,12 @@ namespace WindowsFormsAppCamera
         private void DeploySkill(Object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("DeploySkill");
+
+            if (_fStopArduino == true) {
+                WriteLog("Arduino is not running.");
+                Trace.TraceWarning("Arduino is not running.");
+                return;
+            }
 
             WriteLog("Deploy turret");
             TriggerArduino("T");
