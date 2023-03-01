@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace WindowsFormsAppCamera
 {
@@ -16,11 +17,13 @@ namespace WindowsFormsAppCamera
                 Color.Yellow
             };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Color GetClosestColorFromRgb(int r, int g, int b)
         {
             return GetClosestColor(Color.FromArgb(255, r, g, b));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Color GetClosestColor(Color baseColor)
         {
             System.Collections.Generic.List<(Color Value, int Diff)> colors = ColorArray.Select(x => (Value: x, Diff: GetDiff(x, baseColor))).ToList();
@@ -29,6 +32,7 @@ namespace WindowsFormsAppCamera
             return colors.Find(x => x.Diff == min).Value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetDiff(Color color, Color baseColor)
         {
             int a = color.A - baseColor.A,
