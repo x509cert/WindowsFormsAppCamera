@@ -657,14 +657,23 @@ namespace WindowsFormsAppCamera
             TriggerArduino("9"); // turns off NO Press RB
         }
 
-        private void radLBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("4");
-        private void radRBNoPress_CheckedChanged(object sender, EventArgs e) => TriggerArduino("5");
+        private void radLBNoPress_CheckedChanged(object sender, EventArgs e)
+        {
+            TriggerArduino("4");
+        }
+
+        private void radRBNoPress_CheckedChanged(object sender, EventArgs e)
+        {
+            TriggerArduino("5");
+        }
 
         // does nothing, sets no state - other code reads this UI element directly
         private void txtSmsEnabled_Click(object sender, EventArgs e) {}
 
-        private void chkLaunchDelay_CheckedChanged(object sender, EventArgs e) 
-            => _fDelayEMP = chkLaunchDelay.Checked;
+        private void chkLaunchDelay_CheckedChanged(object sender, EventArgs e)
+        {
+            _fDelayEMP = chkLaunchDelay.Checked;
+        }
 
         private void numLongDelayOffset_ValueChanged(object sender, EventArgs e)
         {
@@ -720,13 +729,23 @@ namespace WindowsFormsAppCamera
         #region Bitmap and drone detection code
 
         // determines the increase in red required to determine if the drones are incoming
-        private float GetRedSpottedPercent() => _cfg.LastCalibratedR + (_cfg.LastCalibratedR / 100.0F * _cfg.ThreshHold);
+        private float GetRedSpottedPercent()
+        {
+            return _cfg.LastCalibratedR + (_cfg.LastCalibratedR / 100.0F * _cfg.ThreshHold);
+        }
+
         private void label8_Click(object sender, EventArgs e) {}
-        private void numDroneDelay_ValueChanged(object sender, EventArgs e) => _elapseBetweenDrones = new TimeSpan(0, 0, (int)numDroneDelay.Value);
+        private void numDroneDelay_ValueChanged(object sender, EventArgs e)
+        {
+            _elapseBetweenDrones = new TimeSpan(0, 0, (int)numDroneDelay.Value);
+        }
 
         // logic to determine if drones are coming
         // if there is no increase in red, then no drones
-        private bool DronesSpotted(ref RgbTotal rbgTotal) => rbgTotal.R > GetRedSpottedPercent();
+        private bool DronesSpotted(ref RgbTotal rbgTotal)
+        {
+            return rbgTotal.R > GetRedSpottedPercent();
+        }
 
         // draws the yellow rectangle 'hitbox' -
         // this is the area the code looks at for the increase in red

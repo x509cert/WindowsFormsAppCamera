@@ -16,7 +16,10 @@ namespace WindowsFormsAppCamera
                 Color.Yellow
             };
 
-        public static Color GetClosestColorFromRgb(int r, int g, int b) => GetClosestColor(Color.FromArgb(255, r, g, b));
+        public static Color GetClosestColorFromRgb(int r, int g, int b)
+        {
+            return GetClosestColor(Color.FromArgb(255, r, g, b));
+        }
 
         private static Color GetClosestColor(Color baseColor)
         {

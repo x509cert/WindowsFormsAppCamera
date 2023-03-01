@@ -150,7 +150,11 @@ namespace WindowsFormsAppCamera
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
                             cam_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if no support.
 
-                            void set(DirectShow.CameraControlFlags flag, int value) => cam_ctrl.Set(item, value, (int)flag);
+                            void set(DirectShow.CameraControlFlags flag, int value)
+                            {
+                                cam_ctrl.Set(item, value, (int)flag);
+                            }
+
                             int get() { int value = 0; cam_ctrl.Get(item, ref value, ref flags); return value; }
                             prop = new Property(min, max, step, def, flags, set, get);
                         }
@@ -169,7 +173,11 @@ namespace WindowsFormsAppCamera
                             int min = 0, max = 0, step = 0, def = 0, flags = 0;
                             vid_ctrl.GetRange(item, ref min, ref max, ref step, ref def, ref flags); // COMException if not supported
 
-                            void set(DirectShow.CameraControlFlags flag, int value) => vid_ctrl.Set(item, value, (int)flag);
+                            void set(DirectShow.CameraControlFlags flag, int value)
+                            {
+                                vid_ctrl.Set(item, value, (int)flag);
+                            }
+
                             int get() { int value = 0; vid_ctrl.Get(item, ref value, ref flags); return value; }
                             prop = new Property(min, max, step, def, flags, set, get);
                         }
@@ -185,10 +193,10 @@ namespace WindowsFormsAppCamera
             private readonly Dictionary<DirectShow.VideoProcAmpProperty, Property> VideoProcAmp;
 
             /// <summary>Get CameraControl Property. Check Available before use.</summary>
-            public Property this[DirectShow.CameraControlProperty item] { get { return CameraControl[item]; } }
+            public Property this[DirectShow.CameraControlProperty item] => CameraControl[item];
 
             /// <summary>Get VideoProcAmp Property. Check Available before use.</summary>
-            public Property this[DirectShow.VideoProcAmpProperty item] { get { return VideoProcAmp[item]; } }
+            public Property this[DirectShow.VideoProcAmpProperty item] => VideoProcAmp[item];
 
             public class Property
             {
@@ -573,7 +581,7 @@ namespace WindowsFormsAppCamera
                 }
             });
 
-            return result == null ? throw new ArgumentException("can't create filter.") : result;
+            return result ?? throw new ArgumentException("can't create filter.");
         }
 
         private static void EnumMonikers(Guid category, Func<IMoniker, IPropertyBag, bool> func)
@@ -621,7 +629,7 @@ namespace WindowsFormsAppCamera
         public static IPin FindPin(IBaseFilter filter, string name)
         {
             IPin result = EnumPins(filter, (info) => info.achName == name);
-            return result == null ? throw new ArgumentException("can't find pin.") : result;
+            return result ?? throw new ArgumentException("can't find pin.");
         }
 
         public static IPin FindPin(IBaseFilter filter, int index, PIN_DIRECTION direction)
@@ -629,10 +637,10 @@ namespace WindowsFormsAppCamera
             int curr_index = 0;
             IPin result = EnumPins(filter, (info) =>
             {
-                return info.dir != direction ? false : index == curr_index++;
+                return info.dir == direction && index == curr_index++;
             });
 
-            return result == null ? throw new ArgumentException("can't fild pin.") : result;
+            return result ?? throw new ArgumentException("can't fild pin.");
         }
 
         private static IPin EnumPins(IBaseFilter filter, Func<PIN_INFO, bool> func)

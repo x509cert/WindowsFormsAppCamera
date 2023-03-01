@@ -139,6 +139,9 @@ namespace WindowsFormsAppCamera
         }
 
         // test the COM port
-        private void btnTestComPort_Click(object sender, EventArgs e) => TriggerArduino("V");
+        private void btnTestComPort_Click(object sender, EventArgs e)
+        {
+            TriggerArduino("V");
+        }
     }
 }
