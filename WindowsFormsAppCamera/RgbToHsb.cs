@@ -20,8 +20,8 @@ namespace WindowsFormsAppCamera
 
         private static Color GetClosestColor(Color baseColor)
         {
-            var colors = ColorArray.Select(x => (Value: x, Diff: GetDiff(x, baseColor))).ToList();
-            var min = colors.Min(x => x.Diff);
+            System.Collections.Generic.List<(Color Value, int Diff)> colors = ColorArray.Select(x => (Value: x, Diff: GetDiff(x, baseColor))).ToList();
+            int min = colors.Min(x => x.Diff);
 
             return colors.Find(x => x.Diff == min).Value;
         }
@@ -33,7 +33,7 @@ namespace WindowsFormsAppCamera
                 g = color.G - baseColor.G,
                 b = color.B - baseColor.B;
 
-            return a * a + r * r + g * g + b * b;
+            return (a * a) + (r * r) + (g * g) + (b * b);
         }
     }
 }

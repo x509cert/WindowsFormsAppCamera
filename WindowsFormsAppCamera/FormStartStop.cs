@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Threading;
-using System.Net;
-using System.IO;
-using System.IO.Ports;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.IO.Ports;
+using System.Net;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -21,9 +21,9 @@ namespace WindowsFormsAppCamera
         private void SetStatusBar()
         {
             // get the date this binary was last modified
-            var strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var fi = new FileInfo(strpath);
-            var buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
+            string strpath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            FileInfo fi = new FileInfo(strpath);
+            string buildDate = fi.LastWriteTime.ToString("dd MMMM yyyy, hh: mm tt");
 
 #if DEBUG
             const string isDebug = "[DBG] ";
@@ -32,9 +32,9 @@ namespace WindowsFormsAppCamera
 #endif
 
             // add info to title of the tool
-            var machine = Dns.GetHostName();
-            var codeVersion = $"{isDebug}[{buildDate}] [{machine}] ";
-            var arduinoVerion = "?";
+            string machine = Dns.GetHostName();
+            string codeVersion = $"{isDebug}[{buildDate}] [{machine}] ";
+            string arduinoVerion = "?";
 
             if (_sComPort?.IsOpen == true)
                 arduinoVerion = "[Arduino:" + GetArduinoCodeVersion() + "]";
@@ -78,11 +78,8 @@ namespace WindowsFormsAppCamera
 
             txtName.Text = _cfg.MachineName;
 
-            var threshold = (decimal)_cfg.ThreshHold;
-            if (threshold < numTrigger.Minimum || threshold > numTrigger.Maximum)
-                numTrigger.Value = numTrigger.Minimum;
-            else
-                numTrigger.Value = threshold;
+            decimal threshold = (decimal)_cfg.ThreshHold;
+            numTrigger.Value = threshold < numTrigger.Minimum || threshold > numTrigger.Maximum ? numTrigger.Minimum : threshold;
 
             numDroneDelay.Text = _elapseBetweenDrones.TotalSeconds.ToString(); // TODO get from config
 
@@ -120,7 +117,7 @@ namespace WindowsFormsAppCamera
 
             // if there's a -run argument then start the DivGrind running
             string[] args = Environment.GetCommandLineArgs();
-            bool autoStart = (args.Length == 2 && args[1].StartsWith("-run", StringComparison.OrdinalIgnoreCase));
+            bool autoStart = args.Length == 2 && args[1].StartsWith("-run", StringComparison.OrdinalIgnoreCase);
             if (autoStart)
             {
                 Trace.TraceInformation("Autostart");

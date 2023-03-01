@@ -1,5 +1,5 @@
-﻿using System;
-using Azure.Communication.Sms;
+﻿using Azure.Communication.Sms;
+using System;
 using System.Diagnostics;
 
 namespace WindowsFormsAppCamera

@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading;
-using System.Diagnostics;
 
 namespace WindowsFormsAppCamera
 {
@@ -17,8 +17,8 @@ namespace WindowsFormsAppCamera
 
             Thread.Sleep(_threadStartDelay);
 
-            var dtDronesStart = DateTime.Now;
-            var dtLastDroneSpotted = DateTime.Now;
+            DateTime dtDronesStart = DateTime.Now;
+            DateTime dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
             int showDroneText = 0;
@@ -113,7 +113,7 @@ namespace WindowsFormsAppCamera
                             fDronesIncoming = false;
                         }
 
-                        var elapsed = (Int32)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
+                        int elapsed = (int)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
                         droneCooldown = $"Drone check: {elapsed:N0}s";
                     }
 
@@ -121,7 +121,7 @@ namespace WindowsFormsAppCamera
                     Trace.TraceInformation("Getting camera image");
                     Trace.Indent();
 
-                    var bmp = _camera.GetBitmap();
+                    Bitmap bmp = _camera.GetBitmap();
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
@@ -218,7 +218,7 @@ namespace WindowsFormsAppCamera
                     {
                         Trace.TraceInformation("Drone text");
                         Rectangle rect = new Rectangle(180, 20 + (showDroneText * 4), bmp.Width, 100);
-                        var col = colDronesIncomingFade[showDroneText-1];
+                        SolidBrush col = colDronesIncomingFade[showDroneText-1];
                         gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), col, rect);
 
                         showDroneText--;

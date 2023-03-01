@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
 
 namespace WindowsFormsAppCamera
 {
@@ -140,12 +140,12 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation($"WriteLog -> {s}");
 
             DateTime dt = DateTime.Now;
-            var dts = dt.ToString(DateTemplateShort);
+            string dts = dt.ToString(DateTemplateShort);
 
             // Arduino messages are only one 8-bit char long, so add a little more context
             if (s.Length == 1)
             {
-                var ch = s[0];
+                char ch = s[0];
                 s = "    Msg to Arduino: ";
 
                 switch (ch)
@@ -226,16 +226,16 @@ namespace WindowsFormsAppCamera
 
             // title for the log collection
             // by default this is the machine name or whatever was passed in on the command-line using -n
-            var title = _cfg.MachineName;
+            string title = _cfg.MachineName;
 
             // build the packet of data that goes to Azure
-            var sb = new StringBuilder(512);
+            StringBuilder sb = new StringBuilder(512);
             const string delim = "|";
 
             sb.Append(title);
             sb.Append(delim);
 
-            var curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
+            int curTimeZone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
 
             sb.Append("Last update ").Append(DateTime.Now.ToString(DateTemplate)).Append(" (UTC").Append(curTimeZone).Append("), using ");
             sb.Append(_fUsingLiveScreen ? "camera." : "timer.");
@@ -321,7 +321,7 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        private void DeploySkill(Object source, ElapsedEventArgs e)
+        private void DeploySkill(object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("DeploySkill");
 
@@ -342,7 +342,7 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        private void SendHeartbeat(Object source, ElapsedEventArgs e)
+        private void SendHeartbeat(object source, ElapsedEventArgs e)
         {
             Trace.TraceInformation("Heartbeat sent");
 
@@ -429,7 +429,7 @@ namespace WindowsFormsAppCamera
 
                 // if there's no gateway IP address, then use tracert to get it
                 // unless we have been here before and it failed - so don't keep trying!
-                if (!fPingProcessFailed && String.IsNullOrEmpty(_gatewayIp))
+                if (!fPingProcessFailed && string.IsNullOrEmpty(_gatewayIp))
                 {
                     Trace.TraceInformation("PingerThreadFunc -> getting trace route etc and setting up");
 
@@ -589,8 +589,8 @@ namespace WindowsFormsAppCamera
         private void btnSaveBmp_Click(object sender, EventArgs e)
         {
             Bitmap bmp = _camera.GetBitmap();
-            var date = DateTime.Now;
-            var dtFormat = date.ToString("MMddHH-mmss");
+            DateTime date = DateTime.Now;
+            string dtFormat = date.ToString("MMddHH-mmss");
             bmp.Save(_sLogFilePath + @"\Div" + dtFormat + ".bmp");
         }
 
@@ -605,7 +605,7 @@ namespace WindowsFormsAppCamera
         // this sets the RB and LB offset tooltip text
         private void UpdateToolTipLbRbData()
         {
-            var ttt = $"LB Offset: {_cfg.LBOffset}\nRB Offset: {_cfg.RBOffset}";
+            string ttt = $"LB Offset: {_cfg.LBOffset}\nRB Offset: {_cfg.RBOffset}";
             tpTooltip.SetToolTip(btnRecalLeftLess, ttt);
             tpTooltip.SetToolTip(btnRecalLeftMore, ttt);
             tpTooltip.SetToolTip(btnRecalRightLess, ttt);
@@ -699,10 +699,10 @@ namespace WindowsFormsAppCamera
         private void btnCalibrate_Click(object sender, EventArgs e)
         {
             // read the camera
-            var bmp = _camera.GetBitmap();
+            Bitmap bmp = _camera.GetBitmap();
 
             // Get RGB calibration data from the hitbox
-            var rbgTotal = new RgbTotal();
+            RgbTotal rbgTotal = new RgbTotal();
             GetRgbInRange(bmp, ref rbgTotal);
 
             _cfg.LastCalibratedR = (int)rbgTotal.R;
@@ -720,7 +720,7 @@ namespace WindowsFormsAppCamera
         #region Bitmap and drone detection code
 
         // determines the increase in red required to determine if the drones are incoming
-        private float GetRedSpottedPercent() => _cfg.LastCalibratedR + ((_cfg.LastCalibratedR / 100.0F) * _cfg.ThreshHold);
+        private float GetRedSpottedPercent() => _cfg.LastCalibratedR + (_cfg.LastCalibratedR / 100.0F * _cfg.ThreshHold);
         private void label8_Click(object sender, EventArgs e) {}
         private void numDroneDelay_ValueChanged(object sender, EventArgs e) => _elapseBetweenDrones = new TimeSpan(0, 0, (int)numDroneDelay.Value);
 
@@ -747,7 +747,7 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("GetRGBInRange");
 
             rbgTotal.Init();
-            Int32 countPixel = 0;
+            int countPixel = 0;
 
             for (int x = XDroneHitBoxStart; x < XDroneHitBoxEnd; x+=2)
             {
@@ -776,7 +776,7 @@ namespace WindowsFormsAppCamera
             Trace.TraceInformation("GetRGBInRange (overload)");
 
             rbgTotal.Init();
-            Int32 countPixel = 0;
+            int countPixel = 0;
 
             Dictionary<Color, int> dictColor = new Dictionary<Color, int>();
 
@@ -813,7 +813,7 @@ namespace WindowsFormsAppCamera
             // get the highest color count
             Color highestColor = Color.Transparent;
             const int highestCount = -1;
-            foreach (var d in dictColor)
+            foreach (KeyValuePair<Color, int> d in dictColor)
             {
                 if (d.Value > highestCount)
                 {

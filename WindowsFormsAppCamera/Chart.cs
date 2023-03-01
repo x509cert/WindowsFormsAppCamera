@@ -39,7 +39,7 @@ namespace WindowsFormsAppCamera
 
         public void Draw(byte[] arr, byte b, byte? calibration)
         {
-            using (var g = Graphics.FromImage(Bmp))
+            using (Graphics g = Graphics.FromImage(Bmp))
             {
                 g.FillRectangle(_background, _rect);
 
@@ -49,8 +49,8 @@ namespace WindowsFormsAppCamera
 
                 for (int i = 0; i < _x; i++)
                 {
-                    var data = arr[i];
-                    var top = (255 - data) / _scaling;
+                    byte data = arr[i];
+                    int top = (255 - data) / _scaling;
                     g.DrawLine(_pen, _x-i, _y - 1, _x-i, top);
 
                     // place the 5sec marker
@@ -60,7 +60,7 @@ namespace WindowsFormsAppCamera
 
                 if (calibration != null)
                 {
-                    var top = (int)(255 - calibration) / _scaling;
+                    int top = (int)(255 - calibration) / _scaling;
                     g.DrawLine(_penCalibration,
                                0,
                                top,

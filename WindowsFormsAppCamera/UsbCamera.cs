@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using System.Drawing;
+using System.Text;
 
 namespace WindowsFormsAppCamera
 {
-    class UsbCamera
+    internal class UsbCamera
     {
         /// <summary>Usb camera image size.</summary>
         public Size Size { get; private set; }
@@ -44,8 +44,8 @@ namespace WindowsFormsAppCamera
         /// </summary>
         public static VideoFormat[] GetVideoFormat(int cameraIndex)
         {
-            var filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_VideoInputDeviceCategory, cameraIndex);
-            var pin = DirectShow.FindPin(filter, 0, DirectShow.PIN_DIRECTION.PINDIR_OUTPUT);
+            DirectShow.IBaseFilter filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_VideoInputDeviceCategory, cameraIndex);
+            DirectShow.IPin pin = DirectShow.FindPin(filter, 0, DirectShow.PIN_DIRECTION.PINDIR_OUTPUT);
             return GetVideoOutputFormat(pin);
         }
 
@@ -62,52 +62,52 @@ namespace WindowsFormsAppCamera
         /// </param>
         public UsbCamera(int cameraIndex, VideoFormat format)
         {
-            var camera_list = FindDevices();
+            string[] camera_list = FindDevices();
             if (cameraIndex >= camera_list.Length) throw new ArgumentException("USB camera is not available.", nameof(cameraIndex));
             Init(cameraIndex, format);
         }
 
         private void Init(int index, VideoFormat format)
         {
-            var graph = DirectShow.CreateGraph();
+            DirectShow.IGraphBuilder graph = DirectShow.CreateGraph();
 
             //----------------------------------
             // VideoCaptureSource
             //----------------------------------
-            var vcap_source = CreateVideoCaptureSource(index, format);
+            DirectShow.IBaseFilter vcap_source = CreateVideoCaptureSource(index, format);
             graph.AddFilter(vcap_source, "VideoCapture");
 
             //------------------------------
             // SampleGrabber
             //------------------------------
-            var grabber = CreateSampleGrabber();
+            DirectShow.IBaseFilter grabber = CreateSampleGrabber();
             graph.AddFilter(grabber, "SampleGrabber");
-            var i_grabber = (DirectShow.ISampleGrabber)grabber;
+            DirectShow.ISampleGrabber i_grabber = (DirectShow.ISampleGrabber)grabber;
             i_grabber.SetBufferSamples(true);
 
             //---------------------------------------------------
             // Null Renderer
             //---------------------------------------------------
-            var renderer = DirectShow.CoCreateInstance(DirectShow.DsGuid.CLSID_NullRenderer) as DirectShow.IBaseFilter;
+            DirectShow.IBaseFilter renderer = DirectShow.CoCreateInstance(DirectShow.DsGuid.CLSID_NullRenderer) as DirectShow.IBaseFilter;
             graph.AddFilter(renderer, "NullRenderer");
 
             //---------------------------------------------------
             // Create Filter Graph
             //---------------------------------------------------
-            var builder = DirectShow.CoCreateInstance(DirectShow.DsGuid.CLSID_CaptureGraphBuilder2) as DirectShow.ICaptureGraphBuilder2;
+            DirectShow.ICaptureGraphBuilder2 builder = DirectShow.CoCreateInstance(DirectShow.DsGuid.CLSID_CaptureGraphBuilder2) as DirectShow.ICaptureGraphBuilder2;
             builder.SetFiltergraph(graph);
-            var pinCategory = DirectShow.DsGuid.PIN_CATEGORY_CAPTURE;
-            var mediaType = DirectShow.DsGuid.MEDIATYPE_Video;
+            Guid pinCategory = DirectShow.DsGuid.PIN_CATEGORY_CAPTURE;
+            Guid mediaType = DirectShow.DsGuid.MEDIATYPE_Video;
             builder.RenderStream(ref pinCategory, ref mediaType, vcap_source, grabber, renderer);
 
             // SampleGrabber Format.
             {
-                var mt = new DirectShow.AM_MEDIA_TYPE();
+                DirectShow.AM_MEDIA_TYPE mt = new DirectShow.AM_MEDIA_TYPE();
                 i_grabber.GetConnectedMediaType(mt);
-                var header = (DirectShow.VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(DirectShow.VIDEOINFOHEADER));
-                var width = header.bmiHeader.biWidth;
-                var height = header.bmiHeader.biHeight;
-                var stride = width * (header.bmiHeader.biBitCount / 8);
+                DirectShow.VIDEOINFOHEADER header = (DirectShow.VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(DirectShow.VIDEOINFOHEADER));
+                int width = header.bmiHeader.biWidth;
+                int height = header.bmiHeader.biHeight;
+                int stride = width * (header.bmiHeader.biBitCount / 8);
                 DirectShow.DeleteMediaType(ref mt);
 
                 Size = new Size(width, height);
@@ -278,21 +278,21 @@ namespace WindowsFormsAppCamera
 #endif
         GetBitmapFromSampleGrabberCallback(DirectShow.ISampleGrabber i_grabber, int width, int height, int stride)
         {
-            var sampler = new SampleGrabberCallback();
+            SampleGrabberCallback sampler = new SampleGrabberCallback();
             i_grabber.SetCallback(sampler, 1); // WhichMethodToCallback = BufferCB
             return () => sampler.GetBitmap(width, height, stride);
         }
 
         private static Bitmap BufferToBitmap(byte[] buffer, int width, int height, int stride)
         {
-            var result = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            var bmp_data = result.LockBits(new Rectangle(Point.Empty, result.Size), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            Bitmap result = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            System.Drawing.Imaging.BitmapData bmp_data = result.LockBits(new Rectangle(Point.Empty, result.Size), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             // copy from last row.
             for (int y = 0; y < height; y++)
             {
-                var src_idx = buffer.Length - (stride * (y + 1));
-                var dst = IntPtr.Add(bmp_data.Scan0, stride * y);
+                int src_idx = buffer.Length - (stride * (y + 1));
+                IntPtr dst = IntPtr.Add(bmp_data.Scan0, stride * y);
                 Marshal.Copy(buffer, src_idx, dst, stride);
             }
             result.UnlockBits(bmp_data);
@@ -307,10 +307,10 @@ namespace WindowsFormsAppCamera
 
         private DirectShow.IBaseFilter CreateSampleGrabber()
         {
-            var filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_SampleGrabber);
-            var ismp = filter as DirectShow.ISampleGrabber;
+            DirectShow.IBaseFilter filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_SampleGrabber);
+            DirectShow.ISampleGrabber ismp = filter as DirectShow.ISampleGrabber;
 
-            var mt = new DirectShow.AM_MEDIA_TYPE
+            DirectShow.AM_MEDIA_TYPE mt = new DirectShow.AM_MEDIA_TYPE
             {
                 MajorType = DirectShow.DsGuid.MEDIATYPE_Video,
                 SubType = DirectShow.DsGuid.MEDIASUBTYPE_RGB24
@@ -321,19 +321,19 @@ namespace WindowsFormsAppCamera
 
         private DirectShow.IBaseFilter CreateVideoCaptureSource(int index, VideoFormat format)
         {
-            var filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_VideoInputDeviceCategory, index);
-            var pin = DirectShow.FindPin(filter, 0, DirectShow.PIN_DIRECTION.PINDIR_OUTPUT);
+            DirectShow.IBaseFilter filter = DirectShow.CreateFilter(DirectShow.DsGuid.CLSID_VideoInputDeviceCategory, index);
+            DirectShow.IPin pin = DirectShow.FindPin(filter, 0, DirectShow.PIN_DIRECTION.PINDIR_OUTPUT);
             SetVideoOutputFormat(pin, format);
             return filter;
         }
 
         private static void SetVideoOutputFormat(DirectShow.IPin pin, VideoFormat format)
         {
-            var formats = GetVideoOutputFormat(pin);
+            VideoFormat[] formats = GetVideoOutputFormat(pin);
 
             for (int i = 0; i < formats.Length; i++)
             {
-                var item = formats[i];
+                VideoFormat item = formats[i];
 
                 // https://msdn.microsoft.com/ja-jp/library/cc370616.aspx
                 if (item.MajorType != DirectShow.DsGuid.GetNickname(DirectShow.DsGuid.MEDIATYPE_Video)) continue;
@@ -349,7 +349,7 @@ namespace WindowsFormsAppCamera
 
             for (int i = 0; i < formats.Length; i++)
             {
-                var item = formats[i];
+                VideoFormat item = formats[i];
 
                 if (item.MajorType != DirectShow.DsGuid.GetNickname(DirectShow.DsGuid.MEDIATYPE_Video)) continue;
                 if (!string.IsNullOrEmpty(format.SubType) && format.SubType != item.SubType) continue;
@@ -389,13 +389,13 @@ namespace WindowsFormsAppCamera
                 throw new InvalidOperationException("no VIDEO_STREAM_CONFIG_CAPS.");
             }
 
-            var result = new VideoFormat[cap_count];
+            VideoFormat[] result = new VideoFormat[cap_count];
 
-            var cap_data = Marshal.AllocHGlobal(cap_size);
+            IntPtr cap_data = Marshal.AllocHGlobal(cap_size);
 
             for (int i = 0; i < cap_count; i++)
             {
-                var entry = new VideoFormat();
+                VideoFormat entry = new VideoFormat();
 
                 DirectShow.AM_MEDIA_TYPE mt = null;
                 config.GetStreamCaps(i, ref mt, cap_data);
@@ -406,13 +406,13 @@ namespace WindowsFormsAppCamera
 
                 if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo)
                 {
-                    var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER>(mt.pbFormat);
+                    DirectShow.VIDEOINFOHEADER vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER>(mt.pbFormat);
                     entry.Size = new Size(vinfo.bmiHeader.biWidth, vinfo.bmiHeader.biHeight);
                     entry.TimePerFrame = vinfo.AvgTimePerFrame;
                 }
                 else if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo2)
                 {
-                    var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER2>(mt.pbFormat);
+                    DirectShow.VIDEOINFOHEADER2 vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER2>(mt.pbFormat);
                     entry.Size = new Size(vinfo.bmiHeader.biWidth, vinfo.bmiHeader.biHeight);
                     entry.TimePerFrame = vinfo.AvgTimePerFrame;
                 }
@@ -441,22 +441,22 @@ namespace WindowsFormsAppCamera
                 throw new InvalidOperationException("no VIDEO_STREAM_CONFIG_CAPS.");
             }
 
-            var cap_data = Marshal.AllocHGlobal(cap_size);
+            IntPtr cap_data = Marshal.AllocHGlobal(cap_size);
 
             DirectShow.AM_MEDIA_TYPE mt = null;
             config.GetStreamCaps(index, ref mt, cap_data);
 
             if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo)
             {
-                var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER>(mt.pbFormat);
-                if (!size.IsEmpty) { vinfo.bmiHeader.biWidth = (int)size.Width; vinfo.bmiHeader.biHeight = (int)size.Height; }
+                DirectShow.VIDEOINFOHEADER vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER>(mt.pbFormat);
+                if (!size.IsEmpty) { vinfo.bmiHeader.biWidth = size.Width; vinfo.bmiHeader.biHeight = size.Height; }
                 if (timePerFrame > 0) { vinfo.AvgTimePerFrame = timePerFrame; }
                 Marshal.StructureToPtr(vinfo, mt.pbFormat, true);
             }
             else if (mt.FormatType == DirectShow.DsGuid.FORMAT_VideoInfo2)
             {
-                var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER2>(mt.pbFormat);
-                if (!size.IsEmpty) { vinfo.bmiHeader.biWidth = (int)size.Width; vinfo.bmiHeader.biHeight = (int)size.Height; }
+                DirectShow.VIDEOINFOHEADER2 vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER2>(mt.pbFormat);
+                if (!size.IsEmpty) { vinfo.bmiHeader.biWidth = size.Width; vinfo.bmiHeader.biHeight = size.Height; }
                 if (timePerFrame > 0) { vinfo.AvgTimePerFrame = timePerFrame; }
                 Marshal.StructureToPtr(vinfo, mt.pbFormat, true);
             }
@@ -487,9 +487,9 @@ namespace WindowsFormsAppCamera
 
             private string CapsString()
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 _ = sb.AppendFormat("{0}, ", DirectShow.DsGuid.GetNickname(Caps.Guid));
-                foreach (var info in Caps.GetType().GetFields())
+                foreach (System.Reflection.FieldInfo info in Caps.GetType().GetFields())
                 {
                     _ = sb.AppendFormat("{0}={1}, ", info.Name, info.GetValue(Caps));
                 }
@@ -535,13 +535,13 @@ namespace WindowsFormsAppCamera
 
         public static List<string> GetFiltes(Guid category)
         {
-            var result = new List<string>();
+            List<string> result = new List<string>();
 
             EnumMonikers(category, (moniker, prop) =>
             {
                 object value = null;
                 prop.Read("FriendlyName", ref value, 0);
-                var name = (string)value;
+                string name = (string)value;
 
                 result.Add(name);
 
@@ -573,8 +573,7 @@ namespace WindowsFormsAppCamera
                 }
             });
 
-            if (result == null) throw new ArgumentException("can't create filter.");
-            return result;
+            return result == null ? throw new ArgumentException("can't create filter.") : result;
         }
 
         private static void EnumMonikers(Guid category, Func<IMoniker, IPropertyBag, bool> func)
@@ -589,20 +588,20 @@ namespace WindowsFormsAppCamera
 
                 if (enumerator == null) return;
 
-                var monikers = new IMoniker[1];
-                var fetched = IntPtr.Zero;
+                IMoniker[] monikers = new IMoniker[1];
+                IntPtr fetched = IntPtr.Zero;
 
                 while (enumerator.Next(monikers.Length, monikers, fetched) == 0)
                 {
-                    var moniker = monikers[0];
+                    IMoniker moniker = monikers[0];
 
                     Guid guid = DsGuid.IID_IPropertyBag;
                     moniker.BindToStorage(null, null, ref guid, out object value);
-                    var prop = (IPropertyBag)value;
+                    IPropertyBag prop = (IPropertyBag)value;
 
                     try
                     {
-                        var rc = func(moniker, prop);
+                        bool rc = func(moniker, prop);
                         if (rc) break;
                     }
                     finally
@@ -621,23 +620,19 @@ namespace WindowsFormsAppCamera
 
         public static IPin FindPin(IBaseFilter filter, string name)
         {
-            var result = EnumPins(filter, (info) => (info.achName == name));
-            if (result == null) throw new ArgumentException("can't find pin.");
-            return result;
+            IPin result = EnumPins(filter, (info) => info.achName == name);
+            return result == null ? throw new ArgumentException("can't find pin.") : result;
         }
 
         public static IPin FindPin(IBaseFilter filter, int index, PIN_DIRECTION direction)
         {
             int curr_index = 0;
-            var result = EnumPins(filter, (info) =>
+            IPin result = EnumPins(filter, (info) =>
             {
-                if (info.dir != direction) return false;
-
-                return index == curr_index++;
+                return info.dir != direction ? false : index == curr_index++;
             });
 
-            if (result == null) throw new ArgumentException("can't fild pin.");
-            return result;
+            return result == null ? throw new ArgumentException("can't fild pin.") : result;
         }
 
         private static IPin EnumPins(IBaseFilter filter, Func<PIN_INFO, bool> func)
@@ -654,11 +649,11 @@ namespace WindowsFormsAppCamera
                 {
                     if (fetched == 0) break;
 
-                    var info = new PIN_INFO();
+                    PIN_INFO info = new PIN_INFO();
                     try
                     {
                         ipin.QueryPinInfo(info);
-                        var rc = func(info);
+                        bool rc = func(info);
                         if (rc) return ipin;
                     }
                     finally
@@ -682,8 +677,8 @@ namespace WindowsFormsAppCamera
 
         public static void ConnectFilter(IGraphBuilder graph, IBaseFilter out_flt, int outNo, IBaseFilter inFlt, int inNo)
         {
-            var out_pin = FindPin(out_flt, outNo, PIN_DIRECTION.PINDIR_OUTPUT);
-            var inp_pin = FindPin(inFlt, inNo, PIN_DIRECTION.PINDIR_INPUT);
+            IPin out_pin = FindPin(out_flt, outNo, PIN_DIRECTION.PINDIR_OUTPUT);
+            IPin inp_pin = FindPin(inFlt, inNo, PIN_DIRECTION.PINDIR_INPUT);
             graph.Connect(out_pin, inp_pin);
         }
 
@@ -840,7 +835,7 @@ namespace WindowsFormsAppCamera
             int GetPointer(ref IntPtr ppBuffer);
             int GetSize();
             int GetTime(ref long pTimeStart, ref long pTimeEnd);
-            int SetTime([In, MarshalAs(UnmanagedType.LPStruct)] UInt64 pTimeStart, [In, MarshalAs(UnmanagedType.LPStruct)] UInt64 pTimeEnd);
+            int SetTime([In, MarshalAs(UnmanagedType.LPStruct)] ulong pTimeStart, [In, MarshalAs(UnmanagedType.LPStruct)] ulong pTimeEnd);
             int IsSyncPoint();
             int SetSyncPoint([In, MarshalAs(UnmanagedType.Bool)] bool bIsSyncPoint);
             int IsPreroll();
@@ -852,7 +847,7 @@ namespace WindowsFormsAppCamera
             int IsDiscontinuity();
             int SetDiscontinuity([In, MarshalAs(UnmanagedType.Bool)] bool bDiscontinuity);
             int GetMediaTime(ref long pTimeStart, ref long pTimeEnd);
-            int SetMediaTime([In, MarshalAs(UnmanagedType.LPStruct)] UInt64 pTimeStart, [In, MarshalAs(UnmanagedType.LPStruct)] UInt64 pTimeEnd);
+            int SetMediaTime([In, MarshalAs(UnmanagedType.LPStruct)] ulong pTimeStart, [In, MarshalAs(UnmanagedType.LPStruct)] ulong pTimeEnd);
         }
 
         [ComVisible(true), ComImport(), Guid("89c31040-846b-11ce-97d3-00aa0055595a"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -1209,15 +1204,15 @@ namespace WindowsFormsAppCamera
 
                 if (NicknameCache.ContainsKey(guid))
                 {
-                    var name = NicknameCache[guid];
-                    var elem = name.Split('_');
+                    string name = NicknameCache[guid];
+                    string[] elem = name.Split('_');
 
                     // '_'で分割して、2個目以降を連結する。
                     // MEDIATYPE_Videoなら[Video]を返す。
                     // PIN_CATEGORY_CAPTUREなら[CATEGORY_CAPTURE]を返す。
                     if (elem.Length >= 2)
                     {
-                        var text = string.Join("_", elem.Skip(1).ToArray());
+                        string text = string.Join("_", elem.Skip(1).ToArray());
                         return string.Format("[{0}]", text);
                     }
                     else

@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.IO.Ports;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
@@ -9,10 +9,10 @@ namespace WindowsFormsAppCamera
     {
         private void PopulateVideoFormatCombo(int cameraIndex)
         {
-            var formats = UsbCamera.GetVideoFormat(cameraIndex);
+            UsbCamera.VideoFormat[] formats = UsbCamera.GetVideoFormat(cameraIndex);
 
             cmbCameraFormat.Items.Clear();
-            foreach (var t in formats)
+            foreach (UsbCamera.VideoFormat t in formats)
             {
                 string f = "Resolution: " + t.Caps.InputSize.ToString() + ", bits/sec: " + t.Caps.MinBitsPerSecond;
                 cmbCameraFormat.Items.Add(f);
@@ -39,7 +39,7 @@ namespace WindowsFormsAppCamera
         private void cmbCameraFormat_SelectedIndexChanged(object sender, EventArgs e)
         {
             int camera = cmbCamera.SelectedIndex;
-            var selectFormat = GetCameraVideoFormat(camera);
+            UsbCamera.VideoFormat selectFormat = GetCameraVideoFormat(camera);
 
 #if DEBUG
             if (selectFormat.Size.Width != 640 && selectFormat.Size.Height != 480)
@@ -53,7 +53,7 @@ namespace WindowsFormsAppCamera
             _camera?.Start();
 
             cmbComPorts.Items.Clear();
-            foreach (var p in SerialPort.GetPortNames())
+            foreach (string p in SerialPort.GetPortNames())
                 cmbComPorts.Items.Add(p);
 
             cmbComPorts.SelectedItem = _cfg.ComPort;
@@ -103,7 +103,7 @@ namespace WindowsFormsAppCamera
                 ret = "";
             }
 
-            return String.IsNullOrEmpty(ret) ? "" : ret;
+            return string.IsNullOrEmpty(ret) ? "" : ret;
         }
 
         // when the Arduino starts up, it has default RB/LB offsets to 0/0

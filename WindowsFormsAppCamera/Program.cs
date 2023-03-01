@@ -1,20 +1,20 @@
 ﻿using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
 
 namespace WindowsFormsAppCamera
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
 #if TRACE
-            var dt = DateTime.Now;
+            DateTime dt = DateTime.Now;
             string traceFile = $"DivGrind-{dt:MM-dd-H-mm}.trace";
 
             Trace.AutoFlush = true;

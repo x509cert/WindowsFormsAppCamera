@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using System.IO;
+﻿using System.IO;
+using System.Text.Json;
 
 namespace WindowsFormsAppCamera
 {
@@ -34,14 +34,14 @@ namespace WindowsFormsAppCamera
 
         public void WriteConfig(Config cfg)
         {
-            var options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true };
-            var cf = JsonSerializer.Serialize(cfg, options);
+            JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true };
+            string cf = JsonSerializer.Serialize(cfg, options);
             File.WriteAllText(ConfigFileName, cf);
         }
 
         public Config ReadConfig()
         {
-            var cf = File.ReadAllText(ConfigFileName);
+            string cf = File.ReadAllText(ConfigFileName);
             cf = cf.Replace("\n", "").Replace("\r", "");
             return JsonSerializer.Deserialize<Config>(cf);
         }
