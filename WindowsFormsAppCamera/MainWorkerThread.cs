@@ -102,6 +102,7 @@ namespace WindowsFormsAppCamera
                     }
 
                     string droneCooldown = "Drone check: Ready";
+                    bool coolDownComplete = true;
 
                     // this stops the code from checking for drones constantly right after drones are spotted and EMP sent out
                     if (fDronesIncoming)
@@ -114,6 +115,7 @@ namespace WindowsFormsAppCamera
                         }
 
                         int elapsed = (int)(_elapseBetweenDrones.TotalSeconds - elapsedTime.TotalSeconds);
+                        coolDownComplete = elapsed == 0;
                         droneCooldown = $"Drone check: {elapsed:N0}s";
                     }
 
@@ -125,7 +127,10 @@ namespace WindowsFormsAppCamera
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
-                    gd.FillRectangle(Brushes.DarkBlue, 2, 480 - 94, 640 / 3, 480 - 2);
+                    gd.FillRectangle(
+                        coolDownComplete ? Brushes.DarkGreen : Brushes.DarkBlue, 
+                        2, 480 - 94, 640 / 3, 480 - 2);
+                    
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
                     // Get amount of red/green/blue in the drone hitbox

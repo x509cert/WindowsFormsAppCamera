@@ -11,10 +11,8 @@ namespace WindowsFormsAppCamera
         private static readonly Color[] ColorArray = {
                 Color.White,    Color.Gray,     Color.DarkGray, Color.Black,
                 Color.Red,      Color.DarkRed,  Color.Pink,     Color.Orange,
-                Color.Blue,     Color.DarkBlue,
-                Color.Green,    Color.DarkGreen,
-                Color.Purple,
-                Color.Yellow
+                Color.Blue,     Color.DarkBlue, Color.Green,    Color.DarkGreen,
+                Color.Purple,   Color.Yellow
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

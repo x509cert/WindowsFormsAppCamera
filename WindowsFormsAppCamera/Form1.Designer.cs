@@ -626,9 +626,9 @@ namespace WindowsFormsAppCamera
             this.chkLaunchDelay.AutoSize = true;
             this.chkLaunchDelay.Location = new System.Drawing.Point(334, 493);
             this.chkLaunchDelay.Name = "chkLaunchDelay";
-            this.chkLaunchDelay.Size = new System.Drawing.Size(92, 17);
+            this.chkLaunchDelay.Size = new System.Drawing.Size(71, 17);
             this.chkLaunchDelay.TabIndex = 60;
-            this.chkLaunchDelay.Text = "Launch Delay";
+            this.chkLaunchDelay.Text = "RB Delay";
             this.chkLaunchDelay.UseVisualStyleBackColor = true;
             this.chkLaunchDelay.CheckedChanged += new System.EventHandler(this.chkLaunchDelay_CheckedChanged);
             // 
