@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Ports;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -130,6 +131,8 @@ namespace WindowsFormsAppCamera
         private MMIo            _mmio;
 
         private bool            _fDelayEMP = false;
+
+        private UdpBroadcast    _udpBroadcast;
 
         #endregion
 
@@ -550,6 +553,8 @@ namespace WindowsFormsAppCamera
         // start drone monitoring
         private void btnStart_Click(object sender, EventArgs e)
         {
+            _udpBroadcast?.SendMessage("Started");
+
             // TODO: Need more work here... not all UI elements are enabled/disabled when approp. 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
@@ -566,6 +571,8 @@ namespace WindowsFormsAppCamera
         // Stop the drone monitoring
         private void button3_Click(object sender, EventArgs e)
         {
+            _udpBroadcast.SendMessage("Stopped");
+
             btnStop.Enabled = false;
             btnStart.Enabled = true;
 

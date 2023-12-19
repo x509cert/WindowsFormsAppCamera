@@ -14,13 +14,14 @@ namespace WindowsFormsAppCamera
         private static void Main()
         {
 #if TRACE
-            DateTime dt = DateTime.Now;
-            string traceFile = $"DivGrind-{dt:MM-dd-H-mm}.trace";
+            var dt = DateTime.Now;
+            var traceFile = $"DivGrind-{dt:MM-dd-H-mm}.trace";
+            const int BUFF_SIZE = 1024;
 
             Trace.AutoFlush = true;
 
             Stream fileTrace = File.Create(traceFile,
-                4,
+                BUFF_SIZE,
                 FileOptions.WriteThrough);
 
             TextWriterTraceListener textFileListener = new

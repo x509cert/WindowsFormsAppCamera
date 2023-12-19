@@ -12,13 +12,15 @@ namespace WindowsFormsAppCamera
         // this is so we don't use the UI thread for the work which would make the UI sluggish
         private void WorkerThreadFunc()
         {
+            _udpBroadcast = new UdpBroadcast();
+
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();
 
             Thread.Sleep(_threadStartDelay);
 
-            DateTime dtDronesStart = DateTime.Now;
-            DateTime dtLastDroneSpotted = DateTime.Now;
+            var dtDronesStart = DateTime.Now;
+            var dtLastDroneSpotted = DateTime.Now;
 
             bool fDronesIncoming = false;
             int showDroneText = 0;
@@ -28,7 +30,7 @@ namespace WindowsFormsAppCamera
             Font imageFont = new Font("Tahoma", 14);
 
             // sets the darkening red for "Drones Incoming"
-            SolidBrush[] colDronesIncomingFade = new SolidBrush[_maxIncomingFrames];
+            var colDronesIncomingFade = new SolidBrush[_maxIncomingFrames];
             const float ratio = 255 / (float)_maxIncomingFrames;
             for (int i=0; i < _maxIncomingFrames; i++)
                 colDronesIncomingFade[_maxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
@@ -53,6 +55,8 @@ namespace WindowsFormsAppCamera
                 // using camera
                 if (_fUsingLiveScreen)
                 {
+                    _udpBroadcast.SendMessage("Live screen");
+
                     // need to check that if drones have not been spotted for a while then
                     // throw out the EMP and deploy the turret
                     // this is an emergency measure
@@ -60,6 +64,7 @@ namespace WindowsFormsAppCamera
                     TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                     if (tSpan > _longestTimeBetweenDrones)
                     {
+                        _udpBroadcast.SendMessage("Drones not seen");
                         _dronesNotSeenCount++;
 
                         Trace.TraceInformation($"Drone last seen over {tSpan.TotalSeconds}s ago, not seen count is {_dronesNotSeenCount}");
@@ -70,6 +75,7 @@ namespace WindowsFormsAppCamera
                             TriggerArduino("E");
                             TriggerArduino("T");
                             WriteLog("Emergency EMP and Turret deployed");
+                            _udpBroadcast.SendMessage("Emergency EMP/Turret");
                         }
 
                         // shutdown threashold is hit, but Arduino not stopped yet
@@ -77,6 +83,8 @@ namespace WindowsFormsAppCamera
                         {
                             Trace.TraceInformation("Drones not seen for a while, stopping Arduino");
                             WriteLog("Drones not seen for a while, stopping Arduino");
+                            _udpBroadcast.SendMessage("Drones not seen. Halting.");
+
                             _fStopArduino = true;
 
                             if (chkSmsAlerts.Checked &&                            
@@ -111,6 +119,8 @@ namespace WindowsFormsAppCamera
                         if (elapsedTime > _elapseBetweenDrones)
                         {
                             WriteLog("Ready for next drone scan");
+                            _udpBroadcast.SendMessage("Ready");
+
                             fDronesIncoming = false;
                         }
 
@@ -175,6 +185,7 @@ namespace WindowsFormsAppCamera
                     if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
                     {
                         Trace.TraceInformation("Drone Spotted");
+                        _udpBroadcast.SendMessage("Drones Spotted");
 
                         if (_fStopArduino == true)
                         {
@@ -199,6 +210,7 @@ namespace WindowsFormsAppCamera
 
                         // send out the EMP
                         WriteLog("Drones detected -> EMP");
+                        _udpBroadcast.SendMessage("EMP out");
                         TriggerArduino("E");
 
                         dtDronesStart = DateTime.Now;
@@ -246,6 +258,8 @@ namespace WindowsFormsAppCamera
                 }
                 else
                 {
+                    _udpBroadcast.SendMessage("Blank screen");
+
                     // when running in no camera mode (ie; timer), uses a black screen
                     Bitmap bmp = new Bitmap(640, 480);
                     Graphics gr = Graphics.FromImage(bmp);
