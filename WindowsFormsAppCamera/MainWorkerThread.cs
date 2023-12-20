@@ -139,7 +139,10 @@ namespace WindowsFormsAppCamera
                     // define a rectangle for the text
                     gd.FillRectangle(
                         coolDownComplete ? Brushes.DarkGreen : Brushes.DarkBlue, 
-                        2, 480 - 94, 640 / 3, 480 - 2);
+                        2, 
+                        480 - 94, 
+                        640 / 3, 
+                        480 - 2);
                     
                     gd.SmoothingMode = SmoothingMode.HighSpeed;
 
@@ -258,8 +261,6 @@ namespace WindowsFormsAppCamera
                 }
                 else
                 {
-                    _udpBroadcast.SendMessage("Blank screen");
-
                     // when running in no camera mode (ie; timer), uses a black screen
                     Bitmap bmp = new Bitmap(640, 480);
                     Graphics gr = Graphics.FromImage(bmp);

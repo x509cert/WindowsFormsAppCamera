@@ -604,8 +604,11 @@ namespace WindowsFormsAppCamera
         // switch between live and blank (timer) screen
         private void btnToggleBlankOrLiveScreen_Click(object sender, EventArgs e)
         {
-            WriteLog(_fUsingLiveScreen ? "Flipping to Blank" : "Flipping to Live");
-            btnToggleBlankOrLiveScreen.Text = _fUsingLiveScreen ? "To Live" : "To Blank";
+            var screenMode = _fUsingLiveScreen ? "To Blank" : "To Live";
+            _udpBroadcast.SendMessage(screenMode);
+            WriteLog(screenMode);
+            btnToggleBlankOrLiveScreen.Text = screenMode;
+
             _fUsingLiveScreen = !_fUsingLiveScreen;
         }
 

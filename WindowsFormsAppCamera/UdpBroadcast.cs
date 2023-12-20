@@ -4,6 +4,10 @@ using System.Text;
 
 namespace WindowsFormsAppCamera
 {
+    internal class UdpList
+    {
+        public UdpList() { }
+    }
     internal class UdpBroadcast
     {
         private const int       _broadcastPort = 9293;
