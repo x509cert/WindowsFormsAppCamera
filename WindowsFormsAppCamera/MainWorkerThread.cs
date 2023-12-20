@@ -12,7 +12,7 @@ namespace WindowsFormsAppCamera
         // this is so we don't use the UI thread for the work which would make the UI sluggish
         private void WorkerThreadFunc()
         {
-            _udpBroadcast = new UdpBroadcast();
+            _udpBroadcast = new UdpBroadcast(_udpBroadcastPort);
 
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();

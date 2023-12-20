@@ -33,6 +33,7 @@ namespace WindowsFormsAppCamera
 #endif
             Trace.TraceInformation("Trace Started");
 
+            // UI Startup
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());

@@ -41,7 +41,6 @@ namespace WindowsFormsAppCamera
 
             lblVersionInfo.Text = $"{codeVersion} {arduinoVerion}";
         }
-
         private void Form1_Load(object sender, EventArgs e)
         {
             Trace.TraceInformation("Form_Load");
@@ -155,6 +154,8 @@ namespace WindowsFormsAppCamera
             // to indicate the DivGrind is alive
             // this stays enabled until the tool is killed.
             SetHeartbeat();
+
+            _timedList = new TimedList();
 
             // finally start all the main worker threads
             if (autoStart)

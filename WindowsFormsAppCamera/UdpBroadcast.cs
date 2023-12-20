@@ -10,17 +10,18 @@ namespace WindowsFormsAppCamera
     }
     internal class UdpBroadcast
     {
-        private const int       _broadcastPort = 9293;
+        private int             _broadcastPort = 9293;
         private const string    _broadcastAddress = "255.255.255.255";
 
         private UdpClient       _udpClient;
         private string          _ipAddress;
         private int             _lastIpOctet;
 
-        public UdpBroadcast()
+        public UdpBroadcast(int port)
         {
             _udpClient = new UdpClient();
             _udpClient.EnableBroadcast = true;
+            _broadcastPort = port;
             
             GetLocalIPAddr();
         }
@@ -29,7 +30,9 @@ namespace WindowsFormsAppCamera
         {
             msg = $"n.n.n.{_lastIpOctet}:{msg}";
             var sendBytes = Encoding.ASCII.GetBytes(msg);
-            _udpClient.Send(sendBytes, sendBytes.Length, new IPEndPoint(IPAddress.Parse(_broadcastAddress), _broadcastPort));
+            _udpClient.Send(sendBytes, 
+                    sendBytes.Length, 
+                    new IPEndPoint(IPAddress.Parse(_broadcastAddress), _broadcastPort));
         }
 
         private void GetLocalIPAddr()
@@ -50,6 +53,5 @@ namespace WindowsFormsAppCamera
                 }
             }
         }
-
     }
 }

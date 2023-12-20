@@ -87,6 +87,7 @@ namespace WindowsFormsAppCamera
         private Thread          _threadWorker;
         private Thread          _threadLog;
         private Thread          _threadPinger;
+        private Thread          _threadUdpListener;
 
         private SerialPort      _sComPort;
         private const int       ComPortSpeed = 9600;
@@ -132,7 +133,9 @@ namespace WindowsFormsAppCamera
 
         private bool            _fDelayEMP = false;
 
+        public const int        _udpBroadcastPort = 9293;
         private UdpBroadcast    _udpBroadcast;
+        private TimedList       _timedList;
 
         #endregion
 
@@ -417,6 +420,32 @@ namespace WindowsFormsAppCamera
                 _heartbeatTimer = null;
             }
         }
+        private void UdpListenerThreadFunc()
+        {
+            return;
+
+            while (!_fKillThreads)
+            {
+                using (var udpClient = new UdpClient(_udpBroadcastPort))
+                {
+                    var RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, _udpBroadcastPort);
+                    //if (RemoteIpEndPoint.Address.Equals(IPAddress.Any))
+                    //    continue;
+
+                    while (!_fKillThreads)
+                    {
+                        try
+                        {
+                            byte[] receiveBytes = udpClient.Receive(ref RemoteIpEndPoint);
+                            string returnData = Encoding.ASCII.GetString(receiveBytes);
+
+                            var ti = new TimedItem(DateTime.Now, returnData, 0);
+                            _timedList.Add(ti);
+                        } catch { }
+                    }
+                }
+            }
+        }
 
         // Code to ping the local gateway and ubisoft every 30secs
         private void PingerThreadFunc()
@@ -530,11 +559,14 @@ namespace WindowsFormsAppCamera
             _threadWorker = new Thread(WorkerThreadFunc);
             _threadWorker.Start();
 
-            _threadLog = new Thread(UploadLogThreadFunc);
+            _threadLog = new Thread(UploadLogThreadFunc) { Priority = ThreadPriority.BelowNormal };
             _threadLog.Start();
 
-            _threadPinger = new Thread(PingerThreadFunc);
+            _threadPinger = new Thread(PingerThreadFunc) { Priority = ThreadPriority.BelowNormal };
             _threadPinger.Start();
+
+            //_threadUdpListener = new Thread(UdpListenerThreadFunc) { Priority = ThreadPriority.BelowNormal };
+            //_threadUdpListener.Start();
         }
 
         #endregion
