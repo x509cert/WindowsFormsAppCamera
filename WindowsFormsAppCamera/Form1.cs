@@ -133,9 +133,13 @@ namespace WindowsFormsAppCamera
 
         private bool            _fDelayEMP = false;
 
+        // this is the UDP broadcast info
         public const int        _udpBroadcastPort = 9293;
         private UdpBroadcast    _udpBroadcast;
         private TimedList       _timedList;
+
+        private int             _pid;
+        private int             _lastIpOctet;
 
         #endregion
 
@@ -422,26 +426,44 @@ namespace WindowsFormsAppCamera
         }
         private void UdpListenerThreadFunc()
         {
-            return;
-
+            var reIPLastOctet = new Regex(@"^n\.n\.n\.([0-9]+)", RegexOptions.Compiled);
+            
             while (!_fKillThreads)
             {
                 using (var udpClient = new UdpClient(_udpBroadcastPort))
-                {
-                    var RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, _udpBroadcastPort);
-                    //if (RemoteIpEndPoint.Address.Equals(IPAddress.Any))
-                    //    continue;
+                {    
+                    //udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, _udpBroadcastPort));
 
                     while (!_fKillThreads)
                     {
                         try
                         {
+                            var RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, _udpBroadcastPort);
                             byte[] receiveBytes = udpClient.Receive(ref RemoteIpEndPoint);
                             string returnData = Encoding.ASCII.GetString(receiveBytes);
 
+                            // drop the message if it's from the local machine
+                            var matchOctet = reIPLastOctet.Match(returnData);
+                            if (matchOctet.Success)
+                            {
+                                var lastOctet = matchOctet.Groups[1].Value;
+                                if (lastOctet.Length > 0)
+                                {
+                                    if (int.TryParse(lastOctet, out int octet))
+                                    {
+                                        if (octet == _lastIpOctet)
+                                            continue;
+                                    }
+                                }
+                                continue;
+                            }
+                                
+
                             var ti = new TimedItem(DateTime.Now, returnData, 0);
                             _timedList.Add(ti);
-                        } catch { }
+                        } catch {
+                            // ignore, this is not critical, but we don't want to crash the app
+                        }
                     }
                 }
             }
@@ -554,6 +576,9 @@ namespace WindowsFormsAppCamera
         {
             Trace.TraceInformation("StartAllThreads");
 
+            _pid = Process.GetCurrentProcess().Id;
+            (_, _lastIpOctet) = UdpBroadcast.GetLocalIPAddr();
+
             _fKillThreads = false;
 
             _threadWorker = new Thread(WorkerThreadFunc);
@@ -565,8 +590,8 @@ namespace WindowsFormsAppCamera
             _threadPinger = new Thread(PingerThreadFunc) { Priority = ThreadPriority.BelowNormal };
             _threadPinger.Start();
 
-            //_threadUdpListener = new Thread(UdpListenerThreadFunc) { Priority = ThreadPriority.BelowNormal };
-            //_threadUdpListener.Start();
+            _threadUdpListener = new Thread(UdpListenerThreadFunc) { Priority = ThreadPriority.BelowNormal };
+            _threadUdpListener.Start();
         }
 
         #endregion

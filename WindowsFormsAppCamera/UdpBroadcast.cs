@@ -22,8 +22,8 @@ namespace WindowsFormsAppCamera
             _udpClient = new UdpClient();
             _udpClient.EnableBroadcast = true;
             _broadcastPort = port;
-            
-            GetLocalIPAddr();
+
+            (_ipAddress, _lastIpOctet) = GetLocalIPAddr();
         }
 
         public void SendMessage(string msg)
@@ -35,23 +35,23 @@ namespace WindowsFormsAppCamera
                     new IPEndPoint(IPAddress.Parse(_broadcastAddress), _broadcastPort));
         }
 
-        private void GetLocalIPAddr()
+        static public (string, int) GetLocalIPAddr()
         {
-            string localIP = "";
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    localIP = ip.ToString();
-                    _ipAddress = localIP;
+                    var ipAddress = ip.ToString();
 
                     byte[] ipBytes = ip.GetAddressBytes();
-                    _lastIpOctet = ipBytes[ipBytes.Length - 1];
+                    var lastIpOctet = ipBytes[ipBytes.Length - 1];
 
-                    break;
+                    return (ipAddress, lastIpOctet);
                 }
             }
+
+            return (null, 0);
         }
     }
 }

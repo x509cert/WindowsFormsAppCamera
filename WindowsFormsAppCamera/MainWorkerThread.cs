@@ -103,8 +103,8 @@ namespace WindowsFormsAppCamera
                         // Send a SMS message
                         Trace.TraceInformation("Send Emergency SMS");
                         if (_fStopArduino == false &&
-                            _smsAlert != null     && 
-                            chkSmsAlerts.Checked  && 
+                            _smsAlert != null      && 
+                            chkSmsAlerts.Checked   && 
                             !_smsAlert.RaiseAlert($"Drones not detected {_dronesNotSeenCount} on {_smsAlert.MachineName} {DateTime.Now}"))
                                 WriteLog("SMS alert failed");
                     }
@@ -137,6 +137,7 @@ namespace WindowsFormsAppCamera
                     Graphics gd = Graphics.FromImage(bmp);
 
                     // define a rectangle for the text
+                    // yes, it's a series of magic numbers, but it works
                     gd.FillRectangle(
                         coolDownComplete ? Brushes.DarkGreen : Brushes.DarkBlue, 
                         2, 
