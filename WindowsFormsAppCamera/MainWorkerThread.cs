@@ -55,7 +55,7 @@ namespace WindowsFormsAppCamera
                 // using camera
                 if (_fUsingLiveScreen)
                 {
-                    _udpBroadcast.SendMessage("Live screen");
+                    _udpBroadcast?.SendMessage("Live screen");
 
                     // need to check that if drones have not been spotted for a while then
                     // throw out the EMP and deploy the turret
@@ -64,7 +64,7 @@ namespace WindowsFormsAppCamera
                     TimeSpan tSpan = DateTime.Now - dtLastDroneSpotted;
                     if (tSpan > _longestTimeBetweenDrones)
                     {
-                        _udpBroadcast.SendMessage("Drones not seen");
+                        _udpBroadcast?.SendMessage("Drones not seen");
                         _dronesNotSeenCount++;
 
                         Trace.TraceInformation($"Drone last seen over {tSpan.TotalSeconds}s ago, not seen count is {_dronesNotSeenCount}");
@@ -75,7 +75,7 @@ namespace WindowsFormsAppCamera
                             TriggerArduino("E");
                             TriggerArduino("T");
                             WriteLog("Emergency EMP and Turret deployed");
-                            _udpBroadcast.SendMessage("Emergency EMP/Turret");
+                            _udpBroadcast?.SendMessage("Emergency EMP/Turret");
                         }
 
                         // shutdown threashold is hit, but Arduino not stopped yet
@@ -83,7 +83,7 @@ namespace WindowsFormsAppCamera
                         {
                             Trace.TraceInformation("Drones not seen for a while, stopping Arduino");
                             WriteLog("Drones not seen for a while, stopping Arduino");
-                            _udpBroadcast.SendMessage("Drones not seen. Halting.");
+                            _udpBroadcast?.SendMessage("Drones not seen. Halting.");
 
                             _fStopArduino = true;
 
@@ -119,7 +119,7 @@ namespace WindowsFormsAppCamera
                         if (elapsedTime > _elapseBetweenDrones)
                         {
                             WriteLog("Ready for next drone scan");
-                            _udpBroadcast.SendMessage("Ready");
+                            _udpBroadcast?.SendMessage("Ready");
 
                             fDronesIncoming = false;
                         }
@@ -189,7 +189,7 @@ namespace WindowsFormsAppCamera
                     if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
                     {
                         Trace.TraceInformation("Drone Spotted");
-                        _udpBroadcast.SendMessage("Drones Spotted");
+                        _udpBroadcast?.SendMessage("Drones Spotted");
 
                         if (_fStopArduino == true)
                         {
@@ -214,7 +214,7 @@ namespace WindowsFormsAppCamera
 
                         // send out the EMP
                         WriteLog("Drones detected -> EMP");
-                        _udpBroadcast.SendMessage("EMP out");
+                        _udpBroadcast?.SendMessage("EMP sent");
                         TriggerArduino("E");
 
                         dtDronesStart = DateTime.Now;

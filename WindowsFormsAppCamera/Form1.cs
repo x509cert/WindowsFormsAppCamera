@@ -432,14 +432,12 @@ namespace WindowsFormsAppCamera
             {
                 using (var udpClient = new UdpClient(_udpBroadcastPort))
                 {    
-                    //udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, _udpBroadcastPort));
-
                     while (!_fKillThreads)
                     {
                         try
                         {
                             var RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, _udpBroadcastPort);
-                            byte[] receiveBytes = udpClient.Receive(ref RemoteIpEndPoint);
+                            var receiveBytes = udpClient.Receive(ref RemoteIpEndPoint);
                             string returnData = Encoding.ASCII.GetString(receiveBytes);
 
                             // drop the message if it's from the local machine
@@ -466,6 +464,8 @@ namespace WindowsFormsAppCamera
                         }
                     }
                 }
+
+                var x = 0;
             }
         }
 
@@ -590,8 +590,8 @@ namespace WindowsFormsAppCamera
             _threadPinger = new Thread(PingerThreadFunc) { Priority = ThreadPriority.BelowNormal };
             _threadPinger.Start();
 
-            _threadUdpListener = new Thread(UdpListenerThreadFunc) { Priority = ThreadPriority.BelowNormal };
-            _threadUdpListener.Start();
+            //_threadUdpListener = new Thread(UdpListenerThreadFunc) { Priority = ThreadPriority.BelowNormal };
+            //_threadUdpListener.Start();
         }
 
         #endregion
@@ -628,7 +628,7 @@ namespace WindowsFormsAppCamera
         // Stop the drone monitoring
         private void button3_Click(object sender, EventArgs e)
         {
-            _udpBroadcast.SendMessage("Stopped");
+            _udpBroadcast?.SendMessage("Stopped");
 
             btnStop.Enabled = false;
             btnStart.Enabled = true;
@@ -662,7 +662,7 @@ namespace WindowsFormsAppCamera
         private void btnToggleBlankOrLiveScreen_Click(object sender, EventArgs e)
         {
             var screenMode = _fUsingLiveScreen ? "To Blank" : "To Live";
-            _udpBroadcast.SendMessage(screenMode);
+            _udpBroadcast?.SendMessage(screenMode);
             WriteLog(screenMode);
             btnToggleBlankOrLiveScreen.Text = screenMode;
 
