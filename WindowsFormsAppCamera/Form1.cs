@@ -455,12 +455,12 @@ namespace WindowsFormsAppCamera
                                             continue;
                                     }
                                 }
-                                continue;
                             }
-                                
 
+                            // add the message to the list of messages from other divgrinds
                             var ti = new TimedItem(DateTime.Now, returnData, 0);
                             _timedList.Add(ti);
+
                         } catch {
                             // ignore, this is not critical, but we don't want to crash the app
                         }
