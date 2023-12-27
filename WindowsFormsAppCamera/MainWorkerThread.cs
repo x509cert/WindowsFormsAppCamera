@@ -55,8 +55,6 @@ namespace WindowsFormsAppCamera
                 // using camera
                 if (_fUsingLiveScreen)
                 {
-                    _udpBroadcast?.SendMessage("Live screen");
-
                     // need to check that if drones have not been spotted for a while then
                     // throw out the EMP and deploy the turret
                     // this is an emergency measure
