@@ -11,6 +11,7 @@ namespace WindowsFormsAppCamera
         public int LastCalibratedG { get; set; }
         public int LastCalibratedB { get; set; }
         public float ThreshHold { get; set; }
+        public int DroneDelay { get; set; }
         public bool UsingLiveScreen { get; set; }
 
         // camera and video mode are an index into the iterators returned by UsbCamera

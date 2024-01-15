@@ -517,7 +517,7 @@ namespace WindowsFormsAppCamera
             this.numDroneDelay.Size = new System.Drawing.Size(48, 20);
             this.numDroneDelay.TabIndex = 49;
             this.numDroneDelay.Value = new decimal(new int[] {
-            10,
+            12,
             0,
             0,
             0});

@@ -464,8 +464,6 @@ namespace WindowsFormsAppCamera
                         }
                     }
                 }
-
-                var x = 0;
             }
         }
 
