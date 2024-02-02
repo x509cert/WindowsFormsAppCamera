@@ -131,6 +131,7 @@ namespace WindowsFormsAppCamera
         // used to determine if we should
         // re-calibrate the camera as the light changes through the day
         private LumStream       _lumStream;
+        private const int       _maxRecalibrateTextFrames = 10;
 
         // shared memory for comms to the camera app
         private MMIo            _mmio;

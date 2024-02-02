@@ -36,12 +36,14 @@ namespace WindowsFormsAppCamera
         {
             // check timer first, only check every 2mins and 0secs
             var currentTime = DateTime.Now;
-            if (!(currentTime.Minute % 2 == 0 &&  currentTime.Second == 0))
+            //if (!(currentTime.Minute % 2 == 0 &&  currentTime.Second == 0))
+            if (currentTime.Second % 30 == 0)
                 return false;
 
             var modMeanOffset = CalculateModifiedMean() - 100;
-            
-            return modMeanOffset > Math.Abs(8);
+            var recalNeeded = modMeanOffset > Math.Abs(8);
+
+            return recalNeeded;
         }
 
         private double CalculateModifiedMean()
@@ -86,6 +88,8 @@ namespace WindowsFormsAppCamera
             int showDroneText = 0;
             int showNoDronesSeenText = 0;
 
+            int showRecalibrateCameraText = 0;
+
             // text that goes into the image and the rectangles in which they reside
             Font imageFont = new Font("Tahoma", 14);
 
@@ -95,6 +99,12 @@ namespace WindowsFormsAppCamera
             for (int i=0; i < _maxIncomingDronesFrames; i++)
                 colDronesIncomingFade[_maxIncomingDronesFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
+            // set the darkening yellow for "Reclibrate!"
+            var colRecalibrateCameraFade = new SolidBrush[_maxRecalibrateTextFrames];
+            const float ratio2 = 255 / (float)_maxRecalibrateTextFrames;
+            for (int i = 0; i < _maxRecalibrateTextFrames; i++)
+                colRecalibrateCameraFade[_maxRecalibrateTextFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio2 * i)), (int)(255 - (ratio2 * i)), 0));
+            
             // settings on the pen used to draw the hitbox
             _penHitBox.Width = 1;
             _penHitBox.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
@@ -252,16 +262,28 @@ namespace WindowsFormsAppCamera
                     {
                         _fNeedToRecalibrate = true;
                         _lumStream.Empty();
+
+                        Trace.TraceInformation("Recalibrate needed");
+                        _udpBroadcast?.SendMessage("Recalibrate needed");
                     }
                     
                     // only recal camera if the drones are not around
-                    if (_fNeedToRecalibrate && Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
+                    if (_fNeedToRecalibrate) 
                     {
-                        RecalibrateCamera();
-                        _fNeedToRecalibrate = false;
+                        if (Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
+                        {
+                            RecalibrateCamera();
+                            _fNeedToRecalibrate = false;
+                            showRecalibrateCameraText = _maxRecalibrateTextFrames;
 
-                        Trace.TraceInformation("Recalibrate camera");
-                        _udpBroadcast?.SendMessage("Recalibrate camera");
+                            Trace.TraceInformation("Recalibrate camera completed");
+                            _udpBroadcast?.SendMessage("Recalibrate camera completed");
+                        } 
+                        else
+                        {
+                            Trace.TraceInformation("Recalibrate not completed, drones around");
+                            _udpBroadcast?.SendMessage("Recalibrate not completed, drones around");
+                        }
                     }
 
                     // If drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
@@ -323,6 +345,16 @@ namespace WindowsFormsAppCamera
                         gd.DrawString("Drones Incoming!", new Font("Tahoma", 30), col, rect);
 
                         showDroneText--;
+                    }
+
+                    if (showRecalibrateCameraText > 0)
+                    {
+                        Trace.TraceInformation("Recalibrate Camera text");
+                        Rectangle rect = new Rectangle(180, 20 - (showRecalibrateCameraText * 4), bmp.Width, 100);
+                        SolidBrush col = colRecalibrateCameraFade[showRecalibrateCameraText - 1];
+                        gd.DrawString("Recalibrate!", new Font("Tahoma", 30), col, rect);
+
+                        showRecalibrateCameraText--;
                     }
 
                     // displays a small heart at the bottom right of the screen when the heartbeat is sent
