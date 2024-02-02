@@ -40,9 +40,6 @@ namespace WindowsFormsAppCamera
                 return false;
 
             var modMeanOffset = CalculateModifiedMean() - 100;
-
-            // once we have the data, we can empty the queue
-            Empty();
             
             return modMeanOffset > Math.Abs(8);
         }
@@ -252,7 +249,10 @@ namespace WindowsFormsAppCamera
                     // the camera as the ambient light changes through the day
                     _lumStream.Add(rbgDroneHitboxTotal.R);
                     if (_lumStream.CheckForCameraRecalibration())
+                    {
                         _fNeedToRecalibrate = true;
+                        _lumStream.Empty();
+                    }
                     
                     // only recal camera if the drones are not around
                     if (_fNeedToRecalibrate && Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
