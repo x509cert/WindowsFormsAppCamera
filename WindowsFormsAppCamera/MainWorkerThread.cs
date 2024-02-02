@@ -1,11 +1,75 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Threading;
 
 namespace WindowsFormsAppCamera
 {
+    public class LumStream
+    {
+        private Queue<double> queue;
+        private const int MaxSampleSize = 250;
+
+        public LumStream()
+        {
+            queue = new Queue<double>();
+        }
+
+        // add the luminosty from the red channel (ie; the percent, not the raw value)
+        public void Add(double lum)
+        {
+            if (queue.Count >= MaxSampleSize)
+            {
+                queue.Dequeue();
+                CalculateModifiedMean();
+            }
+
+            queue.Enqueue(lum);
+        }
+
+        public void Empty()
+        {
+            queue.Clear();
+        }
+
+        public bool DoWeNeedToRecalibrate()
+        {
+            // check timer first, only check every 2mins and 0secs
+            var currentTime = DateTime.Now;
+            if (!(currentTime.Minute % 2 == 0 &&  currentTime.Second == 0))
+                return false;
+
+            var modMeanOffset = CalculateModifiedMean() - 100;
+
+            // once we have the data, we can empty the queue
+            Empty();
+            
+            return modMeanOffset > Math.Abs(8);
+        }
+
+        private double CalculateModifiedMean()
+        {
+            if (!queue.Any())
+                return 100.0;
+
+            // get mean and stddev
+            double mean = queue.Average();
+            double sumOfSquaresOfDifferences = queue.Select(val => (val - mean) * (val - mean)).Sum();
+            double stdDev = Math.Sqrt(sumOfSquaresOfDifferences / queue.Count());
+
+            // Define outliers(here we use 2 standard deviations)
+            double lowerBound = mean - 2 * stdDev;
+            double upperBound = mean + 2 * stdDev;
+
+            // remove outliers
+            List<double> filteredNumbers = queue.Where(number => number >= lowerBound && number <= upperBound).ToList();
+
+            return filteredNumbers.Average();
+        }
+    }
     public partial class Form1
     {
         // a new thread function that does the core work, 
@@ -13,6 +77,7 @@ namespace WindowsFormsAppCamera
         private void WorkerThreadFunc()
         {
             _udpBroadcast = new UdpBroadcast(_udpBroadcastPort);
+            _lumStream = new LumStream();
 
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();
@@ -46,6 +111,9 @@ namespace WindowsFormsAppCamera
             // memory-mapped IO for sending details to the camera app
             _mmio = new MMIo();
             _mmio?.Write(txtName.Text);
+
+            // flag used to force a camera recalibration
+            bool _fNeedToRecalibrate = false;
 
             while (!_fKillThreads)
             {
@@ -177,13 +245,29 @@ namespace WindowsFormsAppCamera
                     // Write elapsed time to next drone check
                     gd.DrawString(droneCooldown, imageFont, _colorInfo, new Rectangle(xOffset, bmp.Height - 94, bmp.Width, 24));
 
-                    // draw the RGB charts
+                    // Draw the RGB charts
                     _chartR.Draw(_arrR, (byte)rbgDroneHitboxTotal.R, (byte)_cfg.LastCalibratedR); pictR.Image = _chartR.Bmp;
                     _chartG.Draw(_arrG, (byte)rbgDroneHitboxTotal.G, (byte)_cfg.LastCalibratedG); pictG.Image = _chartG.Bmp;
                     _chartB.Draw(_arrB, (byte)rbgDroneHitboxTotal.B, (byte)_cfg.LastCalibratedB); pictB.Image = _chartB.Bmp;
 
-                    // if drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
-                    // start the countdown for displaying the "incoming" text
+                    // Collect the Red channel luminosity% data so we can see if there's a need to recalibrate
+                    // the camera as the ambient light changes through the day
+                    _lumStream.Add(rbgDroneHitboxTotal.R);
+                    if (_lumStream.DoWeNeedToRecalibrate())
+                        _fNeedToRecalibrate = true;
+                    
+                    // only recal if the drones are not around
+                    if (_fNeedToRecalibrate && Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
+                    {
+                        RecalibrateCamera();
+                        _fNeedToRecalibrate = false;
+
+                        Trace.TraceInformation("Recalibrate camera");
+                        _udpBroadcast?.SendMessage("Recalibrate camera");
+                    }
+
+                    // If drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse
+                    // Also, start the countdown for displaying the "incoming" text
                     if (!fDronesIncoming && DronesSpotted(ref rbgDroneHitboxTotal))
                     {
                         Trace.TraceInformation("Drone Spotted");

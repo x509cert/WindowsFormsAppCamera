@@ -124,9 +124,7 @@
     <Compile Include="Hardware.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainWorkerThread.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="MainWorkerThread.cs" />
     <Compile Include="MemoryMappedIO.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

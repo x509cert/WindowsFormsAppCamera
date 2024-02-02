@@ -128,6 +128,10 @@ namespace WindowsFormsAppCamera
         private Chart           _chartR, _chartG, _chartB;
         private byte[]          _arrR, _arrG, _arrB;
 
+        // used to determine if we should
+        // re-calibrate the camera as the light changes through the day
+        private LumStream       _lumStream;
+
         // shared memory for comms to the camera app
         private MMIo            _mmio;
 
@@ -467,10 +471,11 @@ namespace WindowsFormsAppCamera
             }
         }
 
-        // Code to ping the local gateway and ubisoft every 30secs
+        // Code to ping the local gateway and remote server every 30secs
         private void PingerThreadFunc()
         {
             bool fPingProcessFailed = false;
+            var pingServer = "8.8.8.8";
 
             Trace.TraceInformation("PingerThreadFunc start");
             Thread.Sleep(_threadStartDelay);
@@ -495,7 +500,7 @@ namespace WindowsFormsAppCamera
                                 RedirectStandardOutput = true,
                                 FileName = "tracert",
                                 CreateNoWindow = true,
-                                Arguments = "-h 2 -d ubisoft.com",
+                                Arguments = $"-h 2 -d {pingServer}",
                                 WindowStyle = ProcessWindowStyle.Hidden
                             }
                         };
@@ -539,11 +544,11 @@ namespace WindowsFormsAppCamera
                             ? $"Ping: {_gatewayIp} failed, and returned NULL"
                             : $"Ping: {_gatewayIp}  {replyGateway.Status} {replyGateway.RoundtripTime}ms");
 
-                        Trace.TraceInformation("PingerThreadFunc -> ping ubisoft");
-                        PingReply replyRemote = pingSender.Send("ubisoft.com", 10000);
+                        Trace.TraceInformation($"PingerThreadFunc -> ping {pingServer}");
+                        PingReply replyRemote = pingSender.Send(pingServer, 10000);
                         WriteLog(replyRemote == null
-                            ? "Ping: ubisoft.com failed, and returned NULL"
-                            : $"Ping: ubisoft.com {replyRemote.Status} {replyRemote.RoundtripTime}ms");
+                            ? $"Ping: {pingServer} failed, and returned NULL"
+                            : $"Ping: {pingServer} {replyRemote.Status} {replyRemote.RoundtripTime}ms");
                     } 
                     catch (Exception ex)
                     {
@@ -771,6 +776,11 @@ namespace WindowsFormsAppCamera
 
         // The Calibrate Button
         private void btnCalibrate_Click(object sender, EventArgs e)
+        {
+            RecalibrateCamera();
+        }
+
+        private void RecalibrateCamera()
         {
             // read the camera
             Bitmap bmp = _camera.GetBitmap();
