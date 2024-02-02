@@ -111,7 +111,7 @@ namespace WindowsFormsAppCamera
                                 _longestTimeBetweenDrones = new TimeSpan(0, 0, 31); // longest time we can go without seeing a drone, used to send out an emergency EMP
 
         private int             _heartBeatSent;
-        private const int       _maxIncomingFrames = 10;
+        private const int       _maxIncomingDronesFrames = 10;
 
         // use this to keep track of how many times we have not seen a drone,
         // if the count exceeds a threshold, stop the arduino messages until we see the drones again

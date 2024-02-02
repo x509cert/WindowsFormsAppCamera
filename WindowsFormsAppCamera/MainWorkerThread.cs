@@ -22,10 +22,7 @@ namespace WindowsFormsAppCamera
         public void Add(double lum)
         {
             if (queue.Count >= MaxSampleSize)
-            {
                 queue.Dequeue();
-                CalculateModifiedMean();
-            }
 
             queue.Enqueue(lum);
         }
@@ -35,7 +32,7 @@ namespace WindowsFormsAppCamera
             queue.Clear();
         }
 
-        public bool DoWeNeedToRecalibrate()
+        public bool CheckForCameraRecalibration()
         {
             // check timer first, only check every 2mins and 0secs
             var currentTime = DateTime.Now;
@@ -60,12 +57,13 @@ namespace WindowsFormsAppCamera
             double sumOfSquaresOfDifferences = queue.Select(val => (val - mean) * (val - mean)).Sum();
             double stdDev = Math.Sqrt(sumOfSquaresOfDifferences / queue.Count());
 
-            // Define outliers(here we use 2 standard deviations)
+            // Define outliers(use 2 standard deviations, might adjust)
             double lowerBound = mean - 2 * stdDev;
             double upperBound = mean + 2 * stdDev;
 
             // remove outliers
-            List<double> filteredNumbers = queue.Where(number => number >= lowerBound && number <= upperBound).ToList();
+            List<double> filteredNumbers 
+                = queue.Where(number => number >= lowerBound && number <= upperBound).ToList();
 
             return filteredNumbers.Average();
         }
@@ -95,10 +93,10 @@ namespace WindowsFormsAppCamera
             Font imageFont = new Font("Tahoma", 14);
 
             // sets the darkening red for "Drones Incoming"
-            var colDronesIncomingFade = new SolidBrush[_maxIncomingFrames];
-            const float ratio = 255 / (float)_maxIncomingFrames;
-            for (int i=0; i < _maxIncomingFrames; i++)
-                colDronesIncomingFade[_maxIncomingFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
+            var colDronesIncomingFade = new SolidBrush[_maxIncomingDronesFrames];
+            const float ratio = 255 / (float)_maxIncomingDronesFrames;
+            for (int i=0; i < _maxIncomingDronesFrames; i++)
+                colDronesIncomingFade[_maxIncomingDronesFrames - i - 1] = new SolidBrush(Color.FromArgb((int)(255 - (ratio * i)), 0, 0));
 
             // settings on the pen used to draw the hitbox
             _penHitBox.Width = 1;
@@ -253,10 +251,10 @@ namespace WindowsFormsAppCamera
                     // Collect the Red channel luminosity% data so we can see if there's a need to recalibrate
                     // the camera as the ambient light changes through the day
                     _lumStream.Add(rbgDroneHitboxTotal.R);
-                    if (_lumStream.DoWeNeedToRecalibrate())
+                    if (_lumStream.CheckForCameraRecalibration())
                         _fNeedToRecalibrate = true;
                     
-                    // only recal if the drones are not around
+                    // only recal camera if the drones are not around
                     if (_fNeedToRecalibrate && Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
                     {
                         RecalibrateCamera();
@@ -301,7 +299,7 @@ namespace WindowsFormsAppCamera
 
                         dtDronesStart = DateTime.Now;
                         fDronesIncoming = true;
-                        showDroneText = _maxIncomingFrames; // display the drone text for a small number of frames
+                        showDroneText = _maxIncomingDronesFrames; // display the drone text for a small number of frames
 
                         // we have seen a drone, so kill the SMS cooldown
                         _smsAlert?.ResetCooldown();
