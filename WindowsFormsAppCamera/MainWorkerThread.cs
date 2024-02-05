@@ -252,7 +252,9 @@ namespace WindowsFormsAppCamera
                     _chartG.Draw(_arrG, (byte)rbgDroneHitboxTotal.G, (byte)_cfg.LastCalibratedG); pictG.Image = _chartG.Bmp;
                     _chartB.Draw(_arrB, (byte)rbgDroneHitboxTotal.B, (byte)_cfg.LastCalibratedB); pictB.Image = _chartB.Bmp;
 
-                    // Add a recalibration check here
+                    // Recalibrating the mean value for the red channel
+                    // only check every 3 seconds, and about every 5 mins there is enough
+                    // data to recalibrate the mean
                     if ((DateTime.Now.Second & 3) == 0)
                     {
                         int newMean = adjustMean.AddAndCheckMean(rbgDroneHitboxTotal.R);
