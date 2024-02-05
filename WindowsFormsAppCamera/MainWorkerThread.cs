@@ -254,7 +254,7 @@ namespace WindowsFormsAppCamera
 
                     // Recalibrating the mean value for the red channel
                     // only check every 3 seconds, and about every 5 mins there is enough
-                    // data to recalibrate the mean
+                    // data to recalibrate the mean. 
                     if ((DateTime.Now.Second & 3) == 0)
                     {
                         int newMean = adjustMean.AddAndCheckMean(rbgDroneHitboxTotal.R);
