@@ -8,63 +8,72 @@ using System.Threading;
 
 namespace WindowsFormsAppCamera
 {
-    public class LumStream
+    public class AutoAdjustMean
     {
-        private Queue<double> queue;
-        private const int MaxSampleSize = 250;
+        private List<long> _valueR = new List<long>();
+        private const int _maxCount = 100;
 
-        public LumStream()
+        public int AddAndCheckMean(long val)
         {
-            queue = new Queue<double>();
+            double ret = 0;
+
+            _valueR.Add(val);
+            if (_valueR.Count > _maxCount)
+            {
+                _valueR.Sort();
+                ret = CalculateFilteredMean();
+                _valueR.Clear();
+            }
+
+            return (int)ret;
         }
-
-        // add the luminosty from the red channel (ie; the percent, not the raw value)
-        public void Add(double lum)
+        private static double Quantile(List<long> sortedData, double percentile)
         {
-            if (queue.Count >= MaxSampleSize)
-                queue.Dequeue();
+            double position = (sortedData.Count + 1) * percentile;
+            double leftNumber, rightNumber;
 
-            queue.Enqueue(lum);
+            double fraction = position - Math.Floor(position);
+
+            if (position >= 1)
+            {
+                leftNumber = sortedData[(int)Math.Floor(position) - 1];
+                rightNumber = sortedData[(int)Math.Floor(position)];
+            }
+            else
+            {
+                return sortedData[0];
+            }
+
+            if (leftNumber != rightNumber)
+            {
+                return leftNumber + (rightNumber - leftNumber) * fraction;
+            }
+            else
+            {
+                return leftNumber;
+            }
         }
-
-        public void Empty()
+        private double CalculateFilteredMean()
         {
-            queue.Clear();
-        }
+            // Assuming data is already sorted
+            double q1 = Quantile(_valueR, 0.25);
+            double q3 = Quantile(_valueR, 0.75);
 
-        public bool CheckForCameraRecalibration()
-        {
-            // check timer first, only check every 2mins and 0secs
-            var currentTime = DateTime.Now;
-            if (!(currentTime.Minute % 2 == 0 &&  currentTime.Second == 0))
-                return false;
+            // Calculate IQR
+            double iqr = q3 - q1;
 
-            var modMeanOffset = CalculateModifiedMean() - 100;
-            
-            return modMeanOffset > Math.Abs(8);
-        }
+            // Define outlier thresholds
+            double lowerBound = q1 - 1.5 * iqr;
+            double upperBound = q3 + 1.5 * iqr;
 
-        private double CalculateModifiedMean()
-        {
-            if (!queue.Any())
-                return 100.0;
+            // Filter out outliers
+            var filteredData = _valueR.Where(x => x >= lowerBound && x <= upperBound).ToList();
 
-            // get mean and stddev
-            double mean = queue.Average();
-            double sumOfSquaresOfDifferences = queue.Select(val => (val - mean) * (val - mean)).Sum();
-            double stdDev = Math.Sqrt(sumOfSquaresOfDifferences / queue.Count());
-
-            // Define outliers(use 2 standard deviations, might adjust)
-            double lowerBound = mean - 2 * stdDev;
-            double upperBound = mean + 2 * stdDev;
-
-            // remove outliers
-            List<double> filteredNumbers 
-                = queue.Where(number => number >= lowerBound && number <= upperBound).ToList();
-
-            return filteredNumbers.Average();
+            // Calculate the mean of the filtered data
+            return filteredData.Count != 0 ? filteredData.Average() : 0;
         }
     }
+
     public partial class Form1
     {
         // a new thread function that does the core work, 
@@ -72,7 +81,6 @@ namespace WindowsFormsAppCamera
         private void WorkerThreadFunc()
         {
             _udpBroadcast = new UdpBroadcast(_udpBroadcastPort);
-            _lumStream = new LumStream();
 
             Trace.TraceInformation("Main WorkerThreadStart");
             Trace.Indent();
@@ -107,8 +115,7 @@ namespace WindowsFormsAppCamera
             _mmio = new MMIo();
             _mmio?.Write(txtName.Text);
 
-            // flag used to force a camera recalibration
-            bool _fNeedToRecalibrate = false;
+            AutoAdjustMean adjustMean = new AutoAdjustMean();
 
             while (!_fKillThreads)
             {
@@ -245,23 +252,16 @@ namespace WindowsFormsAppCamera
                     _chartG.Draw(_arrG, (byte)rbgDroneHitboxTotal.G, (byte)_cfg.LastCalibratedG); pictG.Image = _chartG.Bmp;
                     _chartB.Draw(_arrB, (byte)rbgDroneHitboxTotal.B, (byte)_cfg.LastCalibratedB); pictB.Image = _chartB.Bmp;
 
-                    // Collect the Red channel luminosity% data so we can see if there's a need to recalibrate
-                    // the camera as the ambient light changes through the day
-                    _lumStream.Add(rbgDroneHitboxTotal.R);
-                    if (_lumStream.CheckForCameraRecalibration())
+                    // Add a recalibration check here
+                    if ((DateTime.Now.Second & 3) == 0)
                     {
-                        _fNeedToRecalibrate = true;
-                        _lumStream.Empty();
-                    }
-                    
-                    // only recal camera if the drones are not around
-                    if (_fNeedToRecalibrate && Math.Abs(rbgDroneHitboxTotal.R - 100) <= 5)
-                    {
-                        RecalibrateCamera();
-                        _fNeedToRecalibrate = false;
+                        int newMean = adjustMean.AddAndCheckMean(rbgDroneHitboxTotal.R);
 
-                        Trace.TraceInformation("Recalibrate camera");
-                        _udpBroadcast?.SendMessage("Recalibrate camera");
+                        var s = $"Changing calibration mean from {_cfg.LastCalibratedR} to {newMean}";
+                        Trace.TraceInformation(s);
+                        _udpBroadcast?.SendMessage(s);
+
+                        _cfg.LastCalibratedR = newMean; 
                     }
 
                     // If drones spotted and not on drone-check-cooldown then trigger the Arduino to hold EMP pulse

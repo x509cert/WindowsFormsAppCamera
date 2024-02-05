@@ -128,10 +128,6 @@ namespace WindowsFormsAppCamera
         private Chart           _chartR, _chartG, _chartB;
         private byte[]          _arrR, _arrG, _arrB;
 
-        // used to determine if we should
-        // re-calibrate the camera as the light changes through the day
-        private LumStream       _lumStream;
-
         // shared memory for comms to the camera app
         private MMIo            _mmio;
 
